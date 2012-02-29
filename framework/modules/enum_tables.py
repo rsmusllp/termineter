@@ -23,8 +23,8 @@ from c1218.data import Read
 from c1219.data import C1219_TABLES
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
@@ -33,8 +33,8 @@ class Module(module_template):
 		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
 	
 	def run(self, frmwk, args):
-		lower_boundary = self.options.getOptionValue('LOWER')
-		upper_boundary = self.options.getOptionValue('UPPER')
+		lower_boundary = self.options['LOWER']
+		upper_boundary = self.options['UPPER']
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():
 			logger.warning('meter login failed')

@@ -20,14 +20,14 @@
 from framework.options import Options
 
 class module_template:
-	def __init__(self):
+	def __init__(self, directories):
 		self.name = 'unknown'
 		self.version = 0
 		self.author = ['anonymous']
 		self.description = 'This module is undocumented.'
 		self.detailed_description = 'This module is undocumented.'
-		self.options = Options()
-		self.advanced_options = Options()
+		self.options = Options(directories)
+		self.advanced_options = Options(directories)
 
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' ' + self.name + ' >'

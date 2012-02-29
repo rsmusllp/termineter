@@ -62,14 +62,14 @@ class Framework():
 		main_file_handler.setLevel(logging.DEBUG)
 		main_file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)-50s %(levelname)-10s %(message)s"))
 		logging.getLogger('').addHandler(main_file_handler)
-		self.options = Options()
+		self.options = Options(self.directories)
 		self.options.addBoolean('USECOLOR', 'enable color on the console interface', default = False)
 		self.options.addString('CONNECTION', 'serial connection string', True)
 		self.options.addString('USERNAME', 'serial username', default = '0000')
 		self.options.addInteger('USERID', 'serial userid', default = 2)
 		self.options.addString('PASSWORD', 'serial c12.18 password', default = '00000000000000000000')
 		self.options.addBoolean('PASSWORDHEX', 'if the password is in hex', default = True)
-		self.advanced_options = Options()
+		self.advanced_options = Options(self.directories)
 		self.advanced_options.addInteger('BAUDRATE', 'serial connection baud rate', default = 9600)
 		self.advanced_options.addInteger('BYTESIZE', 'serial connection byte size', default = serial.EIGHTBITS)
 		self.advanced_options.addInteger('STOPBITS', 'serial connection stop bits', default = serial.STOPBITS_ONE)
@@ -98,7 +98,7 @@ class Framework():
 			module_name = module_name[:-3]
 			self.logger.debug('loading module: ' + module_name)
 			module = __import__(self.__package__ + '.modules.' + module_name, None, None, ['Module'])
-			module_instance = module.Module()
+			module_instance = module.Module(self.directories)
 			if not isinstance(module_instance, module_template):
 				self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
 				continue
@@ -117,7 +117,7 @@ class Framework():
 	
 	@property
 	def use_colors(self):
-		return self.options.getOptionValue('USECOLOR')
+		return self.options['USECOLOR']
 	
 	@use_colors.setter
 	def use_colors(self, value):
@@ -127,13 +127,13 @@ class Framework():
 		return logging.getLogger(self.__package__ + '.modules.' + name)
 
 	def print_error(self, message):
-		if self.options.getOptionValue('USECOLOR'):
+		if self.options['USECOLOR']:
 			print '\033[1;31m[-] \033[1;m' + (os.linesep + '\033[1;31m[-] \033[1;m').join(message.split(os.linesep))
 		else:
 			print '[-] ' + (os.linesep + '[-] ').join(message.split(os.linesep))
 
 	def print_good(self, message):
-		if self.options.getOptionValue('USECOLOR'):
+		if self.options['USECOLOR']:
 			print '\033[1;32m[+] \033[1;m' + (os.linesep + '\033[1;32m[+] \033[1;m').join(message.split(os.linesep))
 		else:
 			print '[+] ' + (os.linesep + '[+] ').join(message.split(os.linesep))
@@ -142,7 +142,7 @@ class Framework():
 		print message
 
 	def print_status(self, message):
-		if self.options.getOptionValue('USECOLOR'):
+		if self.options['USECOLOR']:
 			print '\033[1;34m[*] \033[1;m' + (os.linesep + '\033[1;34m[*] \033[1;m').join(message.split(os.linesep))
 		else:
 			print '[*] ' + (os.linesep + '[*] ').join(message.split(os.linesep))
@@ -188,18 +188,18 @@ class Framework():
 
 	def serial_connect(self):
 		frmwk_serial_settings = {'parity':serial.PARITY_NONE,
-			'baudrate': self.advanced_options.getOptionValue('BAUDRATE'),
-			'bytesize': self.advanced_options.getOptionValue('BYTESIZE'),
+			'baudrate': self.advanced_options['BAUDRATE'],
+			'bytesize': self.advanced_options['BYTESIZE'],
 			'xonxoff': False,
 			'interCharTimeout': None,
 			'rtscts': False,
 			'timeout': 1,
-			'stopbits': self.advanced_options.getOptionValue('STOPBITS'),
+			'stopbits': self.advanced_options['STOPBITS'],
 			'dsrdtr': False,
 			'writeTimeout': None}
-		self.logger.info('opening serial device: ' + self.options.getOptionValue('CONNECTION'))
+		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
 		try:
-			self.serial_connection = Connection(self.options.getOptionValue('CONNECTION'), frmwk_serial_settings)
+			self.serial_connection = Connection(self.options['CONNECTION'], frmwk_serial_settings)
 		except:
 			self.logger.error('could not open the serial device')
 			self.print_error('Could not open the serial device')
@@ -216,10 +216,10 @@ class Framework():
 		return True
 	
 	def serial_login(self):
-		username = self.options.getOptionValue('USERNAME')
-		userid = self.options.getOptionValue('USERID')
-		password = self.options.getOptionValue('PASSWORD')
-		if self.options.getOptionValue('PASSWORDHEX'):
+		username = self.options['USERNAME']
+		userid = self.options['USERID']
+		password = self.options['PASSWORD']
+		if self.options['PASSWORDHEX']:
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 			if hex_regex.match(password) == None:
 				self.print_error('Invalid characters in password')

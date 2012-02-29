@@ -24,14 +24,14 @@ import os
 import re
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'
-		self.options.addBoolean('USEHEX', 'values in word list are in hex', default = False)
-		self.options.addString('DICTIONARY', 'dictionary of passwords to try', required = True)
+		self.options.addBoolean('USEHEX', 'values in word list are in hex', default = True)
+		self.options.addRFile('DICTIONARY', 'dictionary of passwords to try', required = True, default = '$DATA_PATH smeter_passwords.txt')
 		self.options.addString('USERNAME', 'user name to attempt to log in as', default = '0000')
 		self.options.addInteger('USERID', 'user id to attempt to log in as', default = 1)
 	

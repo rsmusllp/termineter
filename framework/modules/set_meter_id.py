@@ -20,8 +20,8 @@
 from framework.templates import module_template
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Set The Meter\'s I.D.'
@@ -29,7 +29,7 @@ class Module(module_template):
 		self.options.addString('METERID', 'value to set the meter id to', True)
 	
 	def run(self, frmwk, args):
-		meterid = self.options.getOptionValue('METERID')
+		meterid = self.options['METERID']
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():
 			logger.warning('meter login failed')

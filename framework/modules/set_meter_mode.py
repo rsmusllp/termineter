@@ -23,8 +23,8 @@ from c1219.errors import C1219ProcedureError
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Change the Meter\'s Operating Mode'
@@ -33,7 +33,7 @@ class Module(module_template):
 	
 	def run(self, frmwk, args):
 		logger = frmwk.get_module_logger(self.name)
-		mode = self.options.getOptionValue('MODE')
+		mode = self.options['MODE']
 		mode = mode.upper()
 		mode = mode.replace('_', '')
 		mode = mode.replace(' ', '')

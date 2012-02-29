@@ -21,8 +21,8 @@ from framework.templates import module_template
 from c1218.errors import C1218ReadTableError
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Get Basic Meter Information By Reading Tables'

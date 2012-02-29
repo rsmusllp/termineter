@@ -248,12 +248,12 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		longest_value = 10
 		for option_name, option_def in module.options.items():
 			longest_name = max(longest_name, len(option_name))
-			longest_value = max(longest_value, len(str(module.options.getOptionValue(option_name))))
+			longest_value = max(longest_value, len(str(module.options[option_name])))
 		fmt_string = "  {0:<" + str(longest_name) + "} {1:<" + str(longest_value) + "} {2}"
 		self.print_line(fmt_string.format('Name', 'Value', 'Description'))
 		self.print_line(fmt_string.format('----', '-----', '------------'))
 		for option_name in module.options.keys():
-			option_value = module.options.getOptionValue(option_name)
+			option_value = module.options[option_name]
 			if option_value == None:
 				option_value = ''
 			option_desc = module.options.getOptionHelp(option_name)
@@ -427,13 +427,13 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			longest_value = 10
 			for option_name, option_def in options.items():
 				longest_name = max(longest_name, len(option_name))
-				longest_value = max(longest_value, len(str(options.getOptionValue(option_name))))
+				longest_value = max(longest_value, len(str(options[option_name])))
 			fmt_string = "  {0:<" + str(longest_name) + "} {1:<" + str(longest_value) + "} {2}"
 			
 			self.print_line(fmt_string.format('Name', 'Value', 'Description'))
 			self.print_line(fmt_string.format('----', '-----', '------------'))
 			for option_name in options.keys():
-				option_value = options.getOptionValue(option_name)
+				option_value = options[option_name]
 				if option_value == None:
 					option_value = ''
 				option_desc = options.getOptionHelp(option_name)

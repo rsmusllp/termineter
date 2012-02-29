@@ -22,8 +22,8 @@ from c1218.utils import find_strings
 from c1218.errors import C1218ReadTableError
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Read Data From A C12.19 Table'
@@ -31,7 +31,7 @@ class Module(module_template):
 		self.options.addInteger('TABLEID', 'table to read from', True)
 	
 	def run(self, frmwk, args):
-		tableid = self.options.getOptionValue('TABLEID')
+		tableid = self.options['TABLEID']
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():
 			logger.warning('meter login failed')

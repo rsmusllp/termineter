@@ -23,8 +23,8 @@ from framework.templates import module_template
 from c1218.errors import C1218WriteTableError
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Write Data To A C12.19 Table'
@@ -35,11 +35,11 @@ class Module(module_template):
 		self.options.addInteger('OFFSET', 'offset to start writing data at', required = False, default = None)
 	
 	def run(self, frmwk, args):
-		tableid = self.options.getOptionValue('TABLEID')
-		data = self.options.getOptionValue('DATA')
-		offset = self.options.getOptionValue('OFFSET')
+		tableid = self.options['TABLEID']
+		data = self.options['DATA']
+		offset = self.options['OFFSET']
 		logger = frmwk.get_module_logger(self.name)
-		if self.options.getOptionValue('USEHEX'):
+		if self.options['USEHEX']:
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 			if hex_regex.match(data) == None:
 				frmwk.print_error('Non-hex characters found in \'DATA\'')

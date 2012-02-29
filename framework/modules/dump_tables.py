@@ -25,8 +25,8 @@ from c1219.data import C1219_TABLES
 from c1218.errors import C1218ReadTableError
 
 class Module(module_template):
-	def __init__(self):
-		module_template.__init__(self)
+	def __init__(self, *args, **kwargs):
+		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Dump Readable C12.19 Tables From The Device To A CSV File'
@@ -36,9 +36,9 @@ class Module(module_template):
 		self.options.addString('FILE', 'file to write the csv data into', default = 'smart_meter_tables.csv')
 	
 	def run(self, frmwk, args):
-		lower_boundary = self.options.getOptionValue('LOWER')
-		upper_boundary = self.options.getOptionValue('UPPER')
-		out_file = open(self.options.getOptionValue('FILE'), 'w', 1)
+		lower_boundary = self.options['LOWER']
+		upper_boundary = self.options['UPPER']
+		out_file = open(self.options['FILE'], 'w', 1)
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():
 			logger.warning('meter login failed')

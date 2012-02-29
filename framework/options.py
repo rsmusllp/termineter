@@ -18,33 +18,48 @@
 #  MA 02110-1301, USA.
 
 class Options(dict):
+	def __init__(self, directories):
+		dict.__init__(self)
+		self.directories = directories
+	
+	def __getitem__(self, name):
+		options_def = dict.__getitem__(self, name)
+		return options_def[3]
+	
 	def addString(self, name, help, required = True, default = None):
-		self.__setitem__(name, (str, help, required, default))
-		
+		self.__setitem__(name, ('str', help, required, default))
+	
 	def addInteger(self, name, help, required = True, default = None):
-		self.__setitem__(name, (int, help, required, default))
-
+		self.__setitem__(name, ('int', help, required, default))
+	
 	def addFloat(self, name, help, required = True, default = None):
-		self.__setitem__(name, (float, help, required, default))
-		
+		self.__setitem__(name, ('flt', help, required, default))
+	
 	def addBoolean(self, name, help, required = True, default = None):
-		self.__setitem__(name, (bool, help, required, default))
+		self.__setitem__(name, ('bool', help, required, default))
+	
+	def addRFile(self, name, help, required = True, default = None):
+		if isinstance(default, str):
+			default = default.replace('$USER_DATA ', self.directories.user_data)
+			default = default.replace('$MODULES_PATH ', self.directories.modules_path)
+			default = default.replace('$DATA_PATH ', self.directories.data_path)
+		self.__setitem__(name, ('rfile', help, required, default))
 	
 	def setOption(self, name, value):
 		if self.__contains__(name) == False:
 			raise ValueError('invalid variable\option name')
-		options_def = self.__getitem__(name)
-		if options_def[0] == str:
+		options_def = dict.__getitem__(self, name)
+		if options_def[0] in [ 'str', 'rfile' ]:
 			pass
-		elif options_def[0] == int:
+		elif options_def[0] == 'int':
 			if not value.isdigit():
 				raise TypeError('invalid value type')
 			value = int(value)
-		elif options_def[0] == float:
+		elif options_def[0] == 'flt':
 			if not value.replace('.').isdigit():
 				raise TypeError('invalid value type')
 			value = float(value)
-		elif options_def[0] == bool:
+		elif options_def[0] == 'bool':
 			if value.lower() in ['true', '1', 'on']:
 				value = True
 			elif value.lower() in ['false', '0', 'off']:
@@ -65,11 +80,11 @@ class Options(dict):
 	def getOptionValue(self, name):
 		if self.__contains__(name) == False:
 			raise ValueError('invalid variable\option name')
-		options_def = self.__getitem__(name)
+		options_def = dict.__getitem__(self, name)
 		return options_def[3]
 	
 	def getOptionHelp(self, name):
 		if self.__contains__(name) == False:
 			raise ValueError('invalid variable\option name')
-		options_def = self.__getitem__(name)
+		options_def = dict.__getitem__(self, name)
 		return options_def[1]
