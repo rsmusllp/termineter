@@ -115,6 +115,33 @@ class Framework():
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Loaded Modules: ' + str(len(self.modules)) + ', Serial Connected: ' + str(self.is_serial_connected()) + ' >'
 	
+	def reload_module(self, module_name = None):
+		if module_name == None:
+			if self.current_module != None:
+				module_name = self.current_module
+			else:
+				self.logger.warning('must specify module if not module is currently being used')
+				return False
+		if not module_name + '.py' in os.listdir(self.directories.modules_path):
+			self.logger.error('invalid module name requested for reload')
+			return False
+		self.logger.info('reloading module: ' + module_name)
+		module = __import__(self.__package__ + '.modules.' + module_name, None, None, ['Module'])
+		reload(module)
+		module_instance = module.Module(self.directories)
+		if not isinstance(module_instance, module_template):
+			self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
+			raise Exception('module: ' + module_name + ' is not derived from the module_template class')
+		if not hasattr(module_instance, 'run'):
+			self.logger.error('module: ' + module_name + ' has no run() function')
+			raise Exception('module: ' + module_name + ' has no run() function')
+		if not isinstance(module_instance.options, Options) or not isinstance(module_instance.advanced_options, Options):
+			self.logger.error('module: ' + module_name + ' options and advanced_options must be Options instances')
+			raise Exception('options and advanced_options must be Options instances')
+		module_instance.name = module_name
+		self.modules[module_name] = module_instance
+		return True
+	
 	@property
 	def use_colors(self):
 		return self.options['USECOLOR']

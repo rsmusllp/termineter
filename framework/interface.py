@@ -293,6 +293,26 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			sys.stdin = os.fdopen(savestdin, 'r', 0)
 			sys.stdout = os.fdopen(savestdout, 'w', 0)
 			sys.stderr = os.fdopen(savestderr, 'w', 0)
+	
+	def do_reload(self, args):
+		"""Reload a module in to the framework"""
+		args = args.split(' ')
+		if args[0] == '':
+			if self.frmwk.current_module:
+				module_name = self.frmwk.current_module
+			else:
+				self.print_error('Must \'use\' module first')
+				return
+		elif not args[0] in self.frmwk.modules.keys():
+			self.print_error('Invalid Module Selected.')
+			return
+		else:
+			module_name = args[0]
+		self.frmwk.reload_module(module_name)
+		self.print_status('Successfully reloaded module: ' + module_name)
+	
+	def complete_reload(self, text, line, begidx, endidx):
+		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
 		
 	def do_run(self, args):
 		"""Run the currently selected module"""
