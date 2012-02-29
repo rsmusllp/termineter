@@ -1,0 +1,46 @@
+##########################################################
+#   ______                    _            __            #
+#  /_  __/__  _________ ___  (_)___  ___  / /____  _____ #
+#   / / / _ \/ ___/ __ `__ \/ / __ \/ _ \/ __/ _ \/ ___/ #
+#  / / /  __/ /  / / / / / / / / / /  __/ /_/  __/ /     #
+# /_/  \___/_/  /_/ /_/ /_/_/_/ /_/\___/\__/\___/_/      #
+#                                                        #
+##########################################################
+
+== Summary ==
+Termineter is a framework written in python to provide a platform for
+the security testing of smart meters.  It implements the C1218 and C1219
+protocols for communication.  Currently supportted are Meters using 
+C1219-2007 with 7-bit character sets.  Termineter communicates with 
+Smart Meters via a connection using an ANSI type-2 optical probe with a
+serial interface.
+
+== License ==
+Copyright (C) 2011, Spencer J. McIntyre
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+This license does not apply to the following components:
+ * CrcMoose
+
+== About ==
+Author: Spencer McIntyre <smcintyre [at] securestate [dot] net>
+Author Home Page: http://www.securestate.com/
+
+== Install ==
+For install information please see the INSTALL file.
+The PySerial library is required and can be found here:
+http://pyserial.sourceforge.net/

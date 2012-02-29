@@ -1,0 +1,16 @@
+Termineter INSTALL
+
+Requirements:
+	Python >= 2.6
+	PySerial (http://pyserial.sourceforge.net/)
+
+How To Install Termineter (Windows):
+	No installation or modification is necessary.  Start a command
+	prompt, navigate to the termineter directory and use python to run
+	termineter.py
+
+How To Install Termineter (Linux):
+	Installation is recommended, but not required. Run the included
+	install.sh script.  It takes a single optional argument as the path
+	to install the framework to.  If this option  is omitted, the
+	framework and all necessary files are installed to /opt.
