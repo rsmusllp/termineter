@@ -106,6 +106,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	
 	def __init__(self, check_rc_file = True):
 		OverrideCmd.__init__(self)										# this adds the code from the cmd.Cmd.__init__ as inherited by OverrideCmd so it's appended to instead of overwritten
+		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
 		self.frmwk = Framework()
@@ -137,6 +138,30 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	def do_banner(self, args):
 		"""Print the banner"""
 		self.print_line(self.intro)
+	
+	def do_cd(self, args):
+		"""Change the current working directory"""
+		path = args.split(' ')[0]
+		if path == '':
+			self.print_error('must specify a path')
+			return
+		if not os.path.isdir(path):
+			self.print_error('invalid path')
+			return
+		os.chdir(path)
+
+	def complete_cd(self, text, line, begidx, endidx):
+		path = line.split(' ')[-1]
+		if path[-1] != os.sep:
+			text = path.split(os.sep)[-1]
+			path = os.sep.join(path.split(os.sep)[:-1])
+		else:
+			text = ''
+		if len(path):
+			path = os.path.realpath(path)
+		else:
+			path = os.getcwd() + os.sep
+		return [i for i in os.listdir(path) if i.startswith(text)]
 	
 	def do_connect(self, args):
 		"""Connect the serial interface"""
