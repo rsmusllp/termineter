@@ -75,6 +75,9 @@ class Framework():
 		self.advanced_options.addInteger('STOPBITS', 'serial connection stop bits', default = serial.STOPBITS_ONE)
 		if sys.platform.startswith('linux'):
 			self.options.setOption('USECOLOR', 'True')
+		if not os.path.isdir(self.directories.data_path):
+			self.logger.critical('path to data not found')
+			raise FrameworkConfigurationError('path to data not found')
 		modules_path = self.directories.modules_path
 		self.logger.debug('searching for modules in: ' + modules_path)
 		self.current_module = None

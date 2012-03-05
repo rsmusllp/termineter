@@ -25,7 +25,7 @@ from c1219.data import C1219_TABLES
 class Module(module_template):
 	def __init__(self, *args, **kwargs):
 		module_template.__init__(self, *args, **kwargs)
-		self.version = 1
+		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
@@ -40,10 +40,13 @@ class Module(module_template):
 			logger.warning('meter login failed')
 		conn = frmwk.serial_connection
 		
+		frmwk.print_status('Enumerating tables, please wait...')
+		tables_found = 0
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
 			data = self.getTableDataEx(conn, tableid, 4)
 			if data[0] == '\x00':
 				frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
+				tables_found += 1
 			else:
 				logger.info('received nak/error code: ' + str(ord(data[0])))
 			while not conn.stop():
@@ -55,6 +58,7 @@ class Module(module_template):
 			while not conn.login():
 				sleep(0.5)
 			sleep(0.25)
+		frmwk.print_status('Found ' + str(tables_found) + ' table(s).')
 		return
 
 	def getTableDataEx(self, conn, tableid, octetcount = 244):

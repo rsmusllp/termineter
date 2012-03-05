@@ -150,11 +150,12 @@ class Connection:
 		return True
 	
 	def stop(self):
-		self.send('\x21')
-		data = self.recv()
-		if data == '\x00':
-			self.__initialized__ = False
-			return True
+		if self.__initialized__ == True:
+			self.send('\x21')
+			data = self.recv()
+			if data == '\x00':
+				self.__initialized__ = False
+				return True
 		return False
 	
 	def login(self, username = '0000', userid = 2, password = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'):
@@ -220,7 +221,10 @@ class Connection:
 	
 	def getMeterInfo(self):
 		info = {}
-		data = self.getTableData(0)
+		try:
+			data = self.getTableData(0)
+		except C1218ReadTableError:
+			data = ''
 		if len(data) >= 16:
 			info['Character Encoding'] = {1:'ISO/IEC 646 (7-bit)', 2:'ISO 8859/1 (Latin 1)', 3:'UTF-8', 4:'UTF-16', 5:'UTF-32'}.get((ord(data[0]) & 14) >> 1) or 'Unknown'
 			info['Device Type'] = {0:'Gas', 1:'Water', 2:'Electric'}.get(ord(data[7])) or str(ord(data[7]))	# The field is officially called 'NAMEPLATE_TYPE'
@@ -228,14 +232,17 @@ class Connection:
 		else:
 			self.logger.warning('failed to retreive contents of the general configuration table (table #0)')
 		
-		data = self.getTableData(1)
+		try:
+			data = self.getTableData(1)
+		except C1218ReadTableError:
+			data = ''
 		if len(data) >= 16:
 			info['Manufacturer'] = data[0:4].rstrip()
 			info['Model'] = data[4:12].rstrip()
 			info['Hardware Version'] = str(ord(data[12])) + '.' + str(ord(data[13]))
 			info['Firmware Version'] = str(ord(data[14])) + '.' + str(ord(data[15]))
 			if len(data) == 32:
-				info['Serial Number'] = data[16:].rstrip()
+				info['Serial Number'] = data[16:].strip()
 			elif len(data) == 24:
 				self.logger.warning('serial number was returned in BCD format, which is not yet supported')
 			else:
@@ -243,7 +250,10 @@ class Connection:
 		else:
 			self.logger.warning('failed to retreive contents of the general manufacturer identification table (table #1)')
 
-		data = self.getTableData(3)
+		try:
+			data = self.getTableData(3)
+		except C1218ReadTableError:
+			data = ''
 		if len(data) >= 5:
 			modes = []
 			mode_flags = ord(data[0])
@@ -263,8 +273,11 @@ class Connection:
 				info['Status Flags'] = ', '.join(status)
 		else:
 			self.logger.warning('failed to retreive contents of the end device mode status table (table #3)')
-
-		data = find_strings(self.getTableData(5))
+		
+		try:
+			data = find_strings(self.getTableData(5))
+		except C1218ReadTableError:
+			data = ''
 		if len(data):
 			info['Device ID'] = data[0].strip()
 		else:

@@ -321,7 +321,10 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		if args[0] in self.frmwk.modules.keys():
 			old_module = self.frmwk.current_module
 			self.frmwk.current_module = args[0]
-			del(args[0])
+			if len(args) > 1:
+				del(args[0])
+			else:
+				args[0] = ''
 		if self.frmwk.current_module == None:
 			self.print_error('Must \'use\' module first')
 			return
