@@ -57,6 +57,11 @@ class Connection:
 	
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Device: ' + self.serial_h.name + ' >'
+	
+	def flush(self):
+		self.logger.info('flushing I/O buffers')
+		self.serial_h.flushOutput()
+		self.serial_h.flushInput()
 		
 	def send(self, data):
 		if not isinstance(data, Packet):
@@ -80,7 +85,7 @@ class Connection:
 				self.loggerio.warning('received a NACK after writing data')
 			elif response == '':
 				self.loggerio.error('received empty response after writing data')
-				sleep(0.25)
+				sleep(0.10)
 			elif response != ACK:
 				self.loggerio.error('received unknown response: ' + hex(ord(response)) + ' after writing data')
 			else:
@@ -89,13 +94,17 @@ class Connection:
 		raise C1218IOError('failed 3 times to correctly send a frame')
 	
 	def recv(self):
-		for pktcount in xrange(0, 3):
+		payloadbuffer = ''
+		tries = 3
+		while tries:
 			tmpbuffer = self.serial_h.read(1)
 			if tmpbuffer != '\xee':
 				self.loggerio.error('did not receive \\xee as the first byte of the frame')
 				self.loggerio.debug('received \\x' + tmpbuffer.encode('hex') + ' instead')
+				tries -= 1
 				continue
 			tmpbuffer += self.serial_h.read(3)
+			sequence = ord(tmpbuffer[-1])
 			length = self.serial_h.read(2)
 			tmpbuffer += length
 			length = unpack('>H', length)[0]
@@ -106,11 +115,15 @@ class Connection:
 				self.serial_h.write(ACK)
 				data = tmpbuffer + chksum
 				self.loggerio.debug('received frame, length: ' + str(len(data)) + ' data: ' + hexlify(data))
-				return payload
+				payloadbuffer += payload
+				if sequence == 0:
+					return payloadbuffer
+				else:
+					tries = 3
 			else:
 				self.serial_h.write(NACK)
 				self.loggerio.warning('crc does not match on received frame')
-				continue	# try again
+				tries -= 1
 		self.loggerio.critical('failed 3 times to correctly receive a frame')
 		raise C1218IOError('failed 3 times to correctly receive a frame')
 	
@@ -298,8 +311,8 @@ class Connection:
 			if len(data) == 0:
 				self.logger.error('could not read table id: ' + str(tableid) + ', error: no data was returned')
 				raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: no data was returned')
-			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length')
-			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length')
+			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length (less than 4)')
+			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length (less than 4)')
 		length = unpack('>H', data[1:3])[0]
 		chksum = data[-1]
 		data = data[3:-1]
@@ -325,7 +338,7 @@ class Connection:
 	def runProcedure(self, process_number, std_vs_mfg, params = ''):
 		seqnum = randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' sequence number: ' + str(seqnum))
-		procedure_request = str(c1219ProcedureInit('<', process_number, std_vs_mfg, 0, seqnum, params))
+		procedure_request = str(c1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
 		self.setTableData(7, procedure_request)
 		
 		response = self.getTableData(8)

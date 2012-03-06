@@ -27,7 +27,7 @@ from c1218.errors import C1218ReadTableError
 class Module(module_template):
 	def __init__(self, *args, **kwargs):
 		module_template.__init__(self, *args, **kwargs)
-		self.version = 1
+		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Dump Readable C12.19 Tables From The Device To A CSV File'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter and write them out to a CSV formated file for analysis. The format is table id, table name, table data length, table data.  The table data is represented in hex.'
@@ -56,14 +56,6 @@ class Module(module_template):
 				# format is: table id, table name, table data length, table data
 				out_file.write(','.join([str(tableid), (C1219_TABLES.get(tableid) or 'UNKNOWN'), str(len(data)), data.encode('hex')]) + os.linesep)
 				number_of_tables += 1
-			while not conn.stop():
-				sleep(0.5)
-			sleep(0.25)
-			while not conn.start():
-				sleep(0.5)
-			sleep(0.25)
-			while not conn.login():
-				sleep(0.5)
 		
 		out_file.close()
 		frmwk.print_status('Successfully copied ' + str(number_of_tables) + ' tables to disk.')

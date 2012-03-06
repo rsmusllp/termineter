@@ -242,7 +242,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
 	
 	def complete_logging(self, text, line, begidx, endidx):
-		return [i for i in ['set', 'show'] if i.startswith(text)]
+		return [i for i in ['set', 'show', 'debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text)]
 	
 	def do_info(self, args):
 		"""Show module information"""

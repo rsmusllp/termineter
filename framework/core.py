@@ -66,7 +66,7 @@ class Framework():
 		self.options.addBoolean('USECOLOR', 'enable color on the console interface', default = False)
 		self.options.addString('CONNECTION', 'serial connection string', True)
 		self.options.addString('USERNAME', 'serial username', default = '0000')
-		self.options.addInteger('USERID', 'serial userid', default = 2)
+		self.options.addInteger('USERID', 'serial userid', default = 0)
 		self.options.addString('PASSWORD', 'serial c12.18 password', default = '00000000000000000000')
 		self.options.addBoolean('PASSWORDHEX', 'if the password is in hex', default = True)
 		self.advanced_options = Options(self.directories)
