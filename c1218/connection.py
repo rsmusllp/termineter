@@ -171,8 +171,8 @@ class Connection:
 				return True
 		return False
 	
-	def login(self, username = '0000', userid = 2, password = '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'):
-		if len(password) > 20:
+	def login(self, username = '0000', userid = 0, password = None):
+		if password != None and len(password) > 20:
 			self.logger.error('password longer than 20 characters received')
 			raise Exception('password longer than 20 characters, login failed')
 		
@@ -181,12 +181,13 @@ class Connection:
 		if data != '\x00':
 			self.logger.error('login failed, user name and user id rejected')
 			return False
-			
-		self.send(Security(password))
-		data = self.recv()
-		if data != '\x00':
-			self.logger.error('login failed, password rejected')
-			return False
+		
+		if password != None:
+			self.send(Security(password))
+			data = self.recv()
+			if data != '\x00':
+				self.logger.error('login failed, password rejected')
+				return False
 		
 		self.logged_in = True
 		return True
@@ -200,36 +201,28 @@ class Connection:
 		return False
 	
 	def setMeterID(self, newid):
-		self.send(Read(2133, 0, 244))
-		data = self.recv()
-		
-		self.send(Write(7, '\x46\x08\x1b\x00\x0b\x0c\x09\x0f\x12'))	# I think this is GE I-210 specific
-		data = self.recv()
-		if data != '\x00':
-			self.logger.critical('received incorrect response to message 6')
-			return 6
-		
-		self.getTableData(8)
-		
 		self.send(Write(5, (newid + (' ' * (18 - len(newid)))), 2))
 		data = self.recv()
 		if data != '\x00':
-			self.logger.critical('received incorrect response to message 8')
-			return 8
+			self.logger.error('received error when writing to table #5, response: ' + (ERROR_CODE_DICT.get(ord(data[0])) or 'unknown response code'))
+			return 1
 		
 		self.send(Write(7, '\x46\x08\x1c\x03\x0b\x0c\x09\x0f\x12'))	# same with this
 		data = self.recv()
 		if data != '\x00':
-			self.logger.critical('received incorrect response to message 9')
+			self.logger.error('received incorrect response to message 9')
 		
-		self.send(Read(5, 2, 20))
-		data = self.recv()
-		if len(data) < 20 or data[0] != '\x00':
-			self.logger.critical('received incorrect response to message 10')
-		if data[3:-3].rstrip() != newid:
+		try:
+			data = find_strings(self.getTableData(5))
+		except C1218ReadTableError:
+			return 2
+		if not len(data):
+			self.logger.error('no 7-bit strings found in table 5')
+			return 2
+		if data[0].strip() != newid:
 			self.logger.error('new id was not set')
-		else:
-			self.logger.info('device id was successfully set to: ' + newid)
+			return 3
+		self.logger.info('device id was successfully set to: ' + newid)
 		return 0
 	
 	def getMeterInfo(self):

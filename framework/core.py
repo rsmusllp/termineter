@@ -28,7 +28,7 @@ from serial.serialutil import SerialException
 from framework.options import Options
 from framework.templates import module_template
 from c1218.connection import Connection
-from c1218.errors import C1218IOError
+from c1218.errors import *
 
 DEFAULT_SERIAL_SETTINGS = {'parity': serial.PARITY_NONE, 'baudrate': 9600, 'bytesize': serial.EIGHTBITS, 'xonxoff': False, 'interCharTimeout': None, 'rtscts': False, 'timeout': 1, 'stopbits': serial.STOPBITS_ONE, 'dsrdtr': False, 'writeTimeout': None}
 
@@ -217,6 +217,14 @@ class Framework():
 		return True
 
 	def serial_connect(self):
+		username = self.options['USERNAME']
+		userid = self.options['USERID']
+		if len(username) > 10:
+			self.logger.error('username cannot be longer than 10 characters')
+			raise FrameworkConfigurationError('username cannot be longer than 10 characters')
+		if not (0 <= userid <= 0xffff):
+			self.logger.error('user id must be between 0 and 0xffff')
+			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
 		frmwk_serial_settings = {'parity':serial.PARITY_NONE,
 			'baudrate': self.advanced_options['BAUDRATE'],
 			'bytesize': self.advanced_options['BYTESIZE'],
@@ -228,19 +236,41 @@ class Framework():
 			'dsrdtr': False,
 			'writeTimeout': None}
 		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
+		
 		try:
 			self.serial_connection = Connection(self.options['CONNECTION'], frmwk_serial_settings)
-		except:
+		except Exception as error:
 			self.logger.error('could not open the serial device')
-			self.print_error('Could not open the serial device')
-			return False
+			raise error
+		
 		try:
 			self.serial_connection.start()
-			self.serial_connection.stop()
-		except C1218IOError:
+			if not self.serial_connection.login(username, userid):
+				self.logger.error('the meter has rejected the username and userid')
+				raise FrameworkConfigurationError('the meter has rejected the username and userid')
+		except C1218IOError as error:
 			self.logger.error('serial connection has been opened but the meter is unresponsive')
-			self.print_error('Serial connection has been opened but the meter is unresponsive')
-			return False
+			raise error
+		
+		try:
+			general_config_table = self.serial_connection.getTableData(0)
+		except C1218ReadTableError as error:
+			self.logger.error('serial connection as been opened but the general configuration table (table #0) could not be read')
+			raise error
+		
+		if (ord(general_config_table[0]) & 1):
+			self.logger.info('setting the connection to use big-endian for C1219 data')
+			self.serial_connection.c1219_endian = '>'
+		else:
+			self.logger.info('setting the connection to use little-endian for C1219 data')
+			self.c1219_endian = '<'
+		
+		try:
+			self.serial_connection.stop()
+		except C1218IOError as error:
+			self.logger.error('serial connection has been opened but the meter is unresponsive')
+			raise error
+		
 		self.__serial_connected__ = True
 		self.logger.warning('the serial interface has been connected')
 		return True
