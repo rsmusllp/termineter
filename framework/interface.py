@@ -195,10 +195,12 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			if missing_options:
 				self.print_error('The following options must be set: ' + ', '.join(missing_options))
 				return
-			if self.frmwk.serial_connect():
-				self.print_good('Successfully reconnected and the device is responding')
-			else:
-				self.print_error('An error occured while reopening the serial interface')
+			try:
+				result = self.frmwk.serial_connect()
+			except Exception as error:
+				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+				return
+			self.print_good('Successfully reconnected and the device is responding')
 	
 	def do_exit(self, args):
 		"""Exit The Interpreter"""

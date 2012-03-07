@@ -23,3 +23,11 @@ class C1219ProcedureError(Exception):
 	
 	def __str__(self):
 		return repr(self.message)
+
+class C1219ParseError(Exception):
+	def __init__(self, msg, tableid = None):
+		self.message = msg
+		self.tableid = tableid
+	
+	def __str__(self):
+		return repr(self.message)
