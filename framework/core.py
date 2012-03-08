@@ -28,7 +28,7 @@ from serial.serialutil import SerialException
 from framework.options import Options
 from framework.templates import module_template
 from c1218.connection import Connection
-from c1218.errors import *
+from c1218.errors import C1218IOError, C1218ReadTableError
 
 DEFAULT_SERIAL_SETTINGS = {'parity': serial.PARITY_NONE, 'baudrate': 9600, 'bytesize': serial.EIGHTBITS, 'xonxoff': False, 'interCharTimeout': None, 'rtscts': False, 'timeout': 1, 'stopbits': serial.STOPBITS_ONE, 'dsrdtr': False, 'writeTimeout': None}
 

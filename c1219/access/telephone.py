@@ -24,7 +24,7 @@
 #  methods should work.
 
 from struct import pack, unpack
-from c1219.data import *
+from c1219.constants import *
 from c1219.errors import C1219ParseError
 
 class C1219TelephoneAccess(object):	# Corresponds To Decade 9x

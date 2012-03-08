@@ -24,7 +24,6 @@ import code
 import logging
 import traceback
 from random import randint
-from c1218.errors import *
 from framework.options import Options
 from framework.core import Framework, FrameworkConfigurationError
 

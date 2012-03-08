@@ -25,9 +25,9 @@ import logging
 import serial
 from c1218.data import *
 from c1218.utils import find_strings, data_chksum_str
-from c1218.errors import *
-from c1219.data import *
-from c1219.errors import *
+from c1218.errors import C1218IOError, C1218ReadTableError, C1218WriteTableError
+from c1219.data import c1219ProcedureInit
+from c1219.errors import C1219ProcedureError
 
 ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Insufficient Security Clearance)', 4:'onp (Operation Not Possible)', 5:'iar (Inappropriate Action Requested)', 6:'bsy (Device Busy)', 7:'dnr (Data Not Ready)', 8:'dlk (Data Locked)', 9:'rno (Renegotiate Request)', 10:'isss (Invalid Service Sequence State)'}
 

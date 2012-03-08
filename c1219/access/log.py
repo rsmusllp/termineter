@@ -24,12 +24,12 @@
 #  methods should work.
 
 from struct import pack, unpack
-from c1219.data import *
+from c1219.constants import *
+from c1219.data import getHistoryEntryRcd
 from c1219.errors import C1219ParseError
 
 class C1219LogAccess(object):		# Corresponds To Decade 7x
 	def __init__(self, conn):
-		self.__version__ = '12'
 		self.conn = conn
 		general_config_table = self.conn.getTableData(GEN_CONFIG_TBL)
 		actual_log_table = self.conn.getTableData(ACT_LOG_TBL)
@@ -42,7 +42,6 @@ class C1219LogAccess(object):		# Corresponds To Decade 7x
 		if len(history_log_data_table) < 11:
 			raise C1219ParseError('expected to read more data from HISTORY_LOG_DATA_TBL', HISTORY_LOG_DATA_TBL)
 		
-		info = {}
 		### Parse GEN_CONFIG_TBL ###
 		tm_format = ord(general_config_table[1]) & 7
 		std_version_no = ord(general_config_table[11])
