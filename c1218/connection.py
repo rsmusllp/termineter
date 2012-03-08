@@ -33,6 +33,8 @@ ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Ins
 
 class Connection:
 	__toggle_bit__ = False
+	# TODO add in the ability to cache a few read-only tables, such as the general config table
+	# Read only tables to cache: 0, 1
 	def __init__(self, device, settings = None, toggle_control = True):
 		self.logger = logging.getLogger('c1218.connection')
 		self.loggerio = logging.getLogger('c1218.connection.io')
@@ -290,7 +292,7 @@ class Connection:
 			self.logger.warning('failed to retreive contents of the device identification table (table #5)')
 		return info
 	
-	def getTableData(self, tableid, octetcount = 244, offset = 0):
+	def getTableData(self, tableid, octetcount = None, offset = None):
 		"""Read from a table"""
 		self.send(Read(tableid, offset, octetcount))
 		data = self.recv()

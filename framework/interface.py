@@ -90,8 +90,11 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
 		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
 		intro += os.linesep
-		intro += '  <[ ' + self.__name__ + ' v' + __version__ + os.linesep
-		intro += '  <[ loaded modules: ' + str(len(self.frmwk.modules)) + os.linesep
+		fmt_string = "  <[ {0:<16} {1:>8}"
+		intro += fmt_string.format(self.__name__, 'v' + __version__) + os.linesep
+		#intro += '' + self.__name__ + ' v' + __version__ + os.linesep
+		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
+		#intro += '  <[ loaded modules: ' + str(len(self.frmwk.modules)) + os.linesep
 		return intro
 	
 	@property

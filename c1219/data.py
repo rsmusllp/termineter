@@ -20,6 +20,18 @@
 import time
 from struct import pack, unpack
 
+GEN_CONFIG_TBL = 0
+ACT_LOG_TBL = 71
+HISTORY_LOG_DATA_TBL = 74
+ACT_TELEPHONE_TBL = 91
+GLOBAL_PARAMETERS_TBL = 92
+ORIGINATE_PARAMETERS_TBL = 93
+ORIGINATE_SCHEDULE_TBL = 94
+ANSWER_PARAMETERS_TBL = 95
+CALL_PURPOSE_TBL = 96
+CALL_STATUS_TBL = 97
+ORIGINATE_STATUS_TBL = 98
+
 C1219_TABLES = {
 	0: 'General Configuration Table',
 	1: 'General Manufacturer Identification Table',
@@ -218,6 +230,21 @@ C1219_EVENT_CODES = {
 	74: 'Read Secured Register',
 	75: 'Read Secured Table (with values)',
 	76: 'Read Secured Register (with values)'
+}
+
+C1219_CALL_STATUS_FLAGS = {
+	0:  'No phone call made',
+	1:  'Phone call in progress',
+	2:  'Dialing',
+	3:  'Waiting for a connection',
+	4:  'Communicating',
+	5:  'Completed normally',
+	6:  'Not completed',
+	7:  'Not completed, Line busy',
+	8:  'Not completed, No dial tone',
+	9:  'Not completed, Line cut',
+	10: 'Not completed, No Connection',
+	11: 'Not completed, No modem response'
 }
 
 LTIME_LENGTH = {0:0, 1:6, 2:6, 3:5, 4:4}
