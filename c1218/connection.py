@@ -35,7 +35,7 @@ class Connection:
 	__toggle_bit__ = False
 	# TODO add in the ability to cache a few read-only tables, such as the general config table
 	# Read only tables to cache: 0, 1
-	def __init__(self, device, settings = None, toggle_control = True):
+	def __init__(self, device, settings = None, toggle_control = True, enable_cache = True):
 		self.logger = logging.getLogger('c1218.connection')
 		self.loggerio = logging.getLogger('c1218.connection.io')
 		self.toggle_control = toggle_control
@@ -56,6 +56,11 @@ class Connection:
 		self.logged_in = False
 		self.__initialized__ = False
 		self.c1219_endian = '<'
+		self.caching_enabled = enable_cache
+		self.__cacheable_tbls__ = [0, 1]
+		self.__tbl_cache__ = {}
+		if enable_cache:
+			self.logger.info('selective table caching has been enabled')
 	
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Device: ' + self.serial_h.name + ' >'
@@ -294,6 +299,9 @@ class Connection:
 	
 	def getTableData(self, tableid, octetcount = None, offset = None):
 		"""Read from a table"""
+		if self.caching_enabled and tableid in self.__cacheable_tbls__ and tableid in self.__tbl_cache__.keys():
+			self.logger.info('returning cached table #' + str(tableid))
+			return self.__tbl_cache__[tableid]
 		self.send(Read(tableid, offset, octetcount))
 		data = self.recv()
 		status = data[0]
@@ -317,6 +325,9 @@ class Connection:
 		if data_chksum_str(data) != chksum:
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid check sum')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid checksum')
+		if self.caching_enabled and tableid in self.__cacheable_tbls__ and not tableid in self.__tbl_cache__.keys():
+			self.logger.info('cacheing table #' + str(tableid))
+			self.__tbl_cache__[tableid] = data
 		return data
 
 	def setTableData(self, tableid, data, offset = None):

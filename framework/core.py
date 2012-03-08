@@ -238,7 +238,7 @@ class Framework():
 		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
 		
 		try:
-			self.serial_connection = Connection(self.options['CONNECTION'], frmwk_serial_settings)
+			self.serial_connection = Connection(self.options['CONNECTION'], frmwk_serial_settings, enable_cache = True)
 		except Exception as error:
 			self.logger.error('could not open the serial device')
 			raise error
