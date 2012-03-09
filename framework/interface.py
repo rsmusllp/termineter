@@ -91,9 +91,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		intro += os.linesep
 		fmt_string = "  <[ {0:<16} {1:>8}"
 		intro += fmt_string.format(self.__name__, 'v' + __version__) + os.linesep
-		#intro += '' + self.__name__ + ' v' + __version__ + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
-		#intro += '  <[ loaded modules: ' + str(len(self.frmwk.modules)) + os.linesep
 		return intro
 	
 	@property
@@ -308,7 +306,10 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	
 	def do_ipy(self, args):
 		"""Start an interactive Python interpreter"""
-		vars = {'frmwk':self.frmwk, '__version__':__version__}
+		from c1219.access.general import C1219GeneralAccess
+		from c1219.access.log import C1219LogAccess
+		from c1219.access.telephone import C1219TelephoneAccess
+		vars = {'__version__':__version__, 'frmwk':self.frmwk, 'C1219GeneralAccess':C1219GeneralAccess, 'C1219LogAccess':C1219LogAccess, 'C1219TelephoneAccess':C1219TelephoneAccess}
 		banner = 'The Framework Instance Is In The Variable \'frmwk\'' + os.linesep
 		if self.frmwk.serial_connection != None:
 			vars['conn'] = self.frmwk.serial_connection

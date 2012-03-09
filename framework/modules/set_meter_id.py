@@ -18,6 +18,7 @@
 #  MA 02110-1301, USA.
 
 from framework.templates import module_template
+from c1219.access.general import C1219GeneralAccess
 
 class Module(module_template):
 	def __init__(self, *args, **kwargs):
@@ -34,11 +35,20 @@ class Module(module_template):
 		if not frmwk.serial_login():
 			logger.warning('meter login failed')
 		conn = frmwk.serial_connection
-		errCode = conn.setMeterID(meterid)
-		conn.stop()
-		
-		if errCode == 0:
-			frmwk.print_good('Device ID Successfully Set To: ' + meterid)
+		genCtl = C1219GeneralAccess(conn)
+		if genCtl.id_form == 0:
+			logger.info('device id stored in 20 byte string')
+			if len(meterid) > 20:
+				frmwk.print_error('METERID length exceeds the allowed 20 bytes')
+				return
 		else:
-			frmwk.print_error('There was an error while trying to set the id')
+			logger.info('device id stored in BCD(10)')
+			if len(meterid) > 10:
+				frmwk.print_error('METERID length exceeds the allowed 10 bytes')
+				return
+		if genCtl.set_device_id(meterid):
+			frmwk.print_error('Could not set the Meter\'s ID')
+		else:
+			frmwk.print_status('Successfully updated the Meter\'s ID to: ' + meterid)
+		conn.stop()
 		return

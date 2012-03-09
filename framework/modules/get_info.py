@@ -19,6 +19,7 @@
 
 from framework.templates import module_template
 from c1218.errors import C1218ReadTableError
+from c1219.access.general import C1219GeneralAccess
 
 class Module(module_template):
 	def __init__(self, *args, **kwargs):
@@ -33,13 +34,45 @@ class Module(module_template):
 		if not frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed')
 		conn = frmwk.serial_connection
-		meter_info = {}
+		
 		try:
-			meter_info = conn.getMeterInfo()
-		except C1218ReadTableError as error:
-			logger.error('caught C1218ReadTableError: ' + str(error))
-			frmwk.print_error('Caught C1218ReadTableError: ' + str(error))
+			generalCtl = C1219GeneralAccess(conn)
+		except C1218ReadTableError:
+			frmwk.print_error('Could not read necessary tables, logging may not be enabled')
+			return
 		conn.stop()
-		for name, value in meter_info.iteritems():
-			frmwk.print_status(name + ' = ' + value)
+		
+		meter_info = {}
+		meter_info['Character Encoding'] = generalCtl.char_format
+		meter_info['Device Type'] = generalCtl.nameplate_type
+		meter_info['C12.19 Version'] =  {0:'Pre-release', 1:'C12.19-1997', 2:'C12.19-2007'}.get(generalCtl.std_version_no) or 'Unknown'
+		meter_info['Manufacturer'] = generalCtl.manufacturer
+		meter_info['Model'] = generalCtl.ed_model
+		meter_info['Hardware Version'] = str(generalCtl.hw_version_no) + '.' + str(generalCtl.hw_revision_no)
+		meter_info['Firmware Version'] = str(generalCtl.fw_version_no) + '.' + str(generalCtl.fw_revision_no)
+		meter_info['Serial Number'] = generalCtl.mfg_serial_no
+		
+		modes = []
+		flags = ['Metering', 'Test Mode', 'Meter Shop Mode', 'Factory']
+		for i in range(len(flags)):
+			if generalCtl.ed_mode & (2 ** i):
+				modes.append(flags[i])
+		if len(modes):
+			meter_info['Mode Flags'] = ', '.join(modes)
+		
+		status = []
+		flags = ['Unprogrammed', 'Configuration Error', 'Self Check Error', 'RAM Failure', 'ROM Failure', 'Non Volatile Memory Failure', 'Clock Error', 'Measurement Error', 'Low Battery', 'Low Loss Potential', 'Demand Overload', 'Power Failure', 'Tamper Detect', 'Reverse Rotation']
+		for i in range(len(flags)):
+			if generalCtl.std_status & (2 ** i):
+				status.append(flags[i])
+		if len(status):
+			meter_info['Status Flags'] = ', '.join(status)
+		meter_info['Device ID'] = generalCtl.device_id
+		
+		frmwk.print_status('General Information:')
+		fmt_string = "    {0:.<38}.{1}"
+		keys = meter_info.keys()
+		keys.sort()
+		for key in keys:
+			frmwk.print_status(fmt_string.format(key, meter_info[key]))
 		return
