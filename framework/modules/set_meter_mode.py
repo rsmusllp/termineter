@@ -46,7 +46,7 @@ class Module(module_template):
 		
 		if not frmwk.serial_login():
 			logger.warning('meter login failed')
-			frmwk.print_error('meter login failed')
+			frmwk.print_error('Meter login failed, can not execute procedure')
 			return
 		
 		logger.info('setting mode to: ' + mode)
@@ -54,9 +54,9 @@ class Module(module_template):
 		
 		mode = mode_dict[mode]
 		conn = frmwk.serial_connection
-		data = ''
+		errCode, data = None, ''
 		try:
-			data = conn.runProcedure(6, False, chr(mode))
+			errCode, data = conn.runProcedure(6, False, chr(mode))
 			frmwk.print_good('Sucessfully Changed The Mode')
 		except C1218ReadTableError as error:
 			logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))

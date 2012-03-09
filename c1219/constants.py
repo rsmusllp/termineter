@@ -213,6 +213,16 @@ C1219_EVENT_CODES = {
 	76: 'Read Secured Register (with values)'
 }
 
+C1219_PROC_RESULT_CODES = {
+	0: 'Procedure completed',
+	1: 'Procedure accepted but not fully completed',
+	2: 'Invalid parameter for known procedure, procedure was ignored',
+	3: 'Procedure conflicts with current device setup, procedure was ignored',
+	4: 'Timing constraint, procedure was ignored',
+	5: 'No authorization for requested procedure, procedure was ignored',
+	6: 'Unrecognized procedure, procedure was ignored'
+}
+
 C1219_CALL_STATUS_FLAGS = {
 	0:  'No phone call made',
 	1:  'Phone call in progress',

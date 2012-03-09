@@ -90,6 +90,7 @@ class Connection:
 			response = self.serial_h.read(1)
 			if response == NACK:
 				self.loggerio.warning('received a NACK after writing data')
+				sleep(0.10)
 			elif response == '':
 				self.loggerio.error('received empty response after writing data')
 				sleep(0.10)
@@ -259,7 +260,7 @@ class Connection:
 		
 		response = self.getTableData(8)
 		if response[:3] == procedure_request[:3]:
-			return response
+			return ord(response[3]), response[4:]
 		else:
 			self.logger.error('invalid response from procedure response table (table #8)')
 			raise C1219ProcedureError('invalid response from procedure response table (table #8)')
