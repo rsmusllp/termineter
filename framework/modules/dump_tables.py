@@ -41,7 +41,7 @@ class Module(module_template):
 		out_file = open(self.options['FILE'], 'w', 1)
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():
-			logger.warning('meter login failed')
+			logger.warning('meter login failed, some tables may not be accessible')
 		conn = frmwk.serial_connection
 		
 		number_of_tables = 0
@@ -49,8 +49,20 @@ class Module(module_template):
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
 			try:
 				data = conn.getTableData(tableid)
-			except C1218ReadTableError:
+			except C1218ReadTableError as error:
 				data = None
+				if error.errCode == 10:	# ISSS
+					conn.stop()
+					logger.warning('received ISSS error, connection stopped, will sleep before retrying')
+					sleep(0.5)
+					if not frmwk.serial_login():
+						logger.warning('meter login failed, some tables may not be accessible')
+					try:
+						data = conn.getTableData(tableid)
+					except C1218ReadTableError as error:
+						data = None
+						if error.errCode == 10:
+							raise error	# tried to re-sync communications but failed, you should reconnect and rerun the module
 			if data:
 				frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				# format is: table id, table name, table data length, table data

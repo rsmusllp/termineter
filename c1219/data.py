@@ -78,6 +78,17 @@ def getTableIDBBFLD(endianess, data):
 	std_vs_mfg = bool(bfld & 2048)
 	return (proc_nbr, std_vs_mfg)
 
+def getTableIDCBFLD(endianess, data):
+	bfld = unpack(endianess + 'H', data[:2])[0]
+	proc_nbr = bfld & 2047
+	std_vs_mfg = bool(bfld & 2048)
+	proc_flag = bool(bfld & 4096)
+	flag1 = bool(bfld & 8192)
+	flag2 = bool(bfld & 16384)
+	flag3 = bool(bfld & 32768)
+	return (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
+	
+
 class c1219ProcedureInit:
 	def __init__(self, endianess, table_proc_nbr, std_vs_mfg, selector, seqnum, params = ''):
 		mfg_defined = 0

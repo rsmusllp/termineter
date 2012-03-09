@@ -2,6 +2,12 @@ GEN_CONFIG_TBL = 0
 GENERAL_MFG_ID_TBL = 1
 ED_MODE_STATUS_TBL = 3
 DEVICE_IDENT_TBL = 5
+DIM_SECURITY_LIMITING_TBL = 40
+ACT_SECURITY_LIMITING_TBL = 41
+SECURITY_TBL = 42
+DEFAULT_ACCESS_CONTROL_TBL = 43
+ACCESS_CONTROL_TBL = 44
+KEY_TBL = 45
 ACT_LOG_TBL = 71
 HISTORY_LOG_DATA_TBL = 74
 ACT_TELEPHONE_TBL = 91
@@ -211,6 +217,38 @@ C1219_EVENT_CODES = {
 	74: 'Read Secured Register',
 	75: 'Read Secured Table (with values)',
 	76: 'Read Secured Register (with values)'
+}
+
+C1219_PROCEDURE_NAMES = {
+	0: 'Cold Start',
+	1: 'Warm Start',
+	2: 'Save Configuration',
+	3: 'Clear Data',
+	4: 'Reset List Pointers',
+	5: 'Update Last Read Entry',
+	6: 'Change End Device Mode',
+	7: 'Clear Standard Status Flags',
+	8: 'Clear Manufacturer Flags',
+	9: 'Remote Reset',
+	10: 'Set Date and/or Time',
+	11: 'Execute Diagnostics Procedure',
+	12: 'Activate All Pending Tables',
+	13: 'Activate Specific Pending Table(s)',
+	14: 'Clear All Pending Tables',
+	15: 'Clear Specific Pending Table(s)',
+	16: 'Start Load Profile',
+	17: 'Stop Load Profile',
+	18: 'Log In',
+	19: 'Log Out',
+	20: 'Initiate an Immediate Call',
+	21: 'Direct Load Control',
+	22: 'Modify Credit',
+	27: 'Clear Pending Call Status',
+	28: 'Start Quality of Service Monitors',
+	29: 'Stop Quality of Service Monitors',
+	30: 'Start Secured Registers',
+	31: 'Stop Secured Registers',
+	32: 'Set Precision Date and/or Time'
 }
 
 C1219_PROC_RESULT_CODES = {

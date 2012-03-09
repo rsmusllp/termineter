@@ -7,7 +7,7 @@ Usage:
 
 	install.sh [ path to install to ]
 
-If not path is specified /opt will be used."
+If a path is not specified /opt will be used."
 
 if [ "$(id -u)" != "0" ]; then
 	echo "This Must Be Run As Root"
