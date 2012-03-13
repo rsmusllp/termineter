@@ -27,8 +27,8 @@ class Module(module_template):
 		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
-		self.description = ''
-		self.detailed_description = ''
+		self.description = 'Get Information About The Meter\'s Access Control'
+		self.detailed_description = 'This module reads various tables from 40 to gather information regarding access control. Password constraints, and access permissions to procedures and tables can be gathered with this module.'
 	
 	def run(self, frmwk, args):
 		logger = frmwk.get_module_logger(self.name)
@@ -79,10 +79,11 @@ class Module(module_template):
 		for idx, entry in securityCtl.procedure_permissions.items():
 			frmwk.print_status(fmt_string.format('#' + str(idx) + ' ' + (C1219_PROCEDURE_NAMES.get(idx) or 'Unknown'), str(entry['anyread']), str(entry['anywrite'])))
 		
-		frmwk.print_status('Stored Keys:')
-		fmt_string = "    {0:<5} {1}"
-		frmwk.print_status(fmt_string.format('Index', 'Hex Value'))
-		frmwk.print_status(fmt_string.format('-----', '---------'))
-		for idx, entry in securityCtl.keys.items():
-			frmwk.print_status(fmt_string.format(idx, entry.encode('hex')))
+		if len(securityCtl.keys):
+			frmwk.print_status('Stored Keys:')
+			fmt_string = "    {0:<5} {1}"
+			frmwk.print_status(fmt_string.format('Index', 'Hex Value'))
+			frmwk.print_status(fmt_string.format('-----', '---------'))
+			for idx, entry in securityCtl.keys.items():
+				frmwk.print_status(fmt_string.format(idx, entry.encode('hex')))
 		return

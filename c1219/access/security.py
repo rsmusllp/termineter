@@ -24,6 +24,7 @@
 #  methods should work.
 
 from struct import pack, unpack
+from c1218.errors import C1218ReadTableError
 from c1219.constants import *
 from c1219.data import getTableIDCBFLD
 from c1219.errors import C1219ParseError
@@ -46,7 +47,10 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 		act_security_table = conn.getTableData(ACT_SECURITY_LIMITING_TBL)
 		security_table = conn.getTableData(SECURITY_TBL)
 		access_ctl_table = conn.getTableData(ACCESS_CONTROL_TBL)
-		key_table = conn.getTableData(KEY_TBL)
+		try:
+			key_table = conn.getTableData(KEY_TBL)
+		except C1218ReadTableError:
+			key_table = None
 		
 		if len(act_security_table) < 6:
 			raise C1219ParseError('expected to read more data from ACT_SECURITY_LIMITING_TBL', ACT_SECURITY_LIMITING_TBL)
@@ -84,14 +88,15 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 			tmp += 1
 		
 		### Parse KEY_TBL ###
-		if len(key_table) != (self.nbr_keys * self.key_len):
-			raise C1219ParseError('expected to read more data from KEY_TBL', KEY_TBL)
 		self.__keys__ = {}
-		tmp = 0
-		while tmp < self.nbr_keys:
-			self.__keys__[tmp] = key_table[:self.key_len]
-			key_table = key_table[self.key_len:]
-			tmp += 1
+		if key_table != None:
+			if len(key_table) != (self.nbr_keys * self.key_len):
+				raise C1219ParseError('expected to read more data from KEY_TBL', KEY_TBL)
+			tmp = 0
+			while tmp < self.nbr_keys:
+				self.__keys__[tmp] = key_table[:self.key_len]
+				key_table = key_table[self.key_len:]
+				tmp += 1
 	
 	@property
 	def nbr_passwords(self):

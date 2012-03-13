@@ -35,6 +35,9 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 	This class provides generic access to the general configuration tables
 	that are stored in the decade 0x tables.
 	"""
+	__ed_mode__ = None
+	__std_status__ = None
+	__device_id__ = None
 	def __init__(self, conn):
 		"""
 		Initializes a new instance of the class and reads tables from the
@@ -47,14 +50,20 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 		self.conn = conn
 		general_config_table = conn.getTableData(GEN_CONFIG_TBL)
 		general_mfg_table = conn.getTableData(GENERAL_MFG_ID_TBL)
-		mode_status_table = conn.getTableData(ED_MODE_STATUS_TBL)
-		ident_table = conn.getTableData(DEVICE_IDENT_TBL)
+		try:
+			mode_status_table = conn.getTableData(ED_MODE_STATUS_TBL)
+		except C1218ReadTableError:
+			mode_status_table = None
+		try:
+			ident_table = conn.getTableData(DEVICE_IDENT_TBL)
+		except C1218ReadTableError:
+			ident_table = None
 		
 		if len(general_config_table) < 19:
 			raise C1219ParseError('expected to read more data from GEN_CONFIG_TBL', GEN_CONFIG_TBL)
 		if len(general_mfg_table) < 17:
 			raise C1219ParseError('expected to read more data from GENERAL_MFG_ID_TBL', GENERAL_MFG_ID_TBL)
-		if len(mode_status_table) < 5:
+		if mode_status_table and len(mode_status_table) < 5:
 			raise C1219ParseError('expected to read more data from ED_MODE_STATUS_TBL', ED_MODE_STATUS_TBL)
 		
 		### Parse GEN_CONFIG_TBL ###
@@ -63,6 +72,38 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 		self.__id_form__ = ord(general_config_table[1]) & 32
 		self.__std_version_no__ = ord(general_config_table[11])
 		self.__std_revision_no__ = ord(general_config_table[12])
+		self.__dim_std_tbls_used__ = ord(general_config_table[13])
+		self.__dim_mfg_tbls_used__ = ord(general_config_table[14])
+		self.__dim_std_proc_used__ = ord(general_config_table[15])
+		self.__dim_mfg_proc_used__ = ord(general_config_table[16])
+		
+		self.__std_tbls_used__ = []
+		tmp_data = general_config_table[19:]
+		for p in xrange(self.__dim_std_tbls_used__):
+			for i in xrange(7):
+				if ord(tmp_data[p]) & (2 ** i):
+					self.__std_tbls_used__.append(i + (p * 8))
+					
+		self.__mfg_tbls_used__ = []
+		tmp_data = tmp_data[self.__dim_std_tbls_used__:]
+		for p in xrange(self.__dim_mfg_tbls_used__):
+			for i in xrange(7):
+				if ord(tmp_data[p]) & (2 ** i):
+					self.__mfg_tbls_used__.append(i + (p * 8))
+					
+		self.__std_proc_used__ = []
+		tmp_data = tmp_data[self.__dim_mfg_tbls_used__:]
+		for p in xrange(self.__dim_std_proc_used__):
+			for i in xrange(7):
+				if ord(tmp_data[p]) & (2 ** i):
+					self.__std_proc_used__.append(i + (p * 8))
+		
+		self.__mfg_proc_used__ = []
+		tmp_data = tmp_data[self.__dim_std_proc_used__:]
+		for p in xrange(self.__dim_mfg_proc_used__):
+			for i in xrange(7):
+				if ord(tmp_data[p]) & (2 ** i):
+					self.__mfg_proc_used__.append(i + (p * 8))
 		
 		### Parse GENERAL_MFG_ID_TBL ###
 		self.__manufacturer__ = general_mfg_table[0:4].rstrip()
@@ -74,15 +115,17 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 		self.__mfg_serial_no__ = general_mfg_table[16:].strip()
 		
 		### Parse ED_MODE_STATUS_TBL ###
-		self.__ed_mode__ = ord(mode_status_table[0])
-		self.__std_status__ = unpack(conn.c1219_endian + 'H', mode_status_table[1:3])[0]
+		if mode_status_table:
+			self.__ed_mode__ = ord(mode_status_table[0])
+			self.__std_status__ = unpack(conn.c1219_endian + 'H', mode_status_table[1:3])[0]
 		
 		### Parse DEVICE_IDENT_TBL ###
-		if self.__id_form__ == 0 and len(ident_table) != 20:
-			raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
-		elif self.__id_form__ != 0 and len(ident_table) != 10:
-			raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
-		self.__device_id__ = ident_table.strip()
+		if ident_table:
+			if self.__id_form__ == 0 and len(ident_table) != 20:
+				raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
+			elif self.__id_form__ != 0 and len(ident_table) != 10:
+				raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
+			self.__device_id__ = ident_table.strip()
 	
 	def set_device_id(self, newid):
 		if self.__id_form__ == 0:
@@ -128,6 +171,22 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 	@property
 	def std_revision_no(self):
 		return self.__std_revision_no__
+	
+	@property
+	def std_tbls_used(self):
+		return self.__std_tbls_used__
+	
+	@property
+	def mfg_tbls_used(self):
+		return self.__mfg_tbls_used__
+	
+	@property
+	def std_proc_used(self):
+		return self.__std_proc_used__
+	
+	@property
+	def mfg_proc_used(self):
+		return self.__mfg_proc_used__
 	
 	@property
 	def manufacturer(self):
