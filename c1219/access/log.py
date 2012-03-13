@@ -29,7 +29,19 @@ from c1219.data import getHistoryEntryRcd
 from c1219.errors import C1219ParseError
 
 class C1219LogAccess(object):		# Corresponds To Decade 7x
+	"""
+	This class provides generic access to the log data tables that are
+	stored in the decade 7x tables.
+	"""
 	def __init__(self, conn):
+		"""
+		Initializes a new instance of the class and reads tables from the
+		corresponding decades to populate information.
+		
+		@type conn: c1218.connection.Connection
+		@param conn: The driver to be used for interacting with the
+		necessary tables.
+		"""
 		self.conn = conn
 		general_config_table = self.conn.getTableData(GEN_CONFIG_TBL)
 		actual_log_table = self.conn.getTableData(ACT_LOG_TBL)

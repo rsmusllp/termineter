@@ -25,9 +25,13 @@
 
 from struct import pack, unpack
 from c1219.constants import *
-from c1219.errors import C1219ParseError
+from c1219.errors import C1219ParseError, C1219ProcedureError
 
 class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
+	"""
+	This class provides generic access to the telephone/modem configuration
+	tables that are stored in the decade 9x tables.
+	"""
 	__global_bit_rate__ = None
 	__originate_bit_rate__ = None
 	__answer_bit_rate__ = None
@@ -36,6 +40,14 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 	__secondary_phone_number_idx__ = None
 	
 	def __init__(self, conn):
+		"""
+		Initializes a new instance of the class and reads tables from the
+		corresponding decades to populate information.
+		
+		@type conn: c1218.connection.Connection
+		@param conn: The driver to be used for interacting with the
+		necessary tables.
+		"""
 		self.conn = conn
 		actual_telephone_table = self.conn.getTableData(ACT_TELEPHONE_TBL)
 		global_parameters_table = self.conn.getTableData(GLOBAL_PARAMETERS_TBL)
@@ -94,6 +106,22 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		if bit_rate_settings == 2:
 			self.__answer_bit_rate__ = unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
 		self.updateLastCallStatuses()
+	
+	def initiateCall(self, number = None, idx = None):
+		if number:
+			idx = None
+			for tmpidx in self.__originating_numbers__.keys():
+				if self.__originating_numbers__[tmpidx]['number'] == number:
+					idx = tmpidx
+			if idx == None:
+				raise C1219ProcedureError('target phone number not found in originating numbers')
+		if not idx in self.__originating_numbers__.keys():
+			raise C1219ProcedureError('phone number index not within originating numbers range')
+		return self.initiateCallEx(self.conn, idx)
+	
+	@staticmethod
+	def initiateCallEx(conn, idx):
+		return conn.runProcedure(20, False, chr(idx))
 
 	def updateLastCallStatuses(self):
 		tmp = 0

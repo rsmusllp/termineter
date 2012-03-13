@@ -26,16 +26,38 @@ import serial
 from c1218.data import *
 from c1218.utils import find_strings, data_chksum_str
 from c1218.errors import C1218IOError, C1218ReadTableError, C1218WriteTableError
-from c1219.data import c1219ProcedureInit
+from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
 ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Insufficient Security Clearance)', 4:'onp (Operation Not Possible)', 5:'iar (Inappropriate Action Requested)', 6:'bsy (Device Busy)', 7:'dnr (Data Not Ready)', 8:'dlk (Data Locked)', 9:'rno (Renegotiate Request)', 10:'isss (Invalid Service Sequence State)'}
 
 class Connection:
 	__toggle_bit__ = False
-	# TODO add in the ability to cache a few read-only tables, such as the general config table
-	# Read only tables to cache: 0, 1
 	def __init__(self, device, settings = None, toggle_control = True, enable_cache = True):
+		"""
+		This is a C12.18 driver for serial connections.  It relies on PySerial
+		to communicate with an ANSI Type-2 Optical probe to communciate
+		with a device (presumably a smart meter).
+		
+		@type device: String
+		@param device: A connection string to be passed to the PySerial
+		library.  If PySerial is new enough, the serial_for_url function
+		will be used to allow the user to use a rfc2217 bridge.
+		
+		@type settings: Dictionary
+		@param settings: A PySerial settings dictionary to be applied to
+		the serial connection instance.
+		
+		@type toggle_control: Boolean
+		@param toggle_control: Enables or diables automatically settings
+		the toggle bit in C12.18 frames.
+		
+		@type enable_cache: Boolean
+		@param enable_cache: Cache specific, read only tables in memory,
+		the first time the table is read it will be stored for retreival
+		on subsequent requests.  This is enabled only for specific tables
+		(currently only 0 and 1).
+		"""
 		self.logger = logging.getLogger('c1218.connection')
 		self.loggerio = logging.getLogger('c1218.connection.io')
 		self.toggle_control = toggle_control
@@ -65,14 +87,19 @@ class Connection:
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Device: ' + self.serial_h.name + ' >'
 	
-	def flush(self):
-		self.logger.info('flushing I/O buffers')
-		self.serial_h.flushOutput()
-		self.serial_h.flushInput()
-		
 	def send(self, data):
-		if not isinstance(data, Packet):
-			data = Packet(data)
+		"""
+		This sends a raw C12.18 frame and waits checks for an ACK response.
+		In the event that a NACK is received, this function will attempt
+		to resend the frame up to 3 times.
+		
+		@type data: either a raw string of bytes which will be placed into
+		a c1218.data.C1218Packet or a c1218.data.C1218Packet instance to
+		be sent
+		@param: the data to be transmitted
+		"""
+		if not isinstance(data, C1218Packet):
+			data = C1218Packet(data)
 		if self.toggle_control:	# bit wise, fuck yeah
 			if self.__toggle_bit__:
 				data.control = chr(ord(data.control) | 0x20)
@@ -81,8 +108,8 @@ class Connection:
 				if ord(data.control) & 0x20:
 					data.control = chr(ord(data.control) ^ 0x20)
 				self.__toggle_bit__ = True
-		elif self.toggle_control and not isinstance(data, Packet):
-			self.loggerio.warning('toggle bit is on but the data is not a Packet instance')
+		elif self.toggle_control and not isinstance(data, C1218Packet):
+			self.loggerio.warning('toggle bit is on but the data is not a C1218Packet instance')
 		data = str(data)
 		self.loggerio.debug('sending frame, length: ' + str(len(data)) + ' data: ' + hexlify(data))
 		for pktcount in xrange(0, 3):
@@ -102,6 +129,9 @@ class Connection:
 		raise C1218IOError('failed 3 times to correctly send a frame')
 	
 	def recv(self):
+		"""
+		Receive a C1218Packet, the payload data is returned.
+		"""
 		payloadbuffer = ''
 		tries = 3
 		while tries:
@@ -136,17 +166,33 @@ class Connection:
 		raise C1218IOError('failed 3 times to correctly receive a frame')
 	
 	def write(self, data):
-		"""Write raw data to the serial connection. The CRC must already be included at the end"""
+		"""
+		Write raw data to the serial connection. The CRC must already be
+		included at the end. This function is not meant to be called
+		directly.
+		
+		@type data: String
+		@param data: The raw data to write to the serial connection.
+		"""
 		return self.serial_h.write(data)
 	
 	def read(self, size):
-		"""Read raw data from the serial connection"""
+		"""
+		Read raw data from the serial connection. This function is not
+		meant to be called directly.
+		
+		@type size: Integer
+		@param size: The number of bytes to read from the serial connection.
+		"""
 		data = self.serial_h.read(size)
 		self.logger.debug('read data, length: ' + str(len(data)) + ' data: ' + hexlify(data))
 		self.serial_h.write(ACK)
 		return data
 		
 	def close(self):
+		"""
+		Send a terminate request and then disconnect from the serial device.
+		"""
 		if self.__initialized__:
 			self.stop()
 		self.logged_in = False
@@ -156,6 +202,9 @@ class Connection:
 ###===###===### Convenience functions                 ###===###===###
 
 	def start(self):
+		"""
+		Send an identity request and then a negotiation request.
+		"""
 		self.send('\x20')	# identity
 		data = self.recv()
 		if data[0] != '\x00':
@@ -171,6 +220,9 @@ class Connection:
 		return True
 	
 	def stop(self):
+		"""
+		Send a terminate request.
+		"""
 		if self.__initialized__ == True:
 			self.send('\x21')
 			data = self.recv()
@@ -180,18 +232,30 @@ class Connection:
 		return False
 	
 	def login(self, username = '0000', userid = 0, password = None):
+		"""
+		Log into the connected device.
+		
+		@type username: String (len(password) <= 10)
+		@param username: the username to log in with
+		
+		@type userid: Integer (0x0000 <= userid <= 0xffff)
+		@param userid: the userid to log in with
+		
+		@type password: String (len(password) <= 20)
+		@param password: password to log in with
+		"""
 		if password != None and len(password) > 20:
 			self.logger.error('password longer than 20 characters received')
 			raise Exception('password longer than 20 characters, login failed')
 		
-		self.send(Logon(username, userid))
+		self.send(C1218LogonRequest(username, userid))
 		data = self.recv()
 		if data != '\x00':
 			self.logger.error('login failed, user name and user id rejected')
 			return False
 		
 		if password != None:
-			self.send(Security(password))
+			self.send(C1218SecurityRequest(password))
 			data = self.recv()
 			if data != '\x00':
 				self.logger.error('login failed, password rejected')
@@ -201,7 +265,10 @@ class Connection:
 		return True
 	
 	def logoff(self):
-		self.send(Logoff())
+		"""
+		Send a logoff request.
+		"""
+		self.send(C1218LogoffRequest())
 		data = self.recv()
 		if data == '\x00':
 			self.__initialized__ = False
@@ -209,11 +276,24 @@ class Connection:
 		return False
 	
 	def getTableData(self, tableid, octetcount = None, offset = None):
-		"""Read from a table"""
+		"""
+		Read data from a table. If successful, all of the data from the 
+		requested table will be returned.
+		
+		@type tableid: Integer (0x0000 <= tableid <= 0xffff)
+		@param tableid: The table number to read from
+		
+		@type octetcount: Integer (0x0000 <= tableid <= 0xffff)
+		@param octetcount: Limit the amount of data read, only works if 
+		the meter supports this type of reading.
+		
+		@type offset: Integer (0x000000 <= octetcount <= 0xffffff)
+		@param offset: The offset at which to start to read the data from.		
+		"""
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and tableid in self.__tbl_cache__.keys():
 			self.logger.info('returning cached table #' + str(tableid))
 			return self.__tbl_cache__[tableid]
-		self.send(Read(tableid, offset, octetcount))
+		self.send(C1218ReadRequest(tableid, offset, octetcount))
 		data = self.recv()
 		status = data[0]
 		if status != '\x00':
@@ -242,8 +322,19 @@ class Connection:
 		return data
 
 	def setTableData(self, tableid, data, offset = None):
-		"""Write to a table"""
-		self.send(Write(tableid, data, offset))
+		"""
+		Write data to a table.
+		
+		@type tableid: Integer (0x0000 <= tableid <= 0xffff)
+		@param tableid: The table number to write to
+		
+		@type data: String
+		@param data: The data to write into the table.
+		
+		@type offset: Integer (0x000000 <= octetcount <= 0xffffff)
+		@param offset: The offset at which to start to write the data.	
+		"""
+		self.send(C1218WriteRequest(tableid, data, offset))
 		data = self.recv()
 		if data[0] != '\x00':
 			status = ord(data[0])
@@ -253,9 +344,24 @@ class Connection:
 		return None
 
 	def runProcedure(self, process_number, std_vs_mfg, params = ''):
+		"""
+		Initiate a C1219 procedure, the request is written to table 7 and
+		the response is read from table 8.
+		
+		@type process_number: Integer (0 <= process_number <= 2047)
+		@param process_number: The numeric procedure identifier.
+		
+		@type std_vs_mfg: Boolean
+		@param std_vs_mfg: Wheter the procedure is manufacturer specified
+		or not.  True is manufacturer specified.
+		
+		@type params: String
+		@param params: The parameters to pass to the procedure initiation
+		request.
+		"""
 		seqnum = randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
-		procedure_request = str(c1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
+		procedure_request = str(C1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
 		self.setTableData(7, procedure_request)
 		
 		response = self.getTableData(8)

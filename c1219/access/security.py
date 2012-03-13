@@ -29,7 +29,19 @@ from c1219.data import getTableIDCBFLD
 from c1219.errors import C1219ParseError
 
 class C1219SecurityAccess(object):		# Corresponds To Decade 4x
+	"""
+	This class provides generic access to the security configuration tables
+	that are stored in the decade 4x tables.
+	"""
 	def __init__(self, conn):
+		"""
+		Initializes a new instance of the class and reads tables from the
+		corresponding decades to populate information.
+		
+		@type conn: c1218.connection.Connection
+		@param conn: The driver to be used for interacting with the
+		necessary tables.
+		"""
 		self.conn = conn
 		act_security_table = conn.getTableData(ACT_SECURITY_LIMITING_TBL)
 		security_table = conn.getTableData(SECURITY_TBL)

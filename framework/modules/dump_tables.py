@@ -20,7 +20,6 @@
 from time import sleep
 import os
 from framework.templates import module_template
-from c1218.data import Read
 from c1219.data import C1219_TABLES
 from c1218.errors import C1218ReadTableError
 

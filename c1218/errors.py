@@ -18,6 +18,9 @@
 #  MA 02110-1301, USA.
 
 class C1218IOError(Exception):
+	"""
+	Raised when there is a problem sending or receiving data.
+	"""
 	def __init__(self, msg):
 		self.message = msg
 		
@@ -25,6 +28,12 @@ class C1218IOError(Exception):
 		return repr(self.message)
 
 class C1218ReadTableError(Exception):
+	"""
+	Raised when a table is not successfully read.
+	
+	@type errcode: Integer
+	@param errcode: The error that was returned while reading the table.
+	"""
 	def __init__(self, msg, errcode = None):
 		self.message = msg
 		self.errCode = errcode
@@ -33,6 +42,12 @@ class C1218ReadTableError(Exception):
 		return repr(self.message)
 
 class C1218WriteTableError(Exception):
+	"""
+	Raised when a table is not successfully written to.
+	
+	@type errcode: Integer
+	@param errcode: The error that was returned while writing to the table.
+	"""
 	def __init__(self, msg, errcode = None):
 		self.message = msg
 		self.errCode = errcode

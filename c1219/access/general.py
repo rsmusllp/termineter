@@ -26,12 +26,24 @@
 from struct import pack, unpack
 from c1219.constants import *
 from c1219.errors import C1219ParseError
-from c1218.data import Write
+from c1218.data import C1218WriteRequest
 from c1218.errors import C1218ReadTableError
 from c1218.utils import find_strings
 
 class C1219GeneralAccess(object):		# Corresponds To Decade 0x
+	"""
+	This class provides generic access to the general configuration tables
+	that are stored in the decade 0x tables.
+	"""
 	def __init__(self, conn):
+		"""
+		Initializes a new instance of the class and reads tables from the
+		corresponding decades to populate information.
+		
+		@type conn: c1218.connection.Connection
+		@param conn: The driver to be used for interacting with the
+		necessary tables.
+		"""
 		self.conn = conn
 		general_config_table = conn.getTableData(GEN_CONFIG_TBL)
 		general_mfg_table = conn.getTableData(GENERAL_MFG_ID_TBL)
@@ -74,17 +86,17 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 	
 	def set_device_id(self, newid):
 		if self.__id_form__ == 0:
-			self.conn.setTableData(5, (newid + (' ' * (20 - len(newid)))))
+			self.conn.setTableData(DEVICE_IDENT_TBL, (newid + (' ' * (20 - len(newid)))))
 		else:
-			self.conn.setTableData(5, (newid + (' ' * (10 - len(newid)))))
+			self.conn.setTableData(DEVICE_IDENT_TBL, (newid + (' ' * (10 - len(newid)))))
 		
-		self.conn.send(Write(7, '\x46\x08\x1c\x03\x0b\x0c\x09\x0f\x12'))	# same with this
+		self.conn.send(C1218WriteRequest(PROC_INITIATE_TBL, '\x46\x08\x1c\x03\x0b\x0c\x09\x0f\x12'))
 		data = self.conn.recv()
 		if data != '\x00':
 			pass
 		
 		try:
-			ident_table = self.conn.getTableData(5)
+			ident_table = self.conn.getTableData(DEVICE_IDENT_TBL)
 		except C1218ReadTableError:
 			return 1
 		

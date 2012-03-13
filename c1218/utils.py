@@ -33,44 +33,6 @@ def data_chksum(data):
 
 data_chksum_str = lambda x: chr(data_chksum(x))
 
-def unit_tests():
-	from c1218.data import Packet, Logon, Security, Write
-	import sys
-	while True:
-		sys.stdout.write('[*] Testing c1218.Packet(\'\\x20\') ')
-		sys.stdout.flush()
-		if str(Packet('\x20')).encode('hex') == 'ee0000000001201310':
-			sys.stdout.write(' PASSED\n')
-			sys.stdout.flush()
-
-		sys.stdout.write('[*] Testing c1218.Packet(\'\\x00\') ')
-		sys.stdout.flush()
-		if str(Packet('\x00')).encode('hex') == 'ee0000000001001131':
-			sys.stdout.write(' PASSED\n')
-			sys.stdout.flush()
-
-		sys.stdout.write('[*] Testing c1218.Packet(c1218.Logon(\'Admin\', 1)) ')
-		sys.stdout.flush()
-		if str(Packet(Logon('Admin', 1))).encode('hex') == 'ee000000000d50000141646d696e20202020209fc9':
-			sys.stdout.write(' PASSED\n')
-			sys.stdout.flush()
-
-		sys.stdout.write('[*] Testing c1218.Packet(c1218.Security(\'Password1\')) ')
-		sys.stdout.flush()
-		if str(Packet(Security('Password1'))).encode('hex') == 'ee00000000155150617373776f72643120202020202020202020202397':
-			sys.stdout.write(' PASSED\n')
-			sys.stdout.flush()
-
-		sys.stdout.write('[*] Testing c1218.Packet(c1218.Write(1, 1, \'data data data\')) ')
-		sys.stdout.flush()
-		if str(Packet(Write(1, 'data data data', 1))).encode('hex') == 'ee00000000174f0001000001000e6461746120646174612064617461f28ee1':
-			sys.stdout.write(' PASSED\n')
-			sys.stdout.flush()
-		return True
-	sys.stdout.write(' FAILED\n')
-	sys.stdout.flush()
-	return False
-
 def find_strings(data, minchars = 4):
 	rstrings = []
 	myprintables = string.ascii_letters + string.digits + string.punctuation + '\n\t\r '

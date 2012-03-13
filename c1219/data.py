@@ -89,7 +89,38 @@ def getTableIDCBFLD(endianess, data):
 	return (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
 	
 
-class c1219ProcedureInit:
+class C1219ProcedureInit:
+	"""
+	A C1219 Procedure Request, this data is written to table 7 in order to
+	start a procedure.
+	
+	@type endianess: String ('>' or '<')
+	@param endianess: The endianess to use when packing values
+	
+	@type table_proc_nbr: Integer (0 <= table_proc_nbr <= 2047)
+	@param table_proc_nbr: The numeric procedure identifier.
+	
+	@type std_vs_mfg: Boolean
+	@param std_vs_mfg: Wheter the procedure is manufacturer specified
+	or not.  True is manufacturer specified.
+	
+	@type selector: Integer (0 <= selector <= 15)
+	@param selector: Controls how data is returned.
+		0: Post response in PROC_RESPONSE_TBL (#8) on completion.
+		1: Post response in PROC_RESPONSE_TBL (#8) on exception.
+		2: Do not post response in PROC_RESPONSE_TBL (#8).
+		3: Post response in PROC_RESPONSE_TBL (#8) immediately and another
+			response in PROC_RESPONSE_TBL (#8) on completion.
+		4-15: Reserved.
+	
+	@type seqnum: Integer (0x00 <= seqnum <= 0xff)
+	@param seqnum: The identifier for this procedure to be used for
+	coordination.
+	
+	@type params: String
+	@param params: The parameters to pass to the procedure initiation
+	request.
+	"""
 	def __init__(self, endianess, table_proc_nbr, std_vs_mfg, selector, seqnum, params = ''):
 		mfg_defined = 0
 		if std_vs_mfg:

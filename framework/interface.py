@@ -370,11 +370,12 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			return
 		del missing_options
 		if not self.frmwk.is_serial_connected():
-			if self.frmwk.serial_connect():
-				self.print_good('Successfully connected')
-			else:
-				self.print_error('An error occured while opening the serial interface')
+			try:
+				result = self.frmwk.serial_connect()
+			except Exception as error:
+				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 				return
+			self.print_good('Successfully connected and the device is responding')
 		self.logger.info('running module: ' + module_name)
 		try:
 			module.run(self.frmwk, args)
@@ -386,7 +387,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.print_line('')
 		except Exception as error:
-			[ self.print_line(x) for x in traceback.format_exc().split(os.linesep) ]
+			for x in traceback.format_exc().split(os.linesep): self.print_line(x)
 			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 			old_module = None

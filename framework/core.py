@@ -40,10 +40,18 @@ class FrameworkConfigurationError(Exception):
 		return repr(self.msg)
 
 class Namespace:
-	"""This class is used to hold attributes of the framework.  It doesn't really do anything, it's used for organizational purposes only."""
+	"""
+	This class is used to hold attributes of the framework.  It doesn't
+	really do anything, it's used for organizational purposes only.
+	"""
 	pass
 	
-class Framework():
+class Framework(object):
+	"""
+	This is the main instance of the framework.  It contains and 
+	manages the serial connection as well as all of the loaded 
+	modules.
+	"""
 	def __init__(self):
 		self.modules = { }
 		self.__serial_connected__ = False
@@ -119,6 +127,11 @@ class Framework():
 		return '<' + self.__class__.__name__ + ' Loaded Modules: ' + str(len(self.modules)) + ', Serial Connected: ' + str(self.is_serial_connected()) + ' >'
 	
 	def reload_module(self, module_name = None):
+		"""
+		Reloads a module into the framework.  If module_name is not
+		specified, then the curent_module variable is used.  Returns True
+		on success, False on error.
+		"""
 		if module_name == None:
 			if self.current_module != None:
 				module_name = self.current_module
@@ -151,9 +164,13 @@ class Framework():
 	
 	@use_colors.setter
 	def use_colors(self, value):
-		self.options.setOption('USECOLOR', value)
+		self.options.setOption('USECOLOR', str(value))
 	
 	def get_module_logger(self, name):
+		"""
+		This returns a logger for individual modules to allow them to be
+		inherited from the framework and thus be named appropriately.
+		"""
 		return logging.getLogger(self.__package__ + '.modules.' + name)
 
 	def print_error(self, message):
@@ -202,9 +219,16 @@ class Framework():
 			i += 16
 
 	def is_serial_connected(self):
+		"""
+		Returns True if the serial interface is connected.
+		"""
 		return self.__serial_connected__
 	
 	def serial_disconnect(self):
+		"""
+		Closes the serial connection to the meter and disconnects from the
+		device.
+		"""
 		if self.__serial_connected__:
 			try:
 				self.serial_connection.close()
@@ -217,6 +241,12 @@ class Framework():
 		return True
 
 	def serial_connect(self):
+		"""
+		Connect to the serial device and then verifies that the meter is
+		responding.  Once the serial device is opened, this function attempts
+		to retreive the contents of table #0 (GEN_CONFIG_TBL) to configure
+		the endianess it will use.  Returns True on success.
+		"""
 		username = self.options['USERNAME']
 		userid = self.options['USERID']
 		if len(username) > 10:
@@ -276,6 +306,12 @@ class Framework():
 		return True
 	
 	def serial_login(self):
+		"""
+		Attempt to log into the meter over the C12.18 protocol.  Returns
+		True on success, False on a failure.  This can be called by modules
+		in order to login with a username and password configured within
+		the framework instance.
+		"""
 		username = self.options['USERNAME']
 		userid = self.options['USERID']
 		password = self.options['PASSWORD']

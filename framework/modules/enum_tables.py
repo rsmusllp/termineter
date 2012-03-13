@@ -19,7 +19,7 @@
 
 from framework.templates import module_template
 from time import sleep
-from c1218.data import Read
+from c1218.data import C1218ReadRequest
 from c1219.data import C1219_TABLES
 
 class Module(module_template):
@@ -62,6 +62,6 @@ class Module(module_template):
 		return
 
 	def getTableDataEx(self, conn, tableid, octetcount = 244):
-		conn.send(Read(tableid, 0, octetcount))
+		conn.send(C1218ReadRequest(tableid, 0, octetcount))
 		data = conn.recv()
 		return data

@@ -23,11 +23,11 @@ from c1218.utils import crc, crc_str, data_chksum, data_chksum_str
 ACK = '\x06'
 NACK = '\x15'
 
-class c1218Request:
+class C1218Request:
 	def __str__(self):
 		return self.do_build()
 
-class Logon(c1218Request):
+class C1218LogonRequest(C1218Request):
 	logon = '\x50'
 	__userid__ = '\x00\x00'
 	__username__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
@@ -53,7 +53,7 @@ class Logon(c1218Request):
 			raise ValueError('username must be 10 characters or less')
 		self.__username__ = value + ('\x20' * (10 - len(value)))
 
-class Security(c1218Request):
+class C1218SecurityRequest(C1218Request):
 	security = '\x51'
 	__password__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 	
@@ -68,25 +68,25 @@ class Security(c1218Request):
 			raise ValueError('password must be 20 characters or less')
 		self.__password__ = value + ('\x20' * (20 - len(value)))
 
-class Logoff(c1218Request):
+class C1218LogoffRequest(C1218Request):
 	logoff = '\x52'
 	
 	def do_build(self):
 		return self.logoff
 
-class Wait(c1218Request):
+class C1218WaitRequest(C1218Request):
 	wait = '\x70'
 	
 	def do_build(self):
 		return self.wait
 
-class Terminate(c1218Request):
+class C1218TerminateRequest(C1218Request):
 	terminate = '\x21'
 	
 	def do_buiild(self):
 		return self.terminate
 
-class Read(c1218Request):
+class C1218ReadRequest(C1218Request):
 	read = '\x30'
 	__tableid__ = '\x00\x01'
 	__offset__ = ''
@@ -111,7 +111,7 @@ class Read(c1218Request):
 	def set_octetcount(self, octetcount):
 		self.__octetcount__ = pack('>H', octetcount)
 
-class Write(c1218Request):
+class C1218WriteRequest(C1218Request):
 	write = '\x40'
 	__tableid__ = '\x00\x01'
 	__offset__ = ''
@@ -146,7 +146,7 @@ class Write(c1218Request):
 		self.__data__ = data
 		self.__datalen__ = pack('>H', len(data))
 
-class Packet(c1218Request):
+class C1218Packet(C1218Request):
 	start = '\xee'
 	identity = '\x00'
 	control = '\x00'
@@ -167,7 +167,7 @@ class Packet(c1218Request):
 			self.control = control
 	
 	def __repr__(self):
-		return '<Packet data=0x' + str(self.__data__).encode('hex') + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + self.__data__).encode('hex') + ' >'
+		return '<C1218Packet data=0x' + str(self.__data__).encode('hex') + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + self.__data__).encode('hex') + ' >'
 
 	def set_data(self, data):
 		self.__data__ = str(data)
