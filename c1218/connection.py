@@ -205,13 +205,13 @@ class Connection:
 		"""
 		Send an identity request and then a negotiation request.
 		"""
-		self.send('\x20')	# identity
+		self.send(C1218IdentRequest())	# identity
 		data = self.recv()
 		if data[0] != '\x00':
 			self.logger.error('received incorrect response to identification service request')
 			return False
 
-		self.send('\x61\x01\x00\x01\x06')	# sets the baud rate \x61 sets baud \x01\x00 packet size \x01 nbr_packet \x06 is 9600
+		self.send(C1218NegotiateRequest(256, 1, baudrate = 9600))
 		data = self.recv()
 		if data[0] != '\x00':
 			self.logger.error('received incorrect response to negotiate service request')
@@ -224,7 +224,7 @@ class Connection:
 		Send a terminate request.
 		"""
 		if self.__initialized__ == True:
-			self.send('\x21')
+			self.send(C1218TerminateRequest())
 			data = self.recv()
 			if data == '\x00':
 				self.__initialized__ = False

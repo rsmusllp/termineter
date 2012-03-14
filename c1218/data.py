@@ -74,16 +74,47 @@ class C1218LogoffRequest(C1218Request):
 	def do_build(self):
 		return self.logoff
 
+class C1218NegotiateRequest(C1218Request):
+	negotiate = '\x60'
+	__pktsize__ = '\x01\x00'
+	__nbrpkt__ = 1
+	__baudrate__ = ''
+	
+	def __init__(self, pktsize, nbrpkt, baudrate = None):
+		self.set_pktsize(pktsize)
+		self.set_nbrpkt(nbrpkt)
+		if baudrate:
+			self.set_baudrate(baudrate)
+	
+	def do_build(self):
+		return self.negotiate + self.__pktsize__ + self.__nbrpkt__ + self.__baudrate__
+		
+	def set_pktsize(self, pktsize):
+		self.__pktsize__ = pack('>H', pktsize)
+	
+	def set_nbrpkt(self, nbrpkt):
+		self.__nbrpkt__ = chr(nbrpkt)
+	
+	def set_baudrate(self, baudrate):
+		self.__baudrate__ = chr({300:1, 600:2, 1200:3, 2400:4, 4800:5, 9600:6, 14400:7, 19200:8, 28800:9, 57600:10}.get(baudrate))
+		self.negotiate = '\x61'
+
 class C1218WaitRequest(C1218Request):
 	wait = '\x70'
 	
 	def do_build(self):
 		return self.wait
 
+class C1218IdentRequest(C1218Request):
+	terminate = '\x20'
+	
+	def do_build(self):
+		return self.terminate
+
 class C1218TerminateRequest(C1218Request):
 	terminate = '\x21'
 	
-	def do_buiild(self):
+	def do_build(self):
 		return self.terminate
 
 class C1218ReadRequest(C1218Request):
