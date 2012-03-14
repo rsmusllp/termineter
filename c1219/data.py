@@ -22,6 +22,21 @@ from struct import pack, unpack
 from c1219.constants import *
 
 def formatLTime(endianess, tm_format, data):
+	"""
+	Return data formatted into a human readable time stamp.
+	
+	@type endianess: String ('>' or '<')
+	@param endianess: The endianess to use when packing values
+	
+	@type tm_format: Integer (1 <= tm_format <= 4)
+	@param tm_format: The format that the data is packed in, this typically
+	corresponds with the value in the GEN_CONFIG_TBL (table #0)
+	
+	@type data: String
+	@param data: The packed and machine-formatted data to parse
+	
+	@rtype: String
+	"""
 	if tm_format == 0:
 		return ''
 	elif tm_format == 1 or tm_format == 2:	# I can't find solid documentation on the BCD data-type
@@ -55,6 +70,31 @@ def formatLTime(endianess, tm_format, data):
 	return "{} {} {} {}:{}:{}".format((MONTHS.get(month) or 'UNKNOWN'), day, year, hour, minute, second)
 
 def getHistoryEntryRcd(endianess, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, data):
+	"""
+	Return data formatted into a log entry.
+	
+	@type endianess: String ('>' or '<')
+	@param endianess: The endianess to use when packing values
+	
+	@type hist_date_time_flag: Boolean
+	@param hist_date_time_flag: Whether or not a time stamp is included.
+	
+	@type tm_format: Integer (1 <= tm_format <= 4)
+	@param tm_format: The format that the data is packed in, this typically
+	corresponds with the value in the GEN_CONFIG_TBL (table #0)
+	
+	@type event_number_flag: Boolean
+	@param event_number_flag: Whether or not an event number is included.
+	
+	@type hist_seq_nbr_flag: Boolean
+	@param hist_seq_nbr_flag: Whether or not an history sequence number
+	is included.
+	
+	@type data: String
+	@param data: The packed and machine-formatted data to parse
+	
+	@rtype: Dictionary Variable-Keys
+	"""
 	rcd = {}
 	if hist_date_time_flag:
 		tmstmp = formatLTime(endianess, tm_format, data[0:LTIME_LENGTH.get(tm_format)])
@@ -73,12 +113,34 @@ def getHistoryEntryRcd(endianess, hist_date_time_flag, tm_format, event_number_f
 	return rcd
 
 def getTableIDBBFLD(endianess, data):
+	"""
+	Return data from a packed TABLE_IDB_BFLD bit-field.
+	
+	@type endianess: String ('>' or '<')
+	@param endianess: The endianess to use when packing values
+	
+	@type data: String
+	@param data: The packed and machine-formatted data to parse
+	
+	@rtype: Tuple (proc_nbr, std_vs_mfg)
+	"""
 	bfld = unpack(endianess + 'H', data[:2])[0]
 	proc_nbr = bfld & 2047
 	std_vs_mfg = bool(bfld & 2048)
 	return (proc_nbr, std_vs_mfg)
 
 def getTableIDCBFLD(endianess, data):
+	"""
+	Return data from a packed TABLE_IDC_BFLD bit-field.
+	
+	@type endianess: String ('>' or '<')
+	@param endianess: The endianess to use when packing values
+	
+	@type data: String
+	@param data: The packed and machine-formatted data to parse
+	
+	@rtype: Tuple (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
+	"""
 	bfld = unpack(endianess + 'H', data[:2])[0]
 	proc_nbr = bfld & 2047
 	std_vs_mfg = bool(bfld & 2048)
@@ -87,7 +149,6 @@ def getTableIDCBFLD(endianess, data):
 	flag2 = bool(bfld & 16384)
 	flag3 = bool(bfld & 32768)
 	return (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
-	
 
 class C1219ProcedureInit:
 	"""
@@ -134,6 +195,3 @@ class C1219ProcedureInit:
 	
 	def __str__(self):
 		return self.table_idb_bfld + self.seqnum + self.params
-
-
-	

@@ -18,6 +18,9 @@
 #  MA 02110-1301, USA.
 
 class C1219ProcedureError(Exception):
+	"""
+	Raised when a procedure can not be executed
+	"""
 	def __init__(self, msg):
 		self.message = msg
 	
@@ -25,6 +28,13 @@ class C1219ProcedureError(Exception):
 		return repr(self.message)
 
 class C1219ParseError(Exception):
+	"""
+	Raised when there is an error parsing data
+	
+	@type tableid: Integer
+	@param tableid: If the data originated from a table, the faulty table
+	can be specified here
+	"""
 	def __init__(self, msg, tableid = None):
 		self.message = msg
 		self.tableid = tableid

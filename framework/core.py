@@ -131,6 +131,9 @@ class Framework(object):
 		Reloads a module into the framework.  If module_name is not
 		specified, then the curent_module variable is used.  Returns True
 		on success, False on error.
+		
+		@type module_name: String
+		@param module_name: The name of the module to reload
 		"""
 		if module_name == None:
 			if self.current_module != None:
@@ -170,6 +173,9 @@ class Framework(object):
 		"""
 		This returns a logger for individual modules to allow them to be
 		inherited from the framework and thus be named appropriately.
+		
+		@type name: String
+		@param name: The name of the module requesting the logger
 		"""
 		return logging.getLogger(self.__package__ + '.modules.' + name)
 
