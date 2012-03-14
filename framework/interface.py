@@ -37,11 +37,14 @@ class OverrideCmd(cmd.Cmd, object):														# OverrideCmd class is meant to
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 	
 	def cmdloop(self):
-		try:
-			super(OverrideCmd, self).cmdloop()
-		except KeyboardInterrupt:
-			self.do_EOF('')
-			return
+		while True:
+			try:
+				super(OverrideCmd, self).cmdloop()
+				return
+			except KeyboardInterrupt:
+				self.print_line('')
+				self.print_error('Please use the \'exit\' command to quit')
+				continue
 	
 	def get_names(self):												
 		commands = super(OverrideCmd, self).get_names()
@@ -71,7 +74,7 @@ class OverrideCmd(cmd.Cmd, object):														# OverrideCmd class is meant to
 	
 	def do_EOF(self, args):
 		"""Exit The Interpreter"""
-		print ''
+		self.print_line('')
 		return self.do_exit('')
 
 class InteractiveInterpreter(OverrideCmd):													# The core interpreter for the console
@@ -116,20 +119,26 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		self.print_status = self.frmwk.print_status
 		
 		if check_rc_file:
-			user_rc_file = None
 			if check_rc_file == True:
-				user_rc_file = self.frmwk.directories.user_data + 'console.rc'
-			elif isinstance(check_rc_file, str):
-				user_rc_file = check_rc_file
-			if user_rc_file:
-				if os.path.isfile(user_rc_file):
-					self.logger.info('processing "' + user_rc_file + '" for commands')
-					self.print_status('Processing ' + user_rc_file + ' for commands')
-					for line in open(user_rc_file, 'r'):
-						self.onecmd(line.strip())
-				elif isinstance(check_rc_file, str):
-					self.logger.error('invalid rc file: ' + user_rc_file)
-					self.print_error('Invalid rc file: ' + user_rc_file)
+				check_rc_file = self.frmwk.directories.user_data + 'console.rc'
+			if isinstance(check_rc_file, str):
+				if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
+					self.print_status('Running commands from resource file: ' + check_rc_file)
+					self.run_rc_file(check_rc_file)
+				else:
+					self.logger.error('could not access resource file: ' + check_rc_file)
+					self.print_error('Could not access resource file: ' + check_rc_file)
+	
+	def run_rc_file(self, rc_file):
+		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
+			self.logger.info('processing "' + rc_file + '" for commands')
+			for line in open(rc_file, 'r'):
+				self.print_line(self.prompt + line.strip())
+				self.onecmd(line.strip())
+		else:
+			self.logger.error('invalid rc file: ' + rc_file)
+			return False
+		return True
 	
 	def do_back(self, args):
 		"""Stop using a module"""
@@ -241,7 +250,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 				return
 			if args[1].upper() in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
 				logging.getLogger('').setLevel(getattr(logging, args[1].upper()))
-				self.print_good('Successfully changed the logging level')
+				self.print_status('Successfully changed the logging level to: ' + args[1].upper())
 			else:
 				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
 	
@@ -346,6 +355,20 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	
 	def complete_reload(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
+	
+	def do_resource(self, args):
+		"""Run a resource file"""
+		args = args.split(' ')
+		for rc_file in args:
+			if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
+				self.print_status('Running commands from resource file: ' + rc_file)
+				self.run_rc_file(rc_file)
+			else:
+				if not os.path.isfile(rc_file):
+					self.print_error('Invalid resource file: ' + rc_file + ' (not found)')
+				if not os.access(rc_file, os.R_OK):
+					self.print_error('Invalid resource file: ' + rc_file + ' (no read permissions)')
+				return
 		
 	def do_run(self, args):
 		"""Run the currently selected module"""
