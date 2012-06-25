@@ -67,7 +67,7 @@ def formatLTime(endianess, tm_format, data):
 		minute = str(final_time.tm_min)
 		second = str(final_time.tm_sec)
 	
-	return "{} {} {} {}:{}:{}".format((MONTHS.get(month) or 'UNKNOWN'), day, year, hour, minute, second)
+	return "{0} {1} {2} {3}:{4}:{5}".format((MONTHS.get(month) or 'UNKNOWN'), day, year, hour, minute, second)
 
 def getHistoryEntryRcd(endianess, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, data):
 	"""

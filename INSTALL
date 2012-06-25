@@ -14,3 +14,13 @@ How To Install Termineter (Linux):
 	install.sh script.  It takes a single optional argument as the path
 	to install the framework to.  If this option  is omitted, the
 	framework and all necessary files are installed to /opt.
+	
+	If using a USB optical probe with an FTDI chip, you may need to load
+	and configure the appropriate serial to USB driver in order to use
+	the device. The following command will configure the hardware on
+	Linux.
+
+	# modprobe ftdi-sio vendor=0xVVVV product=0xPPPP
+	
+	Where VVVV is the vendor ID and PPPP is the product ID.  These
+	values can be obtained from the lsusb command.

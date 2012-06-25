@@ -65,11 +65,20 @@ class Connection:
 			self.serial_h = serial.serial_for_url(device)
 		else:
 			self.logger.warning('serial library does not have serial_for_url functionality, it\'s not the latest version')
-			self.serial_h = serial.device(device)
+			self.serial_h = serial.Serial(device)
 		self.logger.debug('successfully opened serial device: ' + device)
 		if settings:
 			self.logger.debug('applying pySerial settings dictionary')
-			self.serial_h.applySettingsDict(settings)
+			self.serial_h.parity = settings['parity'] #{'parity':serial.PARITY_NONE,
+			self.serial_h.baudrate = settings['baudrate']#'baudrate': self.advanced_options['BAUDRATE'],
+			self.serial_h.bytesize = settings['bytesize']#'bytesize': self.advanced_options['BYTESIZE'],
+			self.serial_h.xonxoff = settings['xonxoff'] #'xonxoff': False,
+			self.serial_h.interCharTimeout = settings['interCharTimeout'] #'interCharTimeout': None,
+			self.serial_h.rtscts = settings['rtscts'] #'rtscts': False,
+			self.serial_h.timeout = settings['timeout'] #'timeout': 1,
+			self.serial_h.stopbits = settings['stopbits'] #'stopbits': self.advanced_options['STOPBITS'],
+			self.serial_h.dsrdtr = settings['dsrdtr'] #'dsrdtr': False,
+			self.serial_h.writeTimeout = settings['writeTimeout'] #'writeTimeout': None}
 		
 		self.serial_h.setRTS(True)
 		self.logger.debug('set RTS to True')
@@ -352,7 +361,7 @@ class Connection:
 		@param process_number: The numeric procedure identifier.
 		
 		@type std_vs_mfg: Boolean
-		@param std_vs_mfg: Wheter the procedure is manufacturer specified
+		@param std_vs_mfg: Whether the procedure is manufacturer specified
 		or not.  True is manufacturer specified.
 		
 		@type params: String

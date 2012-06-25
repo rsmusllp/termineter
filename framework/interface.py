@@ -29,7 +29,7 @@ from framework.core import Framework, FrameworkConfigurationError
 
 __version__ = '0.0.3'
 
-class OverrideCmd(cmd.Cmd, object):														# OverrideCmd class is meant to override methods from cmd.Cmd so they can be imported into the CoriInterpreter class and the ActionEditorBase class.
+class OverrideCmd(cmd.Cmd, object):
 	__doc__ = 'OverrideCmd class is meant to override methods from cmd.Cmd so they can\nbe imported into the base interpreter class.'
 	def __init__(self, debugging = False):
 		cmd.Cmd.__init__(self)
@@ -87,13 +87,18 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	@property
 	def intro(self):
 		intro = os.linesep
-		intro += '   ______              _          __         ' + os.linesep
-		intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
-		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
-		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
+		#intro += '   ______              _          __         ' + os.linesep
+		#intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
+		#intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
+		#intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
+		intro += '   ______              _          __            __   _ __     ' + os.linesep
+		intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____  / /  (_) /____ ' + os.linesep
+		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/ / /__/ / __/ -_)' + os.linesep
+		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   /____/_/\__/\__/' + os.linesep
 		intro += os.linesep
-		fmt_string = "  <[ {0:<16} {1:>8}"
-		intro += fmt_string.format(self.__name__, 'v' + __version__) + os.linesep
+		fmt_string = "  <[ {0:<18} {1:>18}"
+		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
+		intro += fmt_string.format('model:', 'T-1') + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
 		return intro
 	
@@ -108,7 +113,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			return self.__name__ + ' > '
 	
 	def __init__(self, check_rc_file = True):
-		OverrideCmd.__init__(self)										# this adds the code from the cmd.Cmd.__init__ as inherited by OverrideCmd so it's appended to instead of overwritten
+		OverrideCmd.__init__(self)
 		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
@@ -121,7 +126,10 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		if check_rc_file:
 			if check_rc_file == True:
 				check_rc_file = self.frmwk.directories.user_data + 'console.rc'
-			if isinstance(check_rc_file, str):
+				if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
+					self.print_status('Running commands from resource file: ' + check_rc_file)
+					self.run_rc_file(check_rc_file)
+			elif isinstance(check_rc_file, str):
 				if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
 					self.print_status('Running commands from resource file: ' + check_rc_file)
 					self.run_rc_file(check_rc_file)
