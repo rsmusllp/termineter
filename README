@@ -36,6 +36,16 @@ MA 02110-1301, USA.
 This license does not apply to the following components:
  * CrcMoose
 
+== Credits ==
+Special Thanks To:
+ * Caroline Aronoff (Alpha testing and fixing older PySerial
+	compatibility)
+ * Chris Murrey - f8lerror (Alpha testing)
+ * Jake Garlie - jagar (Alpha testing)
+
+Termineter Development Team:
+ * Spencer McIntyre of the SecureState Research and Innovation Team 
+
 == About ==
 Author: Spencer McIntyre <smcintyre [at] securestate [dot] net>
 Author Home Page: http://www.securestate.com/
