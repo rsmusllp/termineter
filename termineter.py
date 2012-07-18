@@ -24,7 +24,7 @@ import logging
 from argparse import ArgumentParser
 from framework.interface import InteractiveInterpreter
 
-__version__ = '0.0.3'
+__version__ = '0.1.0'
 
 def main():
 	parser = ArgumentParser(description = 'Termineter: Python Smart Meter Testing Framework', conflict_handler='resolve')

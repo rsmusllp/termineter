@@ -27,7 +27,7 @@ from random import randint
 from framework.options import Options
 from framework.core import Framework, FrameworkConfigurationError
 
-__version__ = '0.0.3'
+__version__ = '0.1.0'
 
 class OverrideCmd(cmd.Cmd, object):
 	__doc__ = 'OverrideCmd class is meant to override methods from cmd.Cmd so they can\nbe imported into the base interpreter class.'
@@ -87,18 +87,14 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	@property
 	def intro(self):
 		intro = os.linesep
-		#intro += '   ______              _          __         ' + os.linesep
-		#intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
-		#intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
-		#intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
-		intro += '   ______              _          __            __   _ __     ' + os.linesep
-		intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____  / /  (_) /____ ' + os.linesep
-		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/ / /__/ / __/ -_)' + os.linesep
-		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   /____/_/\__/\__/' + os.linesep
+		intro += '   ______              _          __         ' + os.linesep
+		intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
+		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
+		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
 		intro += os.linesep
 		fmt_string = "  <[ {0:<18} {1:>18}"
 		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
-		intro += fmt_string.format('model:', 'T-1') + os.linesep
+		intro += fmt_string.format('model:', 'T-800') + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
 		return intro
 	
