@@ -299,7 +299,7 @@ class Framework(object):
 			self.serial_connection.c1219_endian = '>'
 		else:
 			self.logger.info('setting the connection to use little-endian for C1219 data')
-			self.c1219_endian = '<'
+			self.serial_connection.c1219_endian = '<'
 		
 		try:
 			self.serial_connection.stop()
