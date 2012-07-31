@@ -325,7 +325,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		from c1219.access.telephone import C1219TelephoneAccess
 		vars = {'__version__':__version__, 'frmwk':self.frmwk, 'C1219GeneralAccess':C1219GeneralAccess, 'C1219SecurityAccess':C1219SecurityAccess, 'C1219LogAccess':C1219LogAccess, 'C1219TelephoneAccess':C1219TelephoneAccess}
 		banner = 'The Framework Instance Is In The Variable \'frmwk\'' + os.linesep
-		if self.frmwk.serial_connection != None:
+		if self.frmwk.is_serial_connected():
 			vars['conn'] = self.frmwk.serial_connection
 			banner = banner + 'The Connection Instance Is In The Variable \'conn\'' + os.linesep
 		pyconsole = code.InteractiveConsole(vars)

@@ -24,3 +24,13 @@ How To Install Termineter (Linux):
 	
 	Where VVVV is the vendor ID and PPPP is the product ID.  These
 	values can be obtained from the lsusb command.
+
+How To Update (All):
+	Updates can be obtained from the projects home page, either in 
+	source archives for major revisions or from the trunk.  Mercurial 
+	must be installed to update to the latest revision from the trunk. 
+	
+	Once Mercurial is installed the following command can be issued to 
+	create a local copy of the latest revision.
+	
+	$ hg clone https://code.google.com/p/termineter/

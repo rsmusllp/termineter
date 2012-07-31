@@ -67,6 +67,7 @@ class Connection:
 			self.logger.warning('serial library does not have serial_for_url functionality, it\'s not the latest version')
 			self.serial_h = serial.Serial(device)
 		self.logger.debug('successfully opened serial device: ' + device)
+		self.device = device
 		if settings:
 			self.logger.debug('applying pySerial settings dictionary')
 			self.serial_h.parity = settings['parity'] #{'parity':serial.PARITY_NONE,
@@ -94,7 +95,7 @@ class Connection:
 			self.logger.info('selective table caching has been enabled')
 	
 	def __repr__(self):
-		return '<' + self.__class__.__name__ + ' Device: ' + self.serial_h.name + ' >'
+		return '<' + self.__class__.__name__ + ' Device: ' + self.device + ' >'
 	
 	def send(self, data):
 		"""
