@@ -57,7 +57,7 @@ class Options(dict):
 		@param default: The default value for this option. If required is
 		True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('str', help, required, default))
+		self.__setitem__(name, ('str', help, required, default, None))
 	
 	def addInteger(self, name, help, required = True, default = None):
 		"""
@@ -77,7 +77,7 @@ class Options(dict):
 		@param default: The default value for this option. If required is
 		True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('int', help, required, default))
+		self.__setitem__(name, ('int', help, required, default, None))
 	
 	def addFloat(self, name, help, required = True, default = None):
 		"""
@@ -97,7 +97,7 @@ class Options(dict):
 		@param default: The default value for this option. If required is
 		True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('flt', help, required, default))
+		self.__setitem__(name, ('flt', help, required, default, None))
 	
 	def addBoolean(self, name, help, required = True, default = None):
 		"""
@@ -117,7 +117,7 @@ class Options(dict):
 		@param default: The default value for this option. If required is
 		True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('bool', help, required, default))
+		self.__setitem__(name, ('bool', help, required, default, None))
 	
 	def addRFile(self, name, help, required = True, default = None):
 		"""
@@ -147,7 +147,25 @@ class Options(dict):
 			default = default.replace('$USER_DATA ', self.directories.user_data)
 			default = default.replace('$MODULES_PATH ', self.directories.modules_path)
 			default = default.replace('$DATA_PATH ', self.directories.data_path)
-		self.__setitem__(name, ('rfile', help, required, default))
+		self.__setitem__(name, ('rfile', help, required, default, None))
+	
+	def setCallback(self, name, callback):
+		"""
+		Set an options value
+		
+		@type name: String
+		@param name: The options name that is to be changed
+		
+		@type callback: Function
+		@param value: This function will be called when the setOption() 
+		is called and will be passed a single parameter of the value that
+		is being set.  It will be called prior to the value being set and
+		an exception can be thrown to alert the user that the value is invalid.
+		"""
+		if self.__contains__(name) == False:
+			raise ValueError('invalid variable\option name')
+		options_def = dict.__getitem__(self, name)
+		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], options_def[3], callback))
 	
 	def setOption(self, name, value):
 		"""
@@ -181,8 +199,10 @@ class Options(dict):
 			else:
 				raise TypeError('invalid value type')
 		else:
-			raise Exception('Unknown value type')
-		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], value))
+			raise Exception('unknown value type')
+		if options_def[4]:
+			options_def[4](value)
+		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], value, options_def[4]))
 	
 	def getMissingOptions(self):
 		"""

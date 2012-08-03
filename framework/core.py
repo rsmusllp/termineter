@@ -80,6 +80,8 @@ class Framework(object):
 		self.advanced_options = Options(self.directories)
 		self.advanced_options.addInteger('BAUDRATE', 'serial connection baud rate', default = 9600)
 		self.advanced_options.addInteger('BYTESIZE', 'serial connection byte size', default = serial.EIGHTBITS)
+		self.advanced_options.addBoolean('CACHETBLS', 'cache certain read-only tables', default = True)
+		self.advanced_options.setCallback('CACHETBLS', self.__optCallbackSetTableCachePolicy__)
 		self.advanced_options.addInteger('STOPBITS', 'serial connection stop bits', default = serial.STOPBITS_ONE)
 		if sys.platform.startswith('linux'):
 			self.options.setOption('USECOLOR', 'True')
@@ -274,7 +276,7 @@ class Framework(object):
 		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
 		
 		try:
-			self.serial_connection = Connection(self.options['CONNECTION'], frmwk_serial_settings, enable_cache = True)
+			self.serial_connection = Connection(self.options['CONNECTION'], frmwk_serial_settings, enable_cache = self.advanced_options['CACHETBLS'])
 		except Exception as error:
 			self.logger.error('could not open the serial device')
 			raise error
@@ -341,4 +343,9 @@ class Framework(object):
 			return False
 		if not self.serial_connection.login(username, userid, password):
 			return False
+		return True
+
+	def __optCallbackSetTableCachePolicy__(self, policy):
+		if self.is_serial_connected():
+			self.serial_connection.setTableCachePolicy(policy)
 		return True

@@ -70,16 +70,16 @@ class Connection:
 		self.device = device
 		if settings:
 			self.logger.debug('applying pySerial settings dictionary')
-			self.serial_h.parity = settings['parity'] #{'parity':serial.PARITY_NONE,
-			self.serial_h.baudrate = settings['baudrate']#'baudrate': self.advanced_options['BAUDRATE'],
-			self.serial_h.bytesize = settings['bytesize']#'bytesize': self.advanced_options['BYTESIZE'],
-			self.serial_h.xonxoff = settings['xonxoff'] #'xonxoff': False,
-			self.serial_h.interCharTimeout = settings['interCharTimeout'] #'interCharTimeout': None,
-			self.serial_h.rtscts = settings['rtscts'] #'rtscts': False,
-			self.serial_h.timeout = settings['timeout'] #'timeout': 1,
-			self.serial_h.stopbits = settings['stopbits'] #'stopbits': self.advanced_options['STOPBITS'],
-			self.serial_h.dsrdtr = settings['dsrdtr'] #'dsrdtr': False,
-			self.serial_h.writeTimeout = settings['writeTimeout'] #'writeTimeout': None}
+			self.serial_h.parity = settings['parity']
+			self.serial_h.baudrate = settings['baudrate']
+			self.serial_h.bytesize = settings['bytesize']
+			self.serial_h.xonxoff = settings['xonxoff']
+			self.serial_h.interCharTimeout = settings['interCharTimeout']
+			self.serial_h.rtscts = settings['rtscts']
+			self.serial_h.timeout = settings['timeout']
+			self.serial_h.stopbits = settings['stopbits']
+			self.serial_h.dsrdtr = settings['dsrdtr']
+			self.serial_h.writeTimeout = settings['writeTimeout']
 		
 		self.serial_h.setRTS(True)
 		self.logger.debug('set RTS to True')
@@ -93,6 +93,8 @@ class Connection:
 		self.__tbl_cache__ = {}
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
+		self.c1218_pktsize = 512
+		self.c1218_nbrpkts = 2
 	
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Device: ' + self.device + ' >'
@@ -211,6 +213,21 @@ class Connection:
 ###===###===### Functions Below This Are Non-Critical ###===###===###
 ###===###===### Convenience functions                 ###===###===###
 
+	def flushTableCache(self):
+		self.logger.info('flushing all cached tables')
+		self.__tbl_cache__ = {}
+
+	def setTableCachePolicy(self, cache_policy):
+		if self.caching_enabled == cache_policy:
+			return
+		self.caching_enabled = cache_policy
+		if cache_policy:
+			self.logger.info('selective table caching has been enabled')
+		else:
+			self.flushTableCache()
+			self.logger.info('selective table caching has been disabled')
+		return
+
 	def start(self):
 		"""
 		Send an identity request and then a negotiation request.
@@ -221,7 +238,7 @@ class Connection:
 			self.logger.error('received incorrect response to identification service request')
 			return False
 
-		self.send(C1218NegotiateRequest(256, 1, baudrate = 9600))
+		self.send(C1218NegotiateRequest(self.c1218_pktsize, self.c1218_nbrpkts, baudrate = 9600))
 		data = self.recv()
 		if data[0] != '\x00':
 			self.logger.error('received incorrect response to negotiate service request')
