@@ -262,7 +262,7 @@ class Connection:
 		"""
 		Log into the connected device.
 		
-		@type username: String (len(password) <= 10)
+		@type username: String (len(username) <= 10)
 		@param username: the username to log in with
 		
 		@type userid: Integer (0x0000 <= userid <= 0xffff)

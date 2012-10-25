@@ -157,7 +157,7 @@ class Options(dict):
 		@param name: The options name that is to be changed
 		
 		@type callback: Function
-		@param value: This function will be called when the setOption() 
+		@param callback: This function will be called when the setOption() 
 		is called and will be passed a single parameter of the value that
 		is being set.  It will be called prior to the value being set and
 		an exception can be thrown to alert the user that the value is invalid.
