@@ -31,7 +31,7 @@ class Module(module_template):
 		self.description = 'Get Information About The Meter\'s Logs'
 		self.detailed_description = 'This module reads various C1219 tables from decade 70 to gather log information from the smart meter. If successful the parsed contents of the logs will be displayed.'
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed')

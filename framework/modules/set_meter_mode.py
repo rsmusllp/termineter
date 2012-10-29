@@ -31,7 +31,7 @@ class Module(module_template):
 		self.detailed_description = 'Change the operating mode of the meter. Accepted values for MODE are METERING, TEST, METERSHOP, and FACTORY.'
 		self.options.addString('MODE', 'the mode to set the meter to', True)
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		logger = frmwk.get_module_logger(self.name)
 		mode = self.options['MODE']
 		mode = mode.upper()

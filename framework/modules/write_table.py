@@ -34,7 +34,7 @@ class Module(module_template):
 		self.options.addBoolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default = False)
 		self.options.addInteger('OFFSET', 'offset to start writing data at', required = False, default = None)
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		tableid = self.options['TABLEID']
 		data = self.options['DATA']
 		offset = self.options['OFFSET']

@@ -381,10 +381,6 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		if args[0] in self.frmwk.modules.keys():
 			old_module = self.frmwk.current_module
 			self.frmwk.current_module = args[0]
-			if len(args) > 1:
-				del(args[0])
-			else:
-				args[0] = ''
 		if self.frmwk.current_module == None:
 			self.print_error('Must \'use\' module first')
 			return
@@ -405,7 +401,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			self.print_good('Successfully connected and the device is responding')
 		self.logger.info('running module: ' + module_name)
 		try:
-			module.run(self.frmwk, args)
+			module.run(self.frmwk)
 		except KeyboardInterrupt:
 			try:
 				self.frmwk.serial_connection.stop()

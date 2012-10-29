@@ -35,7 +35,7 @@ class Module(module_template):
 		self.options.addString('USERNAME', 'user name to attempt to log in as', default = '0000')
 		self.options.addInteger('USERID', 'user id to attempt to log in as', default = 1)
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		conn = frmwk.serial_connection
 		usehex = self.options.getOptionValue('USEHEX')
 		dictionary_path = self.options.getOptionValue('DICTIONARY')

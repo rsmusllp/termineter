@@ -29,7 +29,7 @@ class Module(module_template):
 		self.description = 'Get Basic Meter Information By Reading Tables'
 		self.detailed_description = 'This module retreives some basic meter information and displays it in a human-readable way.'
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed, not all information may be available')

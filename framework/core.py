@@ -118,8 +118,8 @@ class Framework(object):
 				self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
 				continue
 			if not hasattr(module_instance, 'run'):
-				self.logger.critical('module: ' + module_name + ' has no run() function')
-				raise Exception('module: ' + module_name + ' has no run() function')
+				self.logger.critical('module: ' + module_name + ' has no run() method')
+				raise Exception('module: ' + module_name + ' has no run() method')
 			if not isinstance(module_instance.options, Options) or not isinstance(module_instance.advanced_options, Options):
 				self.logger.critical('module: ' + module_name + ' options and advanced_options must be Options instances')
 				raise Exception('options and advanced_options must be Options instances')
@@ -156,8 +156,8 @@ class Framework(object):
 			self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
 			raise Exception('module: ' + module_name + ' is not derived from the module_template class')
 		if not hasattr(module_instance, 'run'):
-			self.logger.error('module: ' + module_name + ' has no run() function')
-			raise Exception('module: ' + module_name + ' has no run() function')
+			self.logger.error('module: ' + module_name + ' has no run() method')
+			raise Exception('module: ' + module_name + ' has no run() method')
 		if not isinstance(module_instance.options, Options) or not isinstance(module_instance.advanced_options, Options):
 			self.logger.error('module: ' + module_name + ' options and advanced_options must be Options instances')
 			raise Exception('options and advanced_options must be Options instances')

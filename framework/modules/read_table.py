@@ -30,7 +30,7 @@ class Module(module_template):
 		self.detailed_description = 'This module allows individual tables to be read from the smart meter.'
 		self.options.addInteger('TABLEID', 'table to read from', True)
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		tableid = self.options['TABLEID']
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():

@@ -34,7 +34,7 @@ class Module(module_template):
 		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
 		self.options.addString('FILE', 'file to write the csv data into', default = 'smart_meter_tables.csv')
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		lower_boundary = self.options['LOWER']
 		upper_boundary = self.options['UPPER']
 		out_file = open(self.options['FILE'], 'w', 1)

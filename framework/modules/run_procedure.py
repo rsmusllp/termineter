@@ -33,7 +33,7 @@ class Module(module_template):
 		self.options.addBoolean('USEHEX', 'specifies that the \'PARAMS\' option is represented in hex', default = True)
 		self.advanced_options.addBoolean('STDVSMFG', 'if true, specifies that this procedure is defined by the manufacturer', default = False)
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed')

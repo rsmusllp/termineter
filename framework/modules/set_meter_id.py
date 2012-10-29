@@ -29,7 +29,7 @@ class Module(module_template):
 		self.detailed_description = 'This module will over write the Smart Meter\'s device ID with the new value specified in METERID.'
 		self.options.addString('METERID', 'value to set the meter id to', True)
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		meterid = self.options['METERID']
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():

@@ -32,7 +32,7 @@ class Module(module_template):
 		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)
 		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
 	
-	def run(self, frmwk, args):
+	def run(self, frmwk):
 		lower_boundary = self.options['LOWER']
 		upper_boundary = self.options['UPPER']
 		logger = frmwk.get_module_logger(self.name)
