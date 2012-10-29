@@ -83,6 +83,8 @@ class Framework(object):
 		self.advanced_options.addBoolean('CACHETBLS', 'cache certain read-only tables', default = True)
 		self.advanced_options.setCallback('CACHETBLS', self.__optCallbackSetTableCachePolicy__)
 		self.advanced_options.addInteger('STOPBITS', 'serial connection stop bits', default = serial.STOPBITS_ONE)
+		self.advanced_options.addInteger('NBRPKTS', 'c12.18 maximum packets for reassembly', default = 2)
+		self.advanced_options.addInteger('PKTSIZE', 'c12.18 maximum packet size', default = 512)
 		if sys.platform.startswith('linux'):
 			self.options.setOption('USECOLOR', 'True')
 		if not os.path.isdir(self.directories.data_path):
@@ -263,7 +265,14 @@ class Framework(object):
 		if not (0 <= userid <= 0xffff):
 			self.logger.error('user id must be between 0 and 0xffff')
 			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
-		frmwk_serial_settings = {'parity':serial.PARITY_NONE,
+		
+		frmwk_c1218_settings = {
+			'nbrpkts': self.advanced_options['NBRPKTS'],
+			'pktsize': self.advanced_options['PKTSIZE']
+		}
+		
+		frmwk_serial_settings = {
+			'parity':serial.PARITY_NONE,
 			'baudrate': self.advanced_options['BAUDRATE'],
 			'bytesize': self.advanced_options['BYTESIZE'],
 			'xonxoff': False,
@@ -272,11 +281,13 @@ class Framework(object):
 			'timeout': 1,
 			'stopbits': self.advanced_options['STOPBITS'],
 			'dsrdtr': False,
-			'writeTimeout': None}
+			'writeTimeout': None
+		}
+		
 		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
 		
 		try:
-			self.serial_connection = Connection(self.options['CONNECTION'], frmwk_serial_settings, enable_cache = self.advanced_options['CACHETBLS'])
+			self.serial_connection = Connection(self.options['CONNECTION'], c1218_settings = frmwk_c1218_settings, serial_settings = frmwk_serial_settings, enable_cache = self.advanced_options['CACHETBLS'])
 		except Exception as error:
 			self.logger.error('could not open the serial device')
 			raise error

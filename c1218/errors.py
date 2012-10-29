@@ -17,40 +17,44 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-class C1218IOError(Exception):
+class C1218Error(Exception):
+	"""
+	This is a generic C1218 Error.
+	"""
+	def __init__(self, msg, errcode = None):
+		self.message = msg
+		self.errCode = errcode
+	
+	def __str__(self):
+		return repr(self.message)
+
+class C1218IOError(C1218Error):
 	"""
 	Raised when there is a problem sending or receiving data.
 	"""
 	def __init__(self, msg):
 		self.message = msg
-		
-	def __str__(self):
-		return repr(self.message)
 
-class C1218ReadTableError(Exception):
+class C1218NegotiateError(C1218Error):
+	"""
+	Raised in response to an invalid reply to a Negotiate request.
+	"""
+	pass
+
+class C1218ReadTableError(C1218Error):
 	"""
 	Raised when a table is not successfully read.
 	
 	@type errcode: Integer
 	@param errcode: The error that was returned while reading the table.
 	"""
-	def __init__(self, msg, errcode = None):
-		self.message = msg
-		self.errCode = errcode
-	
-	def __str__(self):
-		return repr(self.message)
+	pass
 
-class C1218WriteTableError(Exception):
+class C1218WriteTableError(C1218Error):
 	"""
 	Raised when a table is not successfully written to.
 	
 	@type errcode: Integer
 	@param errcode: The error that was returned while writing to the table.
 	"""
-	def __init__(self, msg, errcode = None):
-		self.message = msg
-		self.errCode = errcode
-	
-	def __str__(self):
-		return repr(self.message)
+	pass

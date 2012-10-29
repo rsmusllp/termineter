@@ -25,7 +25,7 @@ import logging
 import serial
 from c1218.data import *
 from c1218.utils import find_strings, data_chksum_str
-from c1218.errors import C1218IOError, C1218ReadTableError, C1218WriteTableError
+from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError, C1218WriteTableError
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
@@ -33,7 +33,7 @@ ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Ins
 
 class Connection:
 	__toggle_bit__ = False
-	def __init__(self, device, settings = None, toggle_control = True, enable_cache = True):
+	def __init__(self, device, c1218_settings = {}, serial_settings = None, toggle_control = True, enable_cache = True):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
 		to communicate with an ANSI Type-2 Optical probe to communciate
@@ -44,7 +44,12 @@ class Connection:
 		library.  If PySerial is new enough, the serial_for_url function
 		will be used to allow the user to use a rfc2217 bridge.
 		
-		@type settings: Dictionary
+		@type c1218_settings: Dictionary
+		@param settings: A settings dictionary to configure the C1218 
+		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
+		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
+		
+		@type serial_settings: Dictionary
 		@param settings: A PySerial settings dictionary to be applied to
 		the serial connection instance.
 		
@@ -68,18 +73,22 @@ class Connection:
 			self.serial_h = serial.Serial(device)
 		self.logger.debug('successfully opened serial device: ' + device)
 		self.device = device
-		if settings:
+		
+		self.c1218_pktsize = (c1218_settings.get('pktsize') or 512)
+		self.c1218_nbrpkts = (c1218_settings.get('nbrpkts') or 2)
+		
+		if serial_settings:
 			self.logger.debug('applying pySerial settings dictionary')
-			self.serial_h.parity = settings['parity']
-			self.serial_h.baudrate = settings['baudrate']
-			self.serial_h.bytesize = settings['bytesize']
-			self.serial_h.xonxoff = settings['xonxoff']
-			self.serial_h.interCharTimeout = settings['interCharTimeout']
-			self.serial_h.rtscts = settings['rtscts']
-			self.serial_h.timeout = settings['timeout']
-			self.serial_h.stopbits = settings['stopbits']
-			self.serial_h.dsrdtr = settings['dsrdtr']
-			self.serial_h.writeTimeout = settings['writeTimeout']
+			self.serial_h.parity = serial_settings['parity']
+			self.serial_h.baudrate = serial_settings['baudrate']
+			self.serial_h.bytesize = serial_settings['bytesize']
+			self.serial_h.xonxoff = serial_settings['xonxoff']
+			self.serial_h.interCharTimeout = serial_settings['interCharTimeout']
+			self.serial_h.rtscts = serial_settings['rtscts']
+			self.serial_h.timeout = serial_settings['timeout']
+			self.serial_h.stopbits = serial_settings['stopbits']
+			self.serial_h.dsrdtr = serial_settings['dsrdtr']
+			self.serial_h.writeTimeout = serial_settings['writeTimeout']
 		
 		self.serial_h.setRTS(True)
 		self.logger.debug('set RTS to True')
@@ -93,8 +102,6 @@ class Connection:
 		self.__tbl_cache__ = {}
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
-		self.c1218_pktsize = 512
-		self.c1218_nbrpkts = 2
 	
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Device: ' + self.device + ' >'
@@ -238,12 +245,13 @@ class Connection:
 			self.logger.error('received incorrect response to identification service request')
 			return False
 
+		self.__initialized__ = True
 		self.send(C1218NegotiateRequest(self.c1218_pktsize, self.c1218_nbrpkts, baudrate = 9600))
 		data = self.recv()
 		if data[0] != '\x00':
 			self.logger.error('received incorrect response to negotiate service request')
-			return False
-		self.__initialized__ = True
+			self.stop()
+			raise C1218NegotiateError('received incorrect response to negotiate service request', ord(data[0]))
 		return True
 	
 	def stop(self):
