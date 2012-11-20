@@ -132,6 +132,11 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 				else:
 					self.logger.error('could not access resource file: ' + check_rc_file)
 					self.print_error('Could not access resource file: ' + check_rc_file)
+		try:
+			import readline
+			readline.read_history_file(self.frmwk.directories.user_data + 'history.txt')
+		except (ImportError, IOError):
+			pass
 	
 	def run_rc_file(self, rc_file):
 		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
@@ -226,8 +231,13 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 					'Come with me if you want to live.',
 					'Where\'s John Connor?'
 					]
-		self.print_status(QUOTES[randint(0, (len(QUOTES) - 1))])
 		self.logger.info('received exit command, now exiting')
+		self.print_status(QUOTES[randint(0, (len(QUOTES) - 1))])
+		try:
+			import readline
+			readline.write_history_file(self.frmwk.directories.user_data + 'history.txt')
+		except (ImportError, IOError):
+			pass
 		return True
 	
 	def do_exploit(self, args):
