@@ -19,12 +19,12 @@
 
 from framework.templates import module_template
 from binascii import unhexlify
-from c1219.constants import C1219_PROC_RESULT_CODES
+from c1219.constants import C1219_PROCEDURE_NAMES, C1219_PROC_RESULT_CODES
 
 class Module(module_template):
 	def __init__(self, *args, **kwargs):
 		module_template.__init__(self, *args, **kwargs)
-		self.version = 1
+		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Initiate A Custom Procedure'
 		self.detailed_description = 'This module executes a user defined procedure and returns the response. This is achieved by writing to the Procedure Initiate Table (#7) and then reading the result from the Procedure Response Table (#8).'
@@ -34,14 +34,15 @@ class Module(module_template):
 		self.advanced_options.addBoolean('STDVSMFG', 'if true, specifies that this procedure is defined by the manufacturer', default = False)
 	
 	def run(self, frmwk):
-		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():	# don't alert on failed logins
-			logger.warning('meter login failed')
-			frmwk.print_error('Meter login failed, execution may fail')
+			self.logger.warning('meter login failed')
+			frmwk.print_error('Meter login failed, procedure may fail')
 		
 		data = self.options['PARAMS']
 		if self.options['USEHEX']:
 			data = unhexlify(data)
+		
+		frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
 		
 		conn = frmwk.serial_connection
 		errCode, data = conn.runProcedure(self.options['PROCNBR'], self.advanced_options['STDVSMFG'], data)

@@ -396,7 +396,7 @@ class Connection:
 		request.
 		"""
 		seqnum = randint(2, 254)
-		self.logger.info('starting procedure: ' + str(process_number) + ' sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
+		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
 		procedure_request = str(C1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
 		self.setTableData(7, procedure_request)
 		
