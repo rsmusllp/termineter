@@ -188,7 +188,9 @@ class Options(dict):
 				raise TypeError('invalid value type')
 			value = int(value)
 		elif options_def[0] == 'flt':
-			if not value.replace('.').isdigit():
+			if value.count('.') > 1:
+				raise TypeError('invalid value type')
+			if not value.replace('.', '').isdigit():
 				raise TypeError('invalid value type')
 			value = float(value)
 		elif options_def[0] == 'bool':

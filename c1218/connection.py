@@ -32,7 +32,6 @@ from c1219.errors import C1219ProcedureError
 ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Insufficient Security Clearance)', 4:'onp (Operation Not Possible)', 5:'iar (Inappropriate Action Requested)', 6:'bsy (Device Busy)', 7:'dnr (Data Not Ready)', 8:'dlk (Data Locked)', 9:'rno (Renegotiate Request)', 10:'isss (Invalid Service Sequence State)'}
 
 class Connection:
-	__toggle_bit__ = False
 	def __init__(self, device, c1218_settings = {}, serial_settings = None, toggle_control = True, enable_cache = True):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
@@ -66,6 +65,7 @@ class Connection:
 		self.logger = logging.getLogger('c1218.connection')
 		self.loggerio = logging.getLogger('c1218.connection.io')
 		self.toggle_control = toggle_control
+		self.__toggle_bit__ = False
 		if hasattr(serial, 'serial_for_url'):
 			self.serial_h = serial.serial_for_url(device)
 		else:
@@ -130,7 +130,7 @@ class Connection:
 		elif self.toggle_control and not isinstance(data, C1218Packet):
 			self.loggerio.warning('toggle bit is on but the data is not a C1218Packet instance')
 		data = str(data)
-		self.loggerio.debug('sending frame, length: ' + str(len(data)) + ' data: ' + hexlify(data))
+		self.loggerio.debug("sending frame,  length: {0:<3} data: {1}".format(len(data), hexlify(data)))
 		for pktcount in xrange(0, 3):
 			self.write(data)
 			response = self.serial_h.read(1)
@@ -171,7 +171,7 @@ class Connection:
 			if chksum == crc_str(tmpbuffer):
 				self.serial_h.write(ACK)
 				data = tmpbuffer + chksum
-				self.loggerio.debug('received frame, length: ' + str(len(data)) + ' data: ' + hexlify(data))
+				self.loggerio.debug("received frame, length: {0:<3} data: {1}".format(len(data), hexlify(data)))
 				payloadbuffer += payload
 				if sequence == 0:
 					return payloadbuffer
@@ -263,6 +263,7 @@ class Connection:
 			data = self.recv()
 			if data == '\x00':
 				self.__initialized__ = False
+				self.__toggle_bit__ = False
 				return True
 		return False
 	

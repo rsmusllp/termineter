@@ -20,14 +20,20 @@
 from framework.options import Options
 
 class module_template:
-	def __init__(self, directories):
+	def __init__(self, frmwk):
+		self.frmwk = frmwk
+		
 		self.name = 'unknown'
 		self.version = 0
 		self.author = ['anonymous']
 		self.description = 'This module is undocumented.'
 		self.detailed_description = 'This module is undocumented.'
-		self.options = Options(directories)
-		self.advanced_options = Options(directories)
+		self.options = Options(frmwk.directories)
+		self.advanced_options = Options(frmwk.directories)
 
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' ' + self.name + ' >'
+
+	@property
+	def logger(self):
+		return self.frmwk.get_module_logger(self.name)

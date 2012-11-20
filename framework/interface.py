@@ -137,6 +137,10 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
 			self.logger.info('processing "' + rc_file + '" for commands')
 			for line in open(rc_file, 'r'):
+				if not len(line):
+					continue
+				if line[0] == '#':
+					continue
 				self.print_line(self.prompt + line.strip())
 				self.onecmd(line.strip())
 		else:

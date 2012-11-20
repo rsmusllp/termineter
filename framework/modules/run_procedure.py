@@ -37,8 +37,7 @@ class Module(module_template):
 		logger = frmwk.get_module_logger(self.name)
 		if not frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed')
-			frmwk.print_error('Meter login failed, can not execute procedure')
-			return
+			frmwk.print_error('Meter login failed, execution may fail')
 		
 		data = self.options['PARAMS']
 		if self.options['USEHEX']:

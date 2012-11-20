@@ -112,7 +112,10 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 		self.__hw_revision_no__ = ord(general_mfg_table[13])
 		self.__fw_version_no__ = ord(general_mfg_table[14])
 		self.__fw_revision_no__ = ord(general_mfg_table[15])
-		self.__mfg_serial_no__ = general_mfg_table[16:].strip()
+		if self.__id_form__ == 0:
+			self.__mfg_serial_no__ = general_mfg_table[16:32].strip()
+		else:
+			self.__mfg_serial_no__ = general_mfg_table[16:24]
 		
 		### Parse ED_MODE_STATUS_TBL ###
 		if mode_status_table:

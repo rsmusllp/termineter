@@ -17,7 +17,6 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from random import randint
 from framework.templates import module_template
 from c1219.errors import C1219ProcedureError
 from c1218.errors import C1218ReadTableError, C1218WriteTableError

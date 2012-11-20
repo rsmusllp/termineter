@@ -113,7 +113,7 @@ class Framework(object):
 			module_name = module_name[:-3]
 			self.logger.debug('loading module: ' + module_name)
 			module = __import__(self.__package__ + '.modules.' + module_name, None, None, ['Module'])
-			module_instance = module.Module(self.directories)
+			module_instance = module.Module(self)
 			if not isinstance(module_instance, module_template):
 				self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
 				continue
@@ -151,7 +151,7 @@ class Framework(object):
 		self.logger.info('reloading module: ' + module_name)
 		module = __import__(self.__package__ + '.modules.' + module_name, None, None, ['Module'])
 		reload(module)
-		module_instance = module.Module(self.directories)
+		module_instance = module.Module(self)
 		if not isinstance(module_instance, module_template):
 			self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
 			raise Exception('module: ' + module_name + ' is not derived from the module_template class')
