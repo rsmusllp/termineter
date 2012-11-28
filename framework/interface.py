@@ -24,8 +24,9 @@ import code
 import logging
 import traceback
 from random import randint
-from framework.options import Options
 from framework.core import Framework, FrameworkConfigurationError
+from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
+from framework.options import Options
 
 __version__ = '0.1.0'
 
@@ -96,15 +97,19 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
 		intro += fmt_string.format('model:', 'T-800') + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
+		if self.frmwk.rfcat_available:
+			intro += fmt_string.format('rfcat:', 'enabled') + os.linesep
+		else:
+			intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
 		return intro
 	
 	@property
 	def prompt(self):
 		if self.frmwk.current_module:
 			if self.frmwk.use_colors:
-				return self.__name__ + ' (\033[1;33m' + self.frmwk.current_module + '\033[1;m) > '
+				return self.__name__ + ' (\033[1;33m' + self.frmwk.current_module.name + '\033[1;m) > '
 			else:
-				return self.__name__ + ' (' + self.frmwk.current_module + ') > '
+				return self.__name__ + ' (' + self.frmwk.current_module.name + ') > '
 		else:
 			return self.__name__ + ' > '
 	
@@ -135,6 +140,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		try:
 			import readline
 			readline.read_history_file(self.frmwk.directories.user_data + 'history.txt')
+			readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 		except (ImportError, IOError):
 			pass
 	
@@ -288,7 +294,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 				self.print_error('Invalid module name')
 				return
 		else:
-			module = self.frmwk.modules[self.frmwk.current_module]
+			module = self.frmwk.current_module
 		self.print_line('')
 		self.print_line('     Name: ' + module.name)
 		if len(module.author) == 1:
@@ -359,7 +365,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		args = args.split(' ')
 		if args[0] == '':
 			if self.frmwk.current_module:
-				module_name = self.frmwk.current_module
+				module_path = self.frmwk.current_module.path
 			else:
 				self.print_error('Must \'use\' module first')
 				return
@@ -367,9 +373,9 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			self.print_error('Invalid Module Selected.')
 			return
 		else:
-			module_name = args[0]
-		self.frmwk.reload_module(module_name)
-		self.print_status('Successfully reloaded module: ' + module_name)
+			module_path = args[0]
+		self.frmwk.reload_module(module_path)
+		self.print_status('Successfully reloaded module: ' + module_path)
 	
 	def complete_reload(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
@@ -394,12 +400,11 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		old_module = None
 		if args[0] in self.frmwk.modules.keys():
 			old_module = self.frmwk.current_module
-			self.frmwk.current_module = args[0]
+			self.frmwk.current_module = self.frmwk.modules[args[0]]
 		if self.frmwk.current_module == None:
 			self.print_error('Must \'use\' module first')
 			return
-		module_name = self.frmwk.current_module
-		module = self.frmwk.modules[module_name]
+		module = self.frmwk.current_module
 		missing_options = self.frmwk.options.getMissingOptions()
 		missing_options.extend(module.options.getMissingOptions())
 		if missing_options:
@@ -413,15 +418,9 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 				return
 			self.print_good('Successfully connected and the device is responding')
-		self.logger.info('running module: ' + module_name)
 		try:
-			module.run(self.frmwk)
+			self.frmwk.run()
 		except KeyboardInterrupt:
-			try:
-				self.frmwk.serial_connection.stop()
-			except Exception as error:
-				self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
-				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.print_line('')
 		except Exception as error:
 			for x in traceback.format_exc().split(os.linesep): self.print_line(x)
@@ -444,8 +443,8 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		value = ' '.join(args[1:])
 		
 		if self.frmwk.current_module:
-			options = self.frmwk.modules[self.frmwk.current_module].options
-			advanced_options = self.frmwk.modules[self.frmwk.current_module].advanced_options
+			options = self.frmwk.current_module.options
+			advanced_options = self.frmwk.current_module.advanced_options
 		else:
 			options = self.frmwk.options
 			advanced_options = self.frmwk.advanced_options
@@ -467,7 +466,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	
 	def complete_set(self, text, line, begidx, endidx):
 		if self.frmwk.current_module:
-			return [i for i in self.frmwk.modules[self.frmwk.current_module].options.keys() if i.startswith(text.upper())]
+			return [i for i in self.frmwk.current_module.options.keys() if i.startswith(text.upper())]
 		else:
 			return [i for i in self.frmwk.options.keys() if i.startswith(text.upper())]
 	
@@ -498,12 +497,12 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 			return
 		elif args[0] == 'options' or args[0] == 'advanced':
 			if self.frmwk.current_module and args[0] == 'options':
-				options = self.frmwk.modules[self.frmwk.current_module].options
+				options = self.frmwk.current_module.options
 				self.print_line('')
 				self.print_line('Module Options' + os.linesep + '==============')
 				self.print_line('')
 			if self.frmwk.current_module and args[0] == 'advanced':
-				options = self.frmwk.modules[self.frmwk.current_module].advanced_options
+				options = self.frmwk.current_module.advanced_options
 				self.print_line('')
 				self.print_line('Advanced Module Options' + os.linesep + '=======================')
 				self.print_line('')
@@ -542,11 +541,12 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	def do_use(self, args):
 		"""Select a module to use"""
 		args = args.split(' ')
-		if args[0] in self.frmwk.modules.keys():
-			self.frmwk.current_module = args[0]
+		mod_name = args[0]
+		if mod_name in self.frmwk.modules.keys():
+			self.frmwk.current_module = self.frmwk.modules[mod_name]
 		else:
-			self.logger.error('failed to load module: ' + args[0])
-			self.print_error('Failed to load module: ' + args[0])
+			self.logger.error('failed to load module: ' + mod_name)
+			self.print_error('Failed to load module: ' + mod_name)
 	
 	def complete_use(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]

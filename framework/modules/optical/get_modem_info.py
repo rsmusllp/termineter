@@ -17,30 +17,30 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_CALL_STATUS_FLAGS
 from c1219.access.telephone import C1219TelephoneAccess
 from struct import pack, unpack
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Get Information About The Integrated Modem'
 		self.detailed_description = 'This module reads various C1219 tables from decade 90 to gather information about the integrated modem. If successfully parsed, useful information will be displayed.'
 	
-	def run(self, frmwk):
-		logger = frmwk.get_module_logger(self.name)
-		if not frmwk.serial_login():	# don't alert on failed logins
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
+		if not self.frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed')
-		conn = frmwk.serial_connection
 		
 		try:
 			telephoneCtl = C1219TelephoneAccess(conn)
 		except C1218ReadTableError:
-			frmwk.print_error('Could not read necessary tables, a modem is not likely present')
+			self.frmwk.print_error('Could not read necessary tables, a modem is not likely present')
 			return
 		conn.stop()
 		
@@ -60,14 +60,14 @@ class Module(module_template):
 		
 		keys = info.keys()
 		keys.sort()
-		frmwk.print_status('General Information:')
+		self.frmwk.print_status('General Information:')
 		fmt_string = "    {0:.<38}.{1}"
 		for key in keys:
-			frmwk.print_status(fmt_string.format(key, info[key]))
+			self.frmwk.print_status(fmt_string.format(key, info[key]))
 		
-		frmwk.print_status('Stored Telephone Numbers:')
+		self.frmwk.print_status('Stored Telephone Numbers:')
 		fmt_string = "    {0:<6} {1:<16} {2:<32}"
-		frmwk.print_status(fmt_string.format('Index', 'Number', 'Last Status'))
-		frmwk.print_status(fmt_string.format('-----', '------', '-----------'))
+		self.frmwk.print_status(fmt_string.format('Index', 'Number', 'Last Status'))
+		self.frmwk.print_status(fmt_string.format('-----', '------', '-----------'))
 		for idx, entry in telephoneCtl.originating_numbers.items():
-			frmwk.print_status(fmt_string.format(entry['idx'], entry['number'].strip(), C1219_CALL_STATUS_FLAGS[entry['status']]))
+			self.frmwk.print_status(fmt_string.format(entry['idx'], entry['number'].strip(), C1219_CALL_STATUS_FLAGS[entry['status']]))
