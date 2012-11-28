@@ -135,6 +135,7 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		try:
 			import readline
 			readline.read_history_file(self.frmwk.directories.user_data + 'history.txt')
+			readline.set_history_length(150)
 		except (ImportError, IOError):
 			pass
 	
