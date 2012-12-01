@@ -339,11 +339,20 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 	
 	def do_ipy(self, args):
 		"""Start an interactive Python interpreter"""
+		from c1218.data import C1218Packet
 		from c1219.access.general import C1219GeneralAccess
 		from c1219.access.security import C1219SecurityAccess
 		from c1219.access.log import C1219LogAccess
 		from c1219.access.telephone import C1219TelephoneAccess
-		vars = {'__version__':__version__, 'frmwk':self.frmwk, 'C1219GeneralAccess':C1219GeneralAccess, 'C1219SecurityAccess':C1219SecurityAccess, 'C1219LogAccess':C1219LogAccess, 'C1219TelephoneAccess':C1219TelephoneAccess}
+		vars = { 
+			'__version__':__version__,
+			'frmwk':self.frmwk,
+			'C1218Packet':C1218Packet,
+			'C1219GeneralAccess':C1219GeneralAccess,
+			'C1219SecurityAccess':C1219SecurityAccess,
+			'C1219LogAccess':C1219LogAccess,
+			'C1219TelephoneAccess':C1219TelephoneAccess
+		}
 		banner = 'The Framework Instance Is In The Variable \'frmwk\'' + os.linesep
 		if self.frmwk.is_serial_connected():
 			vars['conn'] = self.frmwk.serial_connection

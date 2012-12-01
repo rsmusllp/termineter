@@ -241,7 +241,7 @@ class Framework(object):
 			print '[+] ' + (os.linesep + '[+] ').join(message.split(os.linesep))
 
 	def print_line(self, message):
-		print message
+		print ''.join(message.split(os.linesep))
 
 	def print_status(self, message):
 		if self.options['USECOLOR']:

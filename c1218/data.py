@@ -23,9 +23,15 @@ from c1218.utils import crc, crc_str, data_chksum, data_chksum_str
 ACK = '\x06'
 NACK = '\x15'
 
-class C1218Request:
+class C1218Request(object):
+	def __repr__(self):
+		return '<' + self.__class__.__name__ + ' >'
+	
 	def __str__(self):
 		return self.do_build()
+	
+	def __len__(self):
+		return len(str(self))
 
 class C1218LogonRequest(C1218Request):
 	logon = '\x50'
@@ -106,10 +112,10 @@ class C1218WaitRequest(C1218Request):
 		return self.wait
 
 class C1218IdentRequest(C1218Request):
-	terminate = '\x20'
+	ident = '\x20'
 	
 	def do_build(self):
-		return self.terminate
+		return self.ident
 
 class C1218TerminateRequest(C1218Request):
 	terminate = '\x21'
@@ -185,6 +191,25 @@ class C1218Packet(C1218Request):
 	__length__ = '\x00\x00' # can never exceed 8183
 	__data__ = ''
 	
+	@staticmethod
+	def parse(data):
+		if len(data) < 8:
+			raise Exception('invalid data (size)')
+		if data[0] != '\xee':
+			raise Exception('invalid start byte')
+		identity = data[1]
+		control = ord(data[2])
+		sequence = data[3]
+		length = unpack('>H', data[4:6])[0]
+		chksum = data[-2:]
+		if crc_str(data[:-2]) != chksum:
+			raise Exception('invalid check sum')
+		data = data[6:-2]
+		frame = C1218Packet(data, control, length)
+		frame.identity = identity
+		frame.sequence = sequence
+		return frame
+	
 	def __init__(self, data = None, control = None, length = None):
 		if data:
 			self.set_data(data)
@@ -198,11 +223,23 @@ class C1218Packet(C1218Request):
 			self.control = control
 	
 	def __repr__(self):
-		return '<C1218Packet data=0x' + str(self.__data__).encode('hex') + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + self.__data__).encode('hex') + ' >'
-
+		if isinstance(self.__data__, C1218Request):
+			repr_data = repr(self.__data__)
+		else:
+			repr_data = '0x' + str(self.__data__).encode('hex')
+		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + str(self.__data__)).encode('hex') + ' >'
+	
+	@property
+	def data(self):
+		return self.__data__
+	
+	@data.setter
+	def data(self, value):
+		self.set_data(value)
+	
 	def set_data(self, data):
-		self.__data__ = str(data)
-		self.set_length(len(self.__data__))
+		self.__data__ = data
+		self.set_length(len(str(self.__data__)))
 	
 	def set_length(self, length):
 		if length > 8183:
@@ -215,6 +252,6 @@ class C1218Packet(C1218Request):
 		packet += self.control
 		packet += self.sequence
 		packet += self.__length__
-		packet += self.__data__
+		packet += str(self.__data__)
 		packet += crc_str(packet)
 		return packet
