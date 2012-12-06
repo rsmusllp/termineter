@@ -39,7 +39,7 @@ if [ ! -d "$FRMWKBASE" ]; then
 fi
 cp -r * $FRMWKBASE
 
-echo "#/bin/sh" > $EXEPATH                                             
+echo "#!/bin/sh" > $EXEPATH                                             
 echo "FRMWKBASE=$INSTALLROOT/termineter" >> $EXEPATH
 echo "python -B \$FRMWKBASE/termineter.py \"\$@\"" >> $EXEPATH
 chmod +x $EXEPATH

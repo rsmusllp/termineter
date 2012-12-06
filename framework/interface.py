@@ -21,6 +21,7 @@ import os
 import cmd
 import sys
 import code
+import socket
 import logging
 import traceback
 from random import randint
@@ -167,6 +168,37 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.logger.error('invalid rc file: ' + rc_file)
 			return False
 		return True
+	
+	@staticmethod
+	def serve(addr, run_once = False, log_level = None):
+		srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		srv_sock.bind(addr)
+		srv_sock.listen(1)
+		while True:
+			(clt_sock, clt_addr) = srv_sock.accept()
+			
+			ins = clt_sock.makefile('r', 1)
+			outs = clt_sock.makefile('w', 1)
+			
+			log_stream = logging.StreamHandler(outs)
+			if log_level != None:
+				log_stream.setLevel(log_level)
+			log_stream.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
+			logging.getLogger('').addHandler(log_stream)
+			
+			interpreter = InteractiveInterpreter(check_rc_file = False, stdin = ins, stdout = outs)
+			interpreter.cmdloop()
+			
+			log_stream.flush()
+			log_stream.close()
+			logging.getLogger('').removeHandler(log_stream)
+			
+			outs.close()
+			ins.close()
+			clt_sock.close()
+			if run_once:
+				break
+		srv_sock.close()
 	
 	def do_back(self, args):
 		"""Stop using a module"""

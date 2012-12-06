@@ -34,8 +34,10 @@ def main():
 	logging.basicConfig(level = getattr(logging, arguments.loglvl), format = "%(levelname)-8s %(message)s")
 	rc_file = arguments.resource_file
 	del arguments, parser
+	
 	interpreter = InteractiveInterpreter(rc_file)
 	interpreter.cmdloop()
-	
+	logging.shutdown()
+
 if __name__ == '__main__':
 	main()
