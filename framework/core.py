@@ -52,11 +52,14 @@ class Framework(object):
 	manages the serial connection as well as all of the loaded 
 	modules.
 	"""
-	def __init__(self):
+	def __init__(self, stdout = None):
 		self.modules = { }
 		self.__serial_connected__ = False
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 		package_path = __import__(self.__package__, None, None, ['__path__']).__path__[0]	# that's some python black magic trickery for you
+		if stdout == None:
+			stdout = sys.stdout
+		self.stdout = stdout
 		
 		self.directories = Namespace()
 		self.directories.user_data = os.path.expanduser('~') + os.sep + '.termineter' + os.sep
@@ -185,39 +188,43 @@ class Framework(object):
 
 	def print_error(self, message):
 		if self.options['USECOLOR']:
-			print '\033[1;31m[-] \033[1;m' + (os.linesep + '\033[1;31m[-] \033[1;m').join(message.split(os.linesep))
+			self.stdout.write('\033[1;31m[-] \033[1;m' + (os.linesep + '\033[1;31m[-] \033[1;m').join(message.split(os.linesep)) + os.linesep)
 		else:
-			print '[-] ' + (os.linesep + '[-] ').join(message.split(os.linesep))
+			self.stdout.write('[-] ' + (os.linesep + '[-] ').join(message.split(os.linesep)) + os.linesep)
+		self.stdout.flush()
 
 	def print_good(self, message):
 		if self.options['USECOLOR']:
-			print '\033[1;32m[+] \033[1;m' + (os.linesep + '\033[1;32m[+] \033[1;m').join(message.split(os.linesep))
+			self.stdout.write('\033[1;32m[+] \033[1;m' + (os.linesep + '\033[1;32m[+] \033[1;m').join(message.split(os.linesep)) + os.linesep)
 		else:
-			print '[+] ' + (os.linesep + '[+] ').join(message.split(os.linesep))
+			self.stdout.write('[+] ' + (os.linesep + '[+] ').join(message.split(os.linesep)) + os.linesep)
+		self.stdout.flush()
 
 	def print_line(self, message):
-		print ''.join(message.split(os.linesep))
+		self.stdout.write(message + os.linesep)
+		self.stdout.flush()
 
 	def print_status(self, message):
 		if self.options['USECOLOR']:
-			print '\033[1;34m[*] \033[1;m' + (os.linesep + '\033[1;34m[*] \033[1;m').join(message.split(os.linesep))
+			self.stdout.write('\033[1;34m[*] \033[1;m' + (os.linesep + '\033[1;34m[*] \033[1;m').join(message.split(os.linesep)) + os.linesep)
 		else:
-			print '[*] ' + (os.linesep + '[*] ').join(message.split(os.linesep))
+			self.stdout.write('[*] ' + (os.linesep + '[*] ').join(message.split(os.linesep)) + os.linesep)
+		self.stdout.flush()
 
 	def print_hexdump(self, data):
 		x = str(data)
 		l = len(x)
 		i = 0
 		while i < l:
-			print "%04x  " % i,
+			self.stdout.write("%04x   " % i)
 			for j in range(16):
 				if i+j < l:
-					print "%02X" % ord(x[i+j]),
+					self.stdout.write("%02X " % ord(x[i+j]))
 				else:
-					print "  ",
+					self.stdout.write("   ")
 				if j%16 == 7:
-					print "",
-			print " ",
+					self.stdout.write(" ")
+			self.stdout.write("  ")
 			r = ""
 			for j in x[i:i+16]:
 				j = ord(j)
@@ -225,8 +232,9 @@ class Framework(object):
 					r = r + "."
 				else:
 					r = r + chr(j)
-			print r
+			self.stdout.write(r + os.linesep)
 			i += 16
+		self.stdout.flush()
 
 	def is_serial_connected(self):
 		"""

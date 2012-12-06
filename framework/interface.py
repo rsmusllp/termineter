@@ -31,9 +31,11 @@ __version__ = '0.1.0'
 
 class OverrideCmd(cmd.Cmd, object):
 	__doc__ = 'OverrideCmd class is meant to override methods from cmd.Cmd so they can\nbe imported into the base interpreter class.'
-	def __init__(self, debugging = False):
-		cmd.Cmd.__init__(self)
+	def __init__(self, *args, **kwargs):
+		cmd.Cmd.__init__(self, *args, **kwargs)
+		
 		self.__hidden_commands__ = ['EOF']
+		self.__disabled_commands__ = [ ]
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 	
 	def cmdloop(self):
@@ -51,23 +53,30 @@ class OverrideCmd(cmd.Cmd, object):
 		for name in self.__hidden_commands__:
 			if 'do_' + name in commands:
 				commands.remove('do_' + name)
+		for name in self.__disabled_commands__:
+			if 'do_' + name in commands:
+				commands.remove('do_' + name)
 		return commands
 	
 	def emptyline(self): 					# Don't do anything on a blank line being passed
-		pass								#stupid repeats are annoying
+		pass								# stupid repeats are annoying
 	
 	def help_help(self): 					# Get help out of the undocumented section, stupid python
 		self.do_help('')
 		
 	def precmd(self, line):					# use this to allow using '?' after the command for help
 		tmpLine = line.split()
-		if len(tmpLine) <= 1:
+		if len(tmpLine) == 0:
+			return line
+		if tmpLine[0] in self.__disabled_commands__:
+			self.default(tmpLine[0])
+			return ''
+		if len(tmpLine) == 1:
 			return line
 		if tmpLine[1] == '?':
 			self.do_help(tmpLine[0])
 			return ''
-		else:
-			return line
+		return line
 
 	def do_exit(self, args):
 		return True
@@ -77,7 +86,7 @@ class OverrideCmd(cmd.Cmd, object):
 		self.print_line('')
 		return self.do_exit('')
 
-class InteractiveInterpreter(OverrideCmd):													# The core interpreter for the console
+class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the console
 	__doc__ = 'The core interpreter for the program'
 	__name__ = 'termineter'
 	prompt = __name__ + ' > '
@@ -108,12 +117,17 @@ class InteractiveInterpreter(OverrideCmd):													# The core interpreter fo
 		else:
 			return self.__name__ + ' > '
 	
-	def __init__(self, check_rc_file = True):
-		OverrideCmd.__init__(self)
+	def __init__(self, check_rc_file = True, stdin = None, stdout = None):
+		OverrideCmd.__init__(self, stdin = stdin, stdout = stdout)
+		if stdin != None:
+			self.use_rawinput = False
+			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
+			self.__disabled_commands__.append('ipy')
+		
 		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
-		self.frmwk = Framework()
+		self.frmwk = Framework(stdout = stdout)
 		self.print_error = self.frmwk.print_error
 		self.print_good = self.frmwk.print_good
 		self.print_line = self.frmwk.print_line
