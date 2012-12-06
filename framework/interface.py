@@ -118,7 +118,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		else:
 			return self.__name__ + ' > '
 	
-	def __init__(self, check_rc_file = True, stdin = None, stdout = None):
+	def __init__(self, check_rc_file = True, stdin = None, stdout = None, log_handler = None):
 		OverrideCmd.__init__(self, stdin = stdin, stdout = stdout)
 		if stdin != None:
 			self.use_rawinput = False
@@ -127,6 +127,9 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		
 		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
+		self.log_handler = log_handler
+		if self.log_handler == None:
+			self.__disabled_commands__.append('logging')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
 		self.frmwk = Framework(stdout = stdout)
 		self.print_error = self.frmwk.print_error
@@ -306,16 +309,20 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		if args[0] == '-h':
 			self.print_status('Valid parameters for the "logging" command are: show, set')
 			return
-		elif args[0] == 'show':
-			loglvl = logging.getLogger('').getEffectiveLevel()
+		elif self.log_handler == None:
+			self.print_error('No log handler is defined')
+			return
+		if args[0] == 'show':
+			loglvl = self.log_handler.level
 			self.print_status('Effective logging level is: ' + ({10:'DEBUG', 20:'INFO', 30:'WARNING', 40:'ERROR', 50:'CRITICAL'}.get(loglvl) or 'UNKNOWN'))
 		elif args[0] == 'set':
 			if len(args) == 1:
 				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
 				return
-			if args[1].upper() in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
-				logging.getLogger('').setLevel(getattr(logging, args[1].upper()))
-				self.print_status('Successfully changed the logging level to: ' + args[1].upper())
+			new_lvl = args[1].upper()
+			if new_lvl in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+				self.log_handler.setLevel(getattr(logging, new_lvl))
+				self.print_status('Successfully changed the logging level to: ' + new_lvl)
 			else:
 				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
 	

@@ -31,11 +31,16 @@ def main():
 	parser.add_argument('-L', '--log', dest = 'loglvl', action = 'store', choices = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default = 'CRITICAL', help = 'set the logging level')
 	parser.add_argument('-r', '--rc-file', dest = 'resource_file', action = 'store', default = True, help = 'execute a resource file')
 	arguments = parser.parse_args()
-	logging.basicConfig(level = getattr(logging, arguments.loglvl), format = "%(levelname)-8s %(message)s")
+	
+	logging.getLogger('').setLevel(logging.DEBUG)
+	console_log_handler = logging.StreamHandler()
+	console_log_handler.setLevel(getattr(logging, arguments.loglvl))
+	console_log_handler.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
+	logging.getLogger('').addHandler(console_log_handler)
 	rc_file = arguments.resource_file
 	del arguments, parser
 	
-	interpreter = InteractiveInterpreter(rc_file)
+	interpreter = InteractiveInterpreter(rc_file, log_handler = console_log_handler)
 	interpreter.cmdloop()
 	logging.shutdown()
 
