@@ -174,11 +174,20 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 	
 	@staticmethod
 	def serve(addr, run_once = False, log_level = None):
+		__package__ = '.'.join(InteractiveInterpreter.__module__.split('.')[:-1])
+		logger = logging.getLogger(__package__ + '.interpreter.server')
+		
 		srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		srv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		srv_sock.bind(addr)
+		logger.debug('listening for connections on: ' + addr[0] + ':' + str(addr[1]))
 		srv_sock.listen(1)
 		while True:
-			(clt_sock, clt_addr) = srv_sock.accept()
+			try:
+				(clt_sock, clt_addr) = srv_sock.accept()
+			except KeyboardInterrupt:
+				break
+			logger.info('received connection from: ' + clt_addr[0] + ':' + str(clt_addr[1]))
 			
 			ins = clt_sock.makefile('r', 1)
 			outs = clt_sock.makefile('w', 1)
@@ -198,10 +207,14 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			
 			outs.close()
 			ins.close()
+			clt_sock.shutdown(socket.SHUT_RDWR)
 			clt_sock.close()
+			del(clt_sock)
 			if run_once:
 				break
+		srv_sock.shutdown(socket.SHUT_RDWR)
 		srv_sock.close()
+		del(srv_sock)
 	
 	def do_back(self, args):
 		"""Stop using a module"""
