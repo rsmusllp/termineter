@@ -17,14 +17,14 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from time import sleep
 from c1218.data import C1218ReadRequest
 from c1219.data import C1219_TABLES
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
@@ -32,20 +32,20 @@ class Module(module_template):
 		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)
 		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
 	
-	def run(self, frmwk):
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
 		lower_boundary = self.options['LOWER']
 		upper_boundary = self.options['UPPER']
-		logger = frmwk.get_module_logger(self.name)
-		if not frmwk.serial_login():
+		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
-		conn = frmwk.serial_connection
 		
-		frmwk.print_status('Enumerating tables, please wait...')
+		self.frmwk.print_status('Enumerating tables, please wait...')
 		tables_found = 0
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
 			data = self.getTableDataEx(conn, tableid, 4)
 			if data[0] == '\x00':
-				frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
+				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				tables_found += 1
 			else:
 				logger.info('received nak/error code: ' + str(ord(data[0])))
@@ -58,7 +58,7 @@ class Module(module_template):
 			while not conn.login():
 				sleep(0.5)
 			sleep(0.25)
-		frmwk.print_status('Found ' + str(tables_found) + ' table(s).')
+		self.frmwk.print_status('Found ' + str(tables_found) + ' table(s).')
 		return
 
 	def getTableDataEx(self, conn, tableid, octetcount = 244):
