@@ -173,7 +173,9 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		return True
 	
 	@staticmethod
-	def serve(addr, run_once = False, log_level = None):
+	def serve(addr, run_once = False, log_level = None, use_ssl = False, ssl_cert = None):
+		if use_ssl:
+			import ssl
 		__package__ = '.'.join(InteractiveInterpreter.__module__.split('.')[:-1])
 		logger = logging.getLogger(__package__ + '.interpreter.server')
 		
@@ -189,8 +191,13 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				break
 			logger.info('received connection from: ' + clt_addr[0] + ':' + str(clt_addr[1]))
 			
-			ins = clt_sock.makefile('r', 1)
-			outs = clt_sock.makefile('w', 1)
+			if use_ssl:
+				ssl_sock = ssl.wrap_socket(clt_sock, server_side = True, certfile = ssl_cert)
+				ins = ssl_sock.makefile('r', 1)
+				outs = ssl_sock.makefile('w', 1)
+			else:
+				ins = clt_sock.makefile('r', 1)
+				outs = clt_sock.makefile('w', 1)
 			
 			log_stream = logging.StreamHandler(outs)
 			if log_level != None:
