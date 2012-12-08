@@ -206,8 +206,13 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			logging.getLogger('').addHandler(log_stream)
 			
 			interpreter = InteractiveInterpreter(check_rc_file = False, stdin = ins, stdout = outs)
-			interpreter.cmdloop()
-			
+			try:
+				interpreter.cmdloop()
+			except socket.error:
+				log_stream.close()
+				logging.getLogger('').removeHandler(log_stream)
+				logger.warning('received a socket error during the main interpreter loop')
+				continue
 			log_stream.flush()
 			log_stream.close()
 			logging.getLogger('').removeHandler(log_stream)
