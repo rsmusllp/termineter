@@ -52,6 +52,27 @@ class C1222Request(object):
 	def __len__(self):
 		return len(str(self))
 
+	def set_ap_title(self, ap_title):
+		if not hasattr(self, '__ap_title__'):
+			raise Exception(self.__class__.__name__ + ' does not support the ap_title element')
+		if isinstance(ap_title, univ.ObjectIdentifier):
+			self.__ap_title__ = ber_encoder.encode(ap_title)
+		if isinstance(ap_title, str):
+			self.__ap_title__ = ap_title
+		else:
+			self.__ap_title__ = ber_encoder.encode(univ.ObjectIdentifier(ap_title))
+
+	def set_userid(self, userid):
+		if not hasattr(self, '__userid__'):
+			raise Exception(self.__class__.__name__ + ' does not support the userid element')
+		if isinstance(userid, str) and userid.isdigit():
+			userid = int(userid)
+		elif not isinstance(userid, int):
+			ValueError('userid must be between 0x0000 and 0xffff')
+		if not 0x0000 <= userid <= 0xffff:
+			raise ValueError('userid must be between 0x0000 and 0xffff')
+		self.__userid__ = pack(">H", userid)
+
 class C1222DisconnectRequest(C1222Request):
 	disconnect = '\x22'
 	
@@ -83,15 +104,6 @@ class C1222LogonRequest(C1222Request):
 
 	def do_build(self):
 		return self.logon + self.__userid__ + self.__username__ + self.__session_idle_timeout__
-	
-	def set_userid(self, userid):
-		if isinstance(userid, str) and userid.isdigit():
-			userid = int(userid)
-		elif not isinstance(userid, int):
-			ValueError('userid must be between 0x0000 and 0xffff')
-		if not 0x0000 <= userid <= 0xffff:
-			raise ValueError('userid must be between 0x0000 and 0xffff')
-		self.__userid__ = pack(">H", userid)
 
 	def set_username(self, value):
 		if len(value) > 10:
@@ -139,14 +151,6 @@ class C1222ResolveRequest(C1222Request):
 	
 	def do_build(self):
 		return self.resolve + self.__ap_title__
-	
-	def set_ap_title(self, ap_title):
-		if isinstance(ap_title, univ.ObjectIdentifier):
-			self.__ap_title__ = ber_encoder.encode(ap_title)
-		if isinstance(ap_title, str):
-			self.__ap_title__ = ap_title
-		else:
-			self.__ap_title__ = ber_encoder.encode(univ.ObjectIdentifier(ap_title))
 
 class C1222SecurityRequest(C1222Request):
 	security = '\x51'
@@ -165,15 +169,6 @@ class C1222SecurityRequest(C1222Request):
 			raise ValueError('password must be 20 characters or less')
 		self.__password__ = value + ('\x20' * (20 - len(value)))
 
-	def set_userid(self, userid):
-		if isinstance(userid, str) and userid.isdigit():
-			userid = int(userid)
-		elif not isinstance(userid, int):
-			ValueError('userid must be between 0x0000 and 0xffff')
-		if not 0x0000 <= userid <= 0xffff:
-			raise ValueError('userid must be between 0x0000 and 0xffff')
-		self.__userid__ = pack(">H", userid)
-
 class C1222TerminateRequest(C1222Request):
 	terminate = '\x21'
 	
@@ -189,14 +184,6 @@ class C1222TraceRequest(C1222Request):
 	
 	def do_build(self):
 		return self.trace + self.__ap_title__
-	
-	def set_ap_title(self, ap_title):
-		if isinstance(ap_title, univ.ObjectIdentifier):
-			self.__ap_title__ = ber_encoder.encode(ap_title)
-		if isinstance(ap_title, str):
-			self.__ap_title__ = ap_title
-		else:
-			self.__ap_title__ = ber_encoder.encode(univ.ObjectIdentifier(ap_title))
 
 class C1222WaitRequest(C1222Request):
 	wait = '\x70'
@@ -224,7 +211,6 @@ class C1222WriteRequest(C1222Request):
 		if offset != None and offset != 0:
 			self.write = '\x4f'
 			self.set_offset(offset)
-		
 	
 	def do_build(self):
 		packet = self.write
