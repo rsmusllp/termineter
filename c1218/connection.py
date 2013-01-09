@@ -218,7 +218,7 @@ class Connection:
 		return self.serial_h.close()
 		
 ###===###===### Functions Below This Are Non-Critical ###===###===###
-###===###===### Convenience functions                 ###===###===###
+###===###===### Convenience Functions                 ###===###===###
 
 	def flushTableCache(self):
 		self.logger.info('flushing all cached tables')
