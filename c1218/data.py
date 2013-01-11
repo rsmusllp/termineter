@@ -32,6 +32,10 @@ class C1218Request(object):
 	
 	def __len__(self):
 		return len(str(self))
+	
+	@staticmethod
+	def parse(data):
+		raise Exception('No parse method is defined')
 
 class C1218LogonRequest(C1218Request):
 	logon = '\x50'
@@ -79,6 +83,14 @@ class C1218LogoffRequest(C1218Request):
 	
 	def do_build(self):
 		return self.logoff
+	
+	@staticmethod
+	def parse(data):
+		if len(data) != 1:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x52':
+			raise Exception('invalid start byte')
+		return C1218LogoffRequest()
 
 class C1218NegotiateRequest(C1218Request):
 	negotiate = '\x60'
@@ -110,18 +122,42 @@ class C1218WaitRequest(C1218Request):
 	
 	def do_build(self):
 		return self.wait
+	
+	@staticmethod
+	def parse(data):
+		if len(data) != 1:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x70':
+			raise Exception('invalid start byte')
+		return C1218WaitRequest()
 
 class C1218IdentRequest(C1218Request):
 	ident = '\x20'
 	
 	def do_build(self):
 		return self.ident
+	
+	@staticmethod
+	def parse(data):
+		if len(data) != 1:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x20':
+			raise Exception('invalid start byte')
+		return C1218IdentRequest()
 
 class C1218TerminateRequest(C1218Request):
 	terminate = '\x21'
 	
 	def do_build(self):
 		return self.terminate
+	
+	@staticmethod
+	def parse(data):
+		if len(data) != 1:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x21':
+			raise Exception('invalid start byte')
+		return C1218TerminateRequest()
 
 class C1218ReadRequest(C1218Request):
 	read = '\x30'
@@ -205,6 +241,8 @@ class C1218Packet(C1218Request):
 		if crc_str(data[:-2]) != chksum:
 			raise Exception('invalid check sum')
 		data = data[6:-2]
+		if ord(data[0]) in C1218_REQUEST_IDS:
+			data = C1218_REQUEST_IDS[ord(data[0])].parse(data)
 		frame = C1218Packet(data, control, length)
 		frame.identity = identity
 		frame.sequence = sequence
@@ -255,3 +293,10 @@ class C1218Packet(C1218Request):
 		packet += str(self.__data__)
 		packet += crc_str(packet)
 		return packet
+
+C1218_REQUEST_IDS = {
+	0x20: C1218IdentRequest,
+	0x21: C1218TerminateRequest,
+	0x52: C1218LogoffRequest,
+	0x70: C1218WaitRequest,
+}
