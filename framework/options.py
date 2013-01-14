@@ -241,3 +241,6 @@ class Options(dict):
 			raise ValueError('invalid variable\option name')
 		options_def = dict.__getitem__(self, name)
 		return options_def[1]
+
+class AdvancedOptions(Options):
+	pass

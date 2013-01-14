@@ -25,7 +25,7 @@ import logging
 import logging.handlers
 from binascii import unhexlify
 from serial.serialutil import SerialException
-from framework.options import Options
+from framework.options import AdvancedOptions, Options
 from framework.templates import module_template
 from c1218.connection import Connection
 from c1218.errors import C1218IOError, C1218ReadTableError
@@ -80,7 +80,7 @@ class Framework(object):
 		self.options.addInteger('USERID', 'serial userid', default = 0)
 		self.options.addString('PASSWORD', 'serial c12.18 password', default = '00000000000000000000')
 		self.options.addBoolean('PASSWORDHEX', 'if the password is in hex', default = True)
-		self.advanced_options = Options(self.directories)
+		self.advanced_options = AdvancedOptions(self.directories)
 		self.advanced_options.addInteger('BAUDRATE', 'serial connection baud rate', default = 9600)
 		self.advanced_options.addInteger('BYTESIZE', 'serial connection byte size', default = serial.EIGHTBITS)
 		self.advanced_options.addBoolean('CACHETBLS', 'cache certain read-only tables', default = True)

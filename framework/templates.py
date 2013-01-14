@@ -17,7 +17,7 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.options import Options
+from framework.options import AdvancedOptions, Options
 
 class module_template:
 	def __init__(self, frmwk):
@@ -29,7 +29,7 @@ class module_template:
 		self.description = 'This module is undocumented.'
 		self.detailed_description = 'This module is undocumented.'
 		self.options = Options(frmwk.directories)
-		self.advanced_options = Options(frmwk.directories)
+		self.advanced_options = AdvancedOptions(frmwk.directories)
 
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' ' + self.name + ' >'
