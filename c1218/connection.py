@@ -29,6 +29,9 @@ from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError,
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
+if hasattr(logging, 'NullHandler'):
+	logging.getLogger('c1218').addHandler(logging.NullHandler())
+
 ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Insufficient Security Clearance)', 4:'onp (Operation Not Possible)', 5:'iar (Inappropriate Action Requested)', 6:'bsy (Device Busy)', 7:'dnr (Data Not Ready)', 8:'dlk (Data Locked)', 9:'rno (Renegotiate Request)', 10:'isss (Invalid Service Sequence State)'}
 
 class Connection:
@@ -90,10 +93,17 @@ class Connection:
 			self.serial_h.dsrdtr = serial_settings['dsrdtr']
 			self.serial_h.writeTimeout = serial_settings['writeTimeout']
 		
-		self.serial_h.setRTS(True)
-		self.logger.debug('set RTS to True')
-		self.serial_h.setDTR(False)
-		self.logger.debug('set DTR to False')
+		try:
+			self.serial_h.setRTS(True)
+			self.logger.debug('set RTS to True')
+		except IOError:
+			self.logger.warning('could not set RTS to True')
+		try:
+			self.serial_h.setDTR(False)
+			self.logger.debug('set DTR to False')
+		except IOError:
+			self.logger.warning('could not set DTR to False')
+		
 		self.logged_in = False
 		self.__initialized__ = False
 		self.c1219_endian = '<'
@@ -147,9 +157,13 @@ class Connection:
 		self.loggerio.critical('failed 3 times to correctly send a frame')
 		raise C1218IOError('failed 3 times to correctly send a frame')
 	
-	def recv(self):
+	def recv(self, full_frame = False):
 		"""
 		Receive a C1218Packet, the payload data is returned.
+		
+		@type full_frame: Boolean
+		@param full_frame: If set to True, the entire C1218 frame is returned
+		instead of just the payload.
 		"""
 		payloadbuffer = ''
 		tries = 3
@@ -174,6 +188,8 @@ class Connection:
 				self.loggerio.debug("received frame, length: {0:<3} data: {1}".format(len(data), hexlify(data)))
 				payloadbuffer += payload
 				if sequence == 0:
+					if full_frame:
+						return data
 					return payloadbuffer
 				else:
 					tries = 3

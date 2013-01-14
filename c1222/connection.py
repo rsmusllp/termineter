@@ -23,6 +23,9 @@ import logging
 import socket
 from c1222.data import *
 
+if hasattr(logging, 'NullHandler'):
+	logging.getLogger('c1222').addHandler(logging.NullHandler())
+
 class Connection:
 	def __init__(self, host, called_ap, calling_ap, enable_cache = True):
 		self.logger = logging.getLogger('c1222.connection')
