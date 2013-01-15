@@ -17,13 +17,13 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from binascii import unhexlify
 from c1219.constants import C1219_PROCEDURE_NAMES, C1219_PROC_RESULT_CODES
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Initiate A Custom Procedure'
@@ -33,24 +33,24 @@ class Module(module_template):
 		self.options.addBoolean('USEHEX', 'specifies that the \'PARAMS\' option is represented in hex', default = True)
 		self.advanced_options.addBoolean('STDVSMFG', 'if true, specifies that this procedure is defined by the manufacturer', default = False)
 	
-	def run(self, frmwk):
-		if not frmwk.serial_login():	# don't alert on failed logins
+	def run(self):
+		conn = self.frmwk.serial_connection
+		if not self.frmwk.serial_login():	# don't alert on failed logins
 			self.logger.warning('meter login failed')
-			frmwk.print_error('Meter login failed, procedure may fail')
+			self.frmwk.print_error('Meter login failed, procedure may fail')
 		
 		data = self.options['PARAMS']
 		if self.options['USEHEX']:
 			data = unhexlify(data)
 		
-		frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
+		self.frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
 		
-		conn = frmwk.serial_connection
 		errCode, data = conn.runProcedure(self.options['PROCNBR'], self.advanced_options['STDVSMFG'], data)
 		conn.stop()
 		
-		frmwk.print_status('Finished running procedure #' + str(self.options['PROCNBR']))
-		frmwk.print_status('Received respose from procedure: ' + (C1219_PROC_RESULT_CODES.get(errCode) or 'UNKNOWN'))
+		self.frmwk.print_status('Finished running procedure #' + str(self.options['PROCNBR']))
+		self.frmwk.print_status('Received respose from procedure: ' + (C1219_PROC_RESULT_CODES.get(errCode) or 'UNKNOWN'))
 		if len(data):
-			frmwk.print_status('Received data output from procedure: ')
-			frmwk.print_hexdump(data)
+			self.frmwk.print_status('Received data output from procedure: ')
+			self.frmwk.print_hexdump(data)
 		return

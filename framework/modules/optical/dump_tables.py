@@ -19,13 +19,13 @@
 
 from time import sleep
 import os
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from c1219.data import C1219_TABLES
 from c1218.errors import C1218ReadTableError
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 2
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Dump Readable C12.19 Tables From The Device To A CSV File'
@@ -34,17 +34,17 @@ class Module(module_template):
 		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
 		self.options.addString('FILE', 'file to write the csv data into', default = 'smart_meter_tables.csv')
 	
-	def run(self, frmwk):
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
 		lower_boundary = self.options['LOWER']
 		upper_boundary = self.options['UPPER']
 		out_file = open(self.options['FILE'], 'w', 1)
-		logger = frmwk.get_module_logger(self.name)
-		if not frmwk.serial_login():
+		if not self.frmwk.serial_login():
 			logger.warning('meter login failed, some tables may not be accessible')
-		conn = frmwk.serial_connection
 		
 		number_of_tables = 0
-		frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.getOptionValue('FILE'))
+		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.getOptionValue('FILE'))
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
 			try:
 				data = conn.getTableData(tableid)
@@ -63,11 +63,11 @@ class Module(module_template):
 						if error.errCode == 10:
 							raise error	# tried to re-sync communications but failed, you should reconnect and rerun the module
 			if data:
-				frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
+				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				# format is: table id, table name, table data length, table data
 				out_file.write(','.join([str(tableid), (C1219_TABLES.get(tableid) or 'UNKNOWN'), str(len(data)), data.encode('hex')]) + os.linesep)
 				number_of_tables += 1
 		
 		out_file.close()
-		frmwk.print_status('Successfully copied ' + str(number_of_tables) + ' tables to disk.')
+		self.frmwk.print_status('Successfully copied ' + str(number_of_tables) + ' tables to disk.')
 		return

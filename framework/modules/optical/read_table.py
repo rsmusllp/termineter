@@ -17,33 +17,33 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from c1218.utils import find_strings
 from c1218.errors import C1218ReadTableError
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Read Data From A C12.19 Table'
 		self.detailed_description = 'This module allows individual tables to be read from the smart meter.'
 		self.options.addInteger('TABLEID', 'table to read from', True)
 	
-	def run(self, frmwk):
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
 		tableid = self.options['TABLEID']
-		logger = frmwk.get_module_logger(self.name)
-		if not frmwk.serial_login():
+		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
-		conn = frmwk.serial_connection
 		try:
 			data = conn.getTableData(tableid)
 		except C1218ReadTableError as error:
-			frmwk.print_error('Caught C1218ReadTableError: ' + str(error))
+			self.frmwk.print_error('Caught C1218ReadTableError: ' + str(error))
 			conn.stop()
 			return
 		conn.stop()
 		
-		frmwk.print_status('Read ' + str(len(data)) + ' bytes')
-		frmwk.print_hexdump(data)
+		self.frmwk.print_status('Read ' + str(len(data)) + ' bytes')
+		self.frmwk.print_hexdump(data)
 

@@ -19,12 +19,12 @@
 
 import re
 from binascii import unhexlify
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from c1218.errors import C1218WriteTableError
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Write Data To A C12.19 Table'
@@ -34,27 +34,27 @@ class Module(module_template):
 		self.options.addBoolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default = False)
 		self.options.addInteger('OFFSET', 'offset to start writing data at', required = False, default = None)
 	
-	def run(self, frmwk):
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
 		tableid = self.options['TABLEID']
 		data = self.options['DATA']
 		offset = self.options['OFFSET']
-		logger = frmwk.get_module_logger(self.name)
 		if self.options['USEHEX']:
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 			if hex_regex.match(data) == None:
-				frmwk.print_error('Non-hex characters found in \'DATA\'')
+				self.frmwk.print_error('Non-hex characters found in \'DATA\'')
 				return
 			data = unhexlify(data)
 		
-		if not frmwk.serial_login():
+		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
-			frmwk.print_error('Meter login failed')
+			self.frmwk.print_error('Meter login failed')
 			return
 		
-		conn = frmwk.serial_connection
 		try:
 			conn.setTableData(tableid, data, offset)
-			frmwk.print_status('Successfully Wrote Data')
+			self.frmwk.print_status('Successfully Wrote Data')
 		except C1218WriteTableError as error:
-			frmwk.print_error('Caught C1218WriteTableError: ' + str(error))
+			self.frmwk.print_error('Caught C1218WriteTableError: ' + str(error))
 		conn.stop()

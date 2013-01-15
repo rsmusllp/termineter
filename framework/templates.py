@@ -37,3 +37,9 @@ class module_template:
 	@property
 	def logger(self):
 		return self.frmwk.get_module_logger(self.name)
+
+class optical_module_template(module_template):
+	pass
+
+class rfcat_module_template(module_template):
+	pass

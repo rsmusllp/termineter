@@ -25,26 +25,14 @@ import logging
 import logging.handlers
 from binascii import unhexlify
 from serial.serialutil import SerialException
+from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
-from framework.templates import module_template
+from framework.templates import module_template, rfcat_module_template, optical_module_template
+from framework.utils import FileWalker, Namespace
 from c1218.connection import Connection
 from c1218.errors import C1218IOError, C1218ReadTableError
 
 DEFAULT_SERIAL_SETTINGS = {'parity': serial.PARITY_NONE, 'baudrate': 9600, 'bytesize': serial.EIGHTBITS, 'xonxoff': False, 'interCharTimeout': None, 'rtscts': False, 'timeout': 1, 'stopbits': serial.STOPBITS_ONE, 'dsrdtr': False, 'writeTimeout': None}
-
-class FrameworkConfigurationError(Exception):
-	def __init__(self, msg):
-		self.msg = msg
-	
-	def __str__(self):
-		return repr(self.msg)
-
-class Namespace:
-	"""
-	This class is used to hold attributes of the framework.  It doesn't
-	really do anything, it's used for organizational purposes only.
-	"""
-	pass
 	
 class Framework(object):
 	"""
@@ -54,7 +42,6 @@ class Framework(object):
 	"""
 	def __init__(self, stdout = None):
 		self.modules = { }
-		self.__serial_connected__ = False
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 		package_path = __import__(self.__package__, None, None, ['__path__']).__path__[0]	# that's some python black magic trickery for you
 		if stdout == None:
@@ -65,14 +52,23 @@ class Framework(object):
 		self.directories.user_data = os.path.expanduser('~') + os.sep + '.termineter' + os.sep
 		self.directories.modules_path = package_path + os.sep + 'modules' + os.sep
 		self.directories.data_path = package_path + os.sep + 'data' + os.sep
+		if not os.path.isdir(self.directories.data_path):
+			self.logger.critical('path to data not found')
+			raise FrameworkConfigurationError('path to data not found')
 		if not os.path.isdir(self.directories.user_data):
 			os.mkdir(self.directories.user_data)
+		
 		self.serial_connection = None
+		self.__serial_connected__ = False
+		
+		# setup logging stuff
 		self.logger = logging.getLogger(self.__package__ + '.core')
 		main_file_handler = logging.handlers.RotatingFileHandler(self.directories.user_data + self.__package__ + '.log', maxBytes = 262144, backupCount = 5)
 		main_file_handler.setLevel(logging.DEBUG)
 		main_file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)-50s %(levelname)-10s %(message)s"))
 		logging.getLogger('').addHandler(main_file_handler)
+		
+		# setup and configure options
 		self.options = Options(self.directories)
 		self.options.addBoolean('USECOLOR', 'enable color on the console interface', default = False)
 		self.options.addString('CONNECTION', 'serial connection string', True)
@@ -90,83 +86,132 @@ class Framework(object):
 		self.advanced_options.addInteger('PKTSIZE', 'c12.18 maximum packet size', default = 512)
 		if sys.platform.startswith('linux'):
 			self.options.setOption('USECOLOR', 'True')
-		if not os.path.isdir(self.directories.data_path):
-			self.logger.critical('path to data not found')
-			raise FrameworkConfigurationError('path to data not found')
+		
+		# check and configure rfcat stuff
+		self.rfcat_available = False
+		try:
+			import rflib
+			self.logger.info('the rfcat library is available')
+			self.rfcat_available = True
+		except ImportError:
+			self.logger.info('the rfcat library is not available, it can be found at https://code.google.com/p/rfcat/')
+			pass
+		if self.rfcat_available:
+			# init the values to be used
+			self.rfcat_connection = None
+			self.__rfcat_connected__ = False
+			self.is_rfcat_connected = lambda: self.__rfcat_connected__
+			self.options.addInteger('RFCATIDX', 'the rfcat device to use', default = 0)
+		
+		# start loading modules
 		modules_path = self.directories.modules_path
 		self.logger.debug('searching for modules in: ' + modules_path)
 		self.current_module = None
 		if not os.path.isdir(modules_path):
 			self.logger.critical('path to modules not found')
 			raise FrameworkConfigurationError('path to modules not found')
-		all_modules = os.listdir(modules_path)
-		loadable_modules = os.listdir(modules_path)
-		for module in all_modules:										# get rid of ones we don't want to load
-			if not module.endswith('.py'):
-				loadable_modules.remove(module)
+		for module_path in FileWalker(modules_path):
+			module_path = module_path.replace(os.path.sep, '/')
+			if not module_path.endswith('.py'):
 				continue
-			if module.startswith('__'):
-				loadable_modules.remove(module)
+			module_path = module_path[len(modules_path):-3]
+			module_name = module_path.split(os.path.sep)[-1]
+			if module_name.startswith('__'):
 				continue
-			if module.lower() != module:
-				loadable_modules.remove(module)							# only lower case names please
-		del all_modules
-		
-		for module_name in loadable_modules:
-			module_name = module_name[:-3]
-			self.logger.debug('loading module: ' + module_name)
-			module = __import__(self.__package__ + '.modules.' + module_name, None, None, ['Module'])
+			if module_name.lower() != module_name:
+				continue
+			if module_path.startswith('rfcat') and not self.rfcat_available:
+				self.logger.debug('skipping module: ' + module_path + ' because rfcat is not available')
+				continue
+			# looks good, proceed to load
+			self.logger.debug('loading module: ' + module_path)
+			module = __import__(self.__package__ + '.modules.' + module_path.replace('/', '.'), None, None, ['Module'])
 			module_instance = module.Module(self)
 			if not isinstance(module_instance, module_template):
-				self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
+				self.logger.error('module: ' + module_path + ' is not derived from the module_template class')
+				continue
+			if isinstance(module_instance, rfcat_module_template) and not self.rfcat_available:
+				self.logger.debug('skipping module: ' + module_path + ' because rfcat is not available')
 				continue
 			if not hasattr(module_instance, 'run'):
-				self.logger.critical('module: ' + module_name + ' has no run() method')
-				raise Exception('module: ' + module_name + ' has no run() method')
+				self.logger.critical('module: ' + module_path + ' has no run() method')
+				raise FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
 			if not isinstance(module_instance.options, Options) or not isinstance(module_instance.advanced_options, Options):
-				self.logger.critical('module: ' + module_name + ' options and advanced_options must be Options instances')
-				raise Exception('options and advanced_options must be Options instances')
+				self.logger.critical('module: ' + module_path + ' options and advanced_options must be Options instances')
+				raise FrameworkRuntimeError('options and advanced_options must be Options instances')
 			module_instance.name = module_name
-			self.modules[module_name] = module_instance
+			module_instance.path = module_path
+			self.modules[module_path] = module_instance
 		self.logger.info('successfully loaded ' + str(len(self.modules)) + ' modules into the framework')
+		return
 	
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Loaded Modules: ' + str(len(self.modules)) + ', Serial Connected: ' + str(self.is_serial_connected()) + ' >'
 	
-	def reload_module(self, module_name = None):
+	def reload_module(self, module_path = None):
 		"""
-		Reloads a module into the framework.  If module_name is not
+		Reloads a module into the framework.  If module_path is not
 		specified, then the curent_module variable is used.  Returns True
 		on success, False on error.
 		
-		@type module_name: String
-		@param module_name: The name of the module to reload
+		@type module_path: String
+		@param module_path: The name of the module to reload
 		"""
-		if module_name == None:
+		if module_path == None:
 			if self.current_module != None:
-				module_name = self.current_module
+				module_path = self.current_module.path
 			else:
 				self.logger.warning('must specify module if not module is currently being used')
 				return False
-		if not module_name + '.py' in os.listdir(self.directories.modules_path):
-			self.logger.error('invalid module name requested for reload')
-			return False
-		self.logger.info('reloading module: ' + module_name)
-		module = __import__(self.__package__ + '.modules.' + module_name, None, None, ['Module'])
+		if not module_path in self.modules.keys():
+			self.logger.error('invalid module requested for reload')
+			raise FrameworkRuntimeError('invalid module requested for reload')
+		self.logger.info('reloading module: ' + module_path)
+		
+		module = __import__(self.__package__ + '.modules.' + module_path.replace('/', '.'), None, None, ['Module'])
 		reload(module)
 		module_instance = module.Module(self)
 		if not isinstance(module_instance, module_template):
-			self.logger.error('module: ' + module_name + ' is not derived from the module_template class')
-			raise Exception('module: ' + module_name + ' is not derived from the module_template class')
+			self.logger.error('module: ' + module_path + ' is not derived from the module_template class')
+			raise FrameworkRuntimeError('module: ' + module_path + ' is not derived from the module_template class')
 		if not hasattr(module_instance, 'run'):
-			self.logger.error('module: ' + module_name + ' has no run() method')
-			raise Exception('module: ' + module_name + ' has no run() method')
+			self.logger.error('module: ' + module_path + ' has no run() method')
+			raise FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
 		if not isinstance(module_instance.options, Options) or not isinstance(module_instance.advanced_options, Options):
-			self.logger.error('module: ' + module_name + ' options and advanced_options must be Options instances')
-			raise Exception('options and advanced_options must be Options instances')
-		module_instance.name = module_name
-		self.modules[module_name] = module_instance
+			self.logger.error('module: ' + module_path + ' options and advanced_options must be Options instances')
+			raise FrameworkRuntimeError('options and advanced_options must be Options instances')
+		module_instance.name = module_path.split('/')[-1]
+		module_instance.path = module_path
+		self.modules[module_path] = module_instance
+		if self.current_module != None:
+			if self.current_module.path == module_instance.path:
+				self.current_module = module_instance
 		return True
+	
+	def run(self, module = None):
+		if not isinstance(module, module_template) and not isinstance(self.current_module, module_template):
+			raise FrameworkRuntimeError('either the module or the current_module must be sent')
+		if module == None:
+			module = self.current_module
+		if isinstance(module, optical_module_template):
+			if not self.is_serial_connected:
+				raise FrameworkRuntimeError('the serial interface is disconnected')
+		if isinstance(module, rfcat_module_template):
+			self.rfcat_connect()
+		
+		result = None
+		self.logger.info('running module: ' + module.path)
+		try:
+			result = module.run()
+		except KeyboardInterrupt as error:
+			if isinstance(module, optical_module_template):
+				self.serial_connection.stop()
+			if isinstance(module, rfcat_module_template):
+				self.rfcat_disconnect()
+			raise error
+		if isinstance(module, rfcat_module_template):
+			self.rfcat_disconnect()
+		return result
 	
 	@property
 	def use_colors(self):
@@ -362,6 +407,22 @@ class Framework(object):
 			return False
 		if not self.serial_connection.login(username, userid, password):
 			return False
+		return True
+	
+	def rfcat_connect(self):
+		if not self.rfcat_available:
+			raise FrameworkRuntimeError('rfcat is not available')
+		from rflib import RfCat
+		self.rfcat_connection = RfCat(idx = self.options['RFCATIDX'])
+		self.__rfcat_connected__ = True
+	
+	def rfcat_disconnect(self):
+		if not self.rfcat_available:
+			raise FrameworkRuntimeError('rfcat is not available')
+		if self.__rfcat_connected__:
+			del(self.rfcat_connection)
+			self.rfcat_connection = None
+			self.__rfcat_connected__ = False
 		return True
 
 	def __optCallbackSetTableCachePolicy__(self, policy):
