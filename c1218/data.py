@@ -45,9 +45,19 @@ class C1218LogonRequest(C1218Request):
 	def __init__(self, username = '', userid = 0):
 		self.set_username(username)
 		self.set_userid(userid)
-
+	
 	def do_build(self):
 		return self.logon + self.__userid__ + self.__username__
+	
+	@staticmethod
+	def parse(data):
+		if len(data) != 13:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x50':
+			raise Exception('invalid start byte')
+		userid = unpack(">H", data[1:3])[0]
+		username = data[3:]
+		return C1218LogonRequest(username, userid)
 	
 	def set_userid(self, userid):
 		if isinstance(userid, str) and userid.isdigit():
@@ -57,7 +67,7 @@ class C1218LogonRequest(C1218Request):
 		if not 0x0000 <= userid <= 0xffff:
 			raise ValueError('userid must be between 0x0000 and 0xffff')
 		self.__userid__ = pack(">H", userid)
-
+	
 	def set_username(self, value):
 		if len(value) > 10:
 			raise ValueError('username must be 10 characters or less')
@@ -69,10 +79,19 @@ class C1218SecurityRequest(C1218Request):
 	
 	def __init__(self, password = ''):
 		self.set_password(password)
-
+	
 	def do_build(self):
 		return self.security + self.__password__
-
+	
+	@staticmethod
+	def parse(data):
+		if len(data) != 21:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x51':
+			raise Exception('invalid start byte')
+		password = data[1:21]
+		return C1218SecurityRequest(password)
+	
 	def set_password(self, value):
 		if len(value) > 20:
 			raise ValueError('password must be 20 characters or less')
@@ -106,7 +125,30 @@ class C1218NegotiateRequest(C1218Request):
 	
 	def do_build(self):
 		return self.negotiate + self.__pktsize__ + self.__nbrpkt__ + self.__baudrate__
-		
+	
+	@staticmethod
+	def parse(data):
+		if ord(data[0]) == 0x60:
+			baud_included = False
+			if len(data) != 4:
+				raise Exception('invalid data (size)')
+		elif ord(data[0]) < 0x6c and ord(data[0]) > 0x60:
+			baud_included = True
+			if len(data) != 5:
+				raise Exception('invalid data (size)')
+		else:
+			raise Exception('invalid start byte')
+		pktsize = unpack('>H', data[1:3])[0]
+		nbrpkt = ord(data[3])
+		baudrate = None
+		if baud_included:
+			baudrate = ord(data[4])
+			if baudrate == 0 or baudrate > 10:
+				raise Exception('invalid data (invalid baudrate)')
+		frame = C1218NegotiateRequest(pktsize, nbrpkt, baudrate)
+		frame.negotiate = data[0]
+		return frame
+	
 	def set_pktsize(self, pktsize):
 		self.__pktsize__ = pack('>H', pktsize)
 	
@@ -114,7 +156,13 @@ class C1218NegotiateRequest(C1218Request):
 		self.__nbrpkt__ = chr(nbrpkt)
 	
 	def set_baudrate(self, baudrate):
-		self.__baudrate__ = chr({300:1, 600:2, 1200:3, 2400:4, 4800:5, 9600:6, 14400:7, 19200:8, 28800:9, 57600:10}.get(baudrate))
+		c1218_baudrate_codes = {300:1, 600:2, 1200:3, 2400:4, 4800:5, 9600:6, 14400:7, 19200:8, 28800:9, 57600:10}
+		if baudrate in c1218_baudrate_codes:
+			self.__baudrate__ = chr(c1218_baudrate_codes[baudrate])
+		elif baudrate > 0 and baudrate < 11:
+			self.__baudrate__ = chr(baudrate)
+		else:
+			raise Exception('invalid data (invalid baudrate)')
 		self.negotiate = '\x61'
 
 class C1218WaitRequest(C1218Request):
@@ -297,6 +345,9 @@ class C1218Packet(C1218Request):
 C1218_REQUEST_IDS = {
 	0x20: C1218IdentRequest,
 	0x21: C1218TerminateRequest,
+	0x50: C1218LogonRequest,
+	0x51: C1218SecurityRequest,
 	0x52: C1218LogoffRequest,
+	0x60: C1218NegotiateRequest,
 	0x70: C1218WaitRequest,
 }
