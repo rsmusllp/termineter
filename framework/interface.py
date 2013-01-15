@@ -107,10 +107,10 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
 		intro += fmt_string.format('model:', 'T-800') + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
-		if self.frmwk.rfcat_available:
-			intro += fmt_string.format('rfcat:', 'enabled') + os.linesep
-		else:
-			intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
+		#if self.frmwk.rfcat_available:
+		#	intro += fmt_string.format('rfcat:', 'enabled') + os.linesep
+		#else:
+		#	intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
 		return intro
 	
 	@property

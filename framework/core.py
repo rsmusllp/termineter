@@ -27,7 +27,7 @@ from binascii import unhexlify
 from serial.serialutil import SerialException
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
-from framework.templates import module_template, rfcat_module_template, optical_module_template
+from framework.templates import module_template, optical_module_template
 from framework.utils import FileWalker, Namespace
 from c1218.connection import Connection
 from c1218.errors import C1218IOError, C1218ReadTableError
@@ -101,7 +101,7 @@ class Framework(object):
 			self.rfcat_connection = None
 			self.__rfcat_connected__ = False
 			self.is_rfcat_connected = lambda: self.__rfcat_connected__
-			self.options.addInteger('RFCATIDX', 'the rfcat device to use', default = 0)
+			# self.options.addInteger('RFCATIDX', 'the rfcat device to use', default = 0)
 		
 		# start loading modules
 		modules_path = self.directories.modules_path
@@ -130,9 +130,9 @@ class Framework(object):
 			if not isinstance(module_instance, module_template):
 				self.logger.error('module: ' + module_path + ' is not derived from the module_template class')
 				continue
-			if isinstance(module_instance, rfcat_module_template) and not self.rfcat_available:
-				self.logger.debug('skipping module: ' + module_path + ' because rfcat is not available')
-				continue
+			# if isinstance(module_instance, rfcat_module_template) and not self.rfcat_available:
+			# 	self.logger.debug('skipping module: ' + module_path + ' because rfcat is not available')
+			#	continue
 			if not hasattr(module_instance, 'run'):
 				self.logger.critical('module: ' + module_path + ' has no run() method')
 				raise FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
@@ -196,8 +196,8 @@ class Framework(object):
 		if isinstance(module, optical_module_template):
 			if not self.is_serial_connected:
 				raise FrameworkRuntimeError('the serial interface is disconnected')
-		if isinstance(module, rfcat_module_template):
-			self.rfcat_connect()
+		# if isinstance(module, rfcat_module_template):
+		# 	self.rfcat_connect()
 		
 		result = None
 		self.logger.info('running module: ' + module.path)
@@ -206,11 +206,11 @@ class Framework(object):
 		except KeyboardInterrupt as error:
 			if isinstance(module, optical_module_template):
 				self.serial_connection.stop()
-			if isinstance(module, rfcat_module_template):
-				self.rfcat_disconnect()
+			# if isinstance(module, rfcat_module_template):
+			# 	self.rfcat_disconnect()
 			raise error
-		if isinstance(module, rfcat_module_template):
-			self.rfcat_disconnect()
+		# if isinstance(module, rfcat_module_template):
+		# 	self.rfcat_disconnect()
 		return result
 	
 	@property
@@ -409,22 +409,7 @@ class Framework(object):
 			return False
 		return True
 	
-	def rfcat_connect(self):
-		if not self.rfcat_available:
-			raise FrameworkRuntimeError('rfcat is not available')
-		from rflib import RfCat
-		self.rfcat_connection = RfCat(idx = self.options['RFCATIDX'])
-		self.__rfcat_connected__ = True
 	
-	def rfcat_disconnect(self):
-		if not self.rfcat_available:
-			raise FrameworkRuntimeError('rfcat is not available')
-		if self.__rfcat_connected__:
-			del(self.rfcat_connection)
-			self.rfcat_connection = None
-			self.__rfcat_connected__ = False
-		return True
-
 	def __optCallbackSetTableCachePolicy__(self, policy):
 		if self.is_serial_connected():
 			self.serial_connection.setTableCachePolicy(policy)
