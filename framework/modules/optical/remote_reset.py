@@ -17,13 +17,13 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from c1219.errors import C1219ProcedureError
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Initiate A Reset Procedure'
@@ -31,10 +31,12 @@ class Module(module_template):
 		self.options.addBoolean('DEMAND', 'perform a demand reset', default = False)
 		self.options.addBoolean('SELFREAD', 'perform a self read', default = False)
 	
-	def run(self, frmwk):
-		if not frmwk.serial_login():
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
+		if not self.frmwk.serial_login():
 			self.logger.warning('meter login failed')
-			frmwk.print_error('Meter login failed, procedure may fail')
+			self.frmwk.print_error('Meter login failed, procedure may fail')
 		
 		params = 0
 		if self.options['DEMAND']:
@@ -42,15 +44,15 @@ class Module(module_template):
 		if self.options['SELFREAD']:
 			params = (params | 0b10)
 		
-		frmwk.print_status('Initiating Reset Procedure')
+		self.frmwk.print_status('Initiating Reset Procedure')
 		
-		conn = frmwk.serial_connection
+		conn = self.frmwk.serial_connection
 		errCode, data = None, ''
 		try:
 			errCode, data = conn.runProcedure(9, False, chr(params))
-			frmwk.print_good('Sucessfully Reset The Meter')
+			self.frmwk.print_good('Sucessfully Reset The Meter')
 		except (C1218ReadTableError, C1218WriteTableError, C1219ProcedureError) as error:
 			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
-			frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 		conn.stop()
 		return

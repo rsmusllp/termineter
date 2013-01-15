@@ -17,29 +17,30 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import module_template
+from framework.templates import optical_module_template
 from c1218.errors import C1218ReadTableError
 from c1219.access.general import C1219GeneralAccess
 
-class Module(module_template):
+class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Get Basic Meter Information By Reading Tables'
 		self.detailed_description = 'This module retreives some basic meter information and displays it in a human-readable way.'
 	
-	def run(self, frmwk):
-		logger = frmwk.get_module_logger(self.name)
-		if not frmwk.serial_login():	# don't alert on failed logins
+	def run(self):
+		conn = self.frmwk.serial_connection
+		logger = self.logger
+		if not self.frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed, not all information may be available')
-			frmwk.print_error('Meter login failed, not all information may be available')
-		conn = frmwk.serial_connection
+			self.frmwk.print_error('Meter login failed, not all information may be available')
+		conn = self.frmwk.serial_connection
 		
 		try:
 			generalCtl = C1219GeneralAccess(conn)
 		except C1218ReadTableError:
-			frmwk.print_error('Could not read the necessary tables')
+			self.frmwk.print_error('Could not read the necessary tables')
 			return
 		conn.stop()
 		
@@ -73,10 +74,10 @@ class Module(module_template):
 		if generalCtl.device_id != None:
 			meter_info['Device ID'] = generalCtl.device_id
 		
-		frmwk.print_status('General Information:')
+		self.frmwk.print_status('General Information:')
 		fmt_string = "    {0:.<38}.{1}"
 		keys = meter_info.keys()
 		keys.sort()
 		for key in keys:
-			frmwk.print_status(fmt_string.format(key, meter_info[key]))
+			self.frmwk.print_status(fmt_string.format(key, meter_info[key]))
 		return
