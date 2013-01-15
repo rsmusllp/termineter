@@ -18,6 +18,7 @@
 #  MA 02110-1301, USA.
 
 import os
+import itertools
 
 class FileWalker:
 	def __init__(self, filespath):
@@ -53,3 +54,60 @@ class Namespace:
 	really do anything, it's used for organizational purposes only.
 	"""
 	pass
+
+def unique(seq, idfunc = None): 
+	"""
+	Unique a list or tuple and preserve the order
+	
+	@type idfunc: Function or None
+	@param idfunc: If idfunc is provided it will be called during the
+	comparison process.
+	"""
+	if idfunc is None:
+		idfunc = lambda x: x
+	preserved_type = type(seq)
+	seen = {}
+	result = []
+	for item in seq:
+		marker = idfunc(item)
+		if marker in seen:
+			continue
+		seen[marker] = 1
+		result.append(item)
+	return preserved_type(result)
+
+class StringGenerator:
+	def __init__(self, startlen, endlen = None, charset = None):
+		"""
+		This class is used to generate raw strings for bruteforcing.
+		
+		@type startlen: Integer
+		@param startlen: The minimum size of the string to bruteforce.
+		
+		@type endlen: Integer
+		@param endlen: The maximum size of the string to bruteforce.
+		
+		@type charset: String, Tuple or None
+		@param charset: the character set to use while generating the 
+		strings.  If None, the full binary space will be used (0 - 255).
+		"""
+		self.startlen = startlen
+		if endlen == None:
+			self.endlen = startlen
+		else:
+			self.endlen = endlen
+		if charset == None:
+			charset = map(chr, range(0, 256))
+		elif type(charset) == str:
+			charset = list(charset)
+		charset = unique(charset)
+		charset.sort()
+		self.charset = tuple(charset)
+	
+	def __iter__(self):
+		length = self.startlen
+		while (length <= self.endlen):
+			for string in itertools.product(self.charset, repeat = length):
+				yield ''.join(string)
+			length += 1
+		raise StopIteration
