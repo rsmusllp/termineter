@@ -91,15 +91,16 @@ class Module(optical_module_template):
 		self.frmwk.print_status('Starting brute force')
 		
 		for password in pw_generator:
-			if usehex and not pure_brute:
-				password = password.strip()
-				if hex_regex.match(password) == None:
-					logger.error('invalid characters found while searching for hex')
-					self.frmwk.print_error('Invalid characters found while searching for hex')
-					return
-				password = unhexlify(password)
-			else:
-				password = password.rstrip()
+			if not prute_brute:
+				if usehex:
+					password = password.strip()
+					if hex_regex.match(password) == None:
+						logger.error('invalid characters found while searching for hex')
+						self.frmwk.print_error('Invalid characters found while searching for hex')
+						return
+					password = unhexlify(password)
+				else:
+					password = password.rstrip()
 			if len(password) > 20:
 				if usehex:
 					logger.warning('skipping password: ' + password.encode('hex') + ' due to length (can not be exceed 20 bytes)')
