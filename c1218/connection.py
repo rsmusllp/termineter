@@ -34,8 +34,8 @@ if hasattr(logging, 'NullHandler'):
 
 ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Insufficient Security Clearance)', 4:'onp (Operation Not Possible)', 5:'iar (Inappropriate Action Requested)', 6:'bsy (Device Busy)', 7:'dnr (Data Not Ready)', 8:'dlk (Data Locked)', 9:'rno (Renegotiate Request)', 10:'isss (Invalid Service Sequence State)'}
 
-class Connection:
-	def __init__(self, device, c1218_settings = {}, serial_settings = None, toggle_control = True, enable_cache = True):
+class ConnectionRaw:
+	def __init__(self, device, c1218_settings = {}, serial_settings = None, toggle_control = True, **kwargs):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
 		to communicate with an ANSI Type-2 Optical probe to communciate
@@ -58,12 +58,6 @@ class Connection:
 		@type toggle_control: Boolean
 		@param toggle_control: Enables or diables automatically settings
 		the toggle bit in C12.18 frames.
-		
-		@type enable_cache: Boolean
-		@param enable_cache: Cache specific, read only tables in memory,
-		the first time the table is read it will be stored for retreival
-		on subsequent requests.  This is enabled only for specific tables
-		(currently only 0 and 1).
 		"""
 		self.logger = logging.getLogger('c1218.connection')
 		self.loggerio = logging.getLogger('c1218.connection.io')
@@ -107,11 +101,6 @@ class Connection:
 		self.logged_in = False
 		self.__initialized__ = False
 		self.c1219_endian = '<'
-		self.caching_enabled = enable_cache
-		self.__cacheable_tbls__ = [0, 1]
-		self.__tbl_cache__ = {}
-		if enable_cache:
-			self.logger.info('selective table caching has been enabled')
 	
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Device: ' + self.device + ' >'
@@ -232,10 +221,46 @@ class Connection:
 			self.stop()
 		self.logged_in = False
 		return self.serial_h.close()
+	
+class Connection(ConnectionRaw):
+	def __init__(self, *args, **kwargs):
+		"""
+		This is a C12.18 driver for serial connections.  It relies on PySerial
+		to communicate with an ANSI Type-2 Optical probe to communciate
+		with a device (presumably a smart meter).
 		
-###===###===### Functions Below This Are Non-Critical ###===###===###
-###===###===### Convenience Functions                 ###===###===###
-
+		@type device: String
+		@param device: A connection string to be passed to the PySerial
+		library.  If PySerial is new enough, the serial_for_url function
+		will be used to allow the user to use a rfc2217 bridge.
+		
+		@type c1218_settings: Dictionary
+		@param settings: A settings dictionary to configure the C1218 
+		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
+		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
+		
+		@type serial_settings: Dictionary
+		@param settings: A PySerial settings dictionary to be applied to
+		the serial connection instance.
+		
+		@type toggle_control: Boolean
+		@param toggle_control: Enables or diables automatically settings
+		the toggle bit in C12.18 frames.
+		
+		@type enable_cache: Boolean
+		@param enable_cache: Cache specific, read only tables in memory,
+		the first time the table is read it will be stored for retreival
+		on subsequent requests.  This is enabled only for specific tables
+		(currently only 0 and 1).
+		"""
+		enable_cache = (kwargs.get('enable_cache') or True)
+		ConnectionRaw.__init__(self, *args, **kwargs)
+		self.caching_enabled = enable_cache
+		self.__cacheable_tbls__ = [0, 1]
+		self.__tbl_cache__ = {}
+		if enable_cache:
+			self.logger.info('selective table caching has been enabled')
+	
 	def flushTableCache(self):
 		self.logger.info('flushing all cached tables')
 		self.__tbl_cache__ = {}

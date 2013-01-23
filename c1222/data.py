@@ -52,6 +52,15 @@ class C1222Request(object):
 	def __len__(self):
 		return len(str(self))
 
+	@property
+	def name(self):
+		name = self.__class__.__name__
+		if not name.startswith('C1222'):
+			raise Exception('class name does not start with \'C1222\'')
+		if not name.endswith('Request'):
+			raise Exception('class name does not end with \'Request\'')
+		return name[5:-7]
+
 	def set_ap_title(self, ap_title):
 		if not hasattr(self, '__ap_title__'):
 			raise Exception(self.__class__.__name__ + ' does not support the ap_title element')

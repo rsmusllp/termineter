@@ -28,12 +28,10 @@ from serial.serialutil import SerialException
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
 from framework.templates import module_template, optical_module_template
-from framework.utils import FileWalker, Namespace
+from framework.utils import FileWalker, Namespace, GetDefaultSerialSettings
 from c1218.connection import Connection
 from c1218.errors import C1218IOError, C1218ReadTableError
 
-DEFAULT_SERIAL_SETTINGS = {'parity': serial.PARITY_NONE, 'baudrate': 9600, 'bytesize': serial.EIGHTBITS, 'xonxoff': False, 'interCharTimeout': None, 'rtscts': False, 'timeout': 1, 'stopbits': serial.STOPBITS_ONE, 'dsrdtr': False, 'writeTimeout': None}
-	
 class Framework(object):
 	"""
 	This is the main instance of the framework.  It contains and 
@@ -62,7 +60,7 @@ class Framework(object):
 		self.__serial_connected__ = False
 		
 		# setup logging stuff
-		self.logger = logging.getLogger(self.__package__ + '.core')
+		self.logger = logging.getLogger(self.__package__ + '.' + self.__class__.__name__.lower())
 		main_file_handler = logging.handlers.RotatingFileHandler(self.directories.user_data + self.__package__ + '.log', maxBytes = 262144, backupCount = 5)
 		main_file_handler.setLevel(logging.DEBUG)
 		main_file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)-50s %(levelname)-10s %(message)s"))
@@ -324,18 +322,10 @@ class Framework(object):
 			'pktsize': self.advanced_options['PKTSIZE']
 		}
 		
-		frmwk_serial_settings = {
-			'parity':serial.PARITY_NONE,
-			'baudrate': self.advanced_options['BAUDRATE'],
-			'bytesize': self.advanced_options['BYTESIZE'],
-			'xonxoff': False,
-			'interCharTimeout': None,
-			'rtscts': False,
-			'timeout': 1,
-			'stopbits': self.advanced_options['STOPBITS'],
-			'dsrdtr': False,
-			'writeTimeout': None
-		}
+		frmwk_serial_settings = GetDefaultSerialSettings()
+		frmwk_serial_settings['baudrate'] = self.advanced_options['BAUDRATE']
+		frmwk_serial_settings['bytesize'] = self.advanced_options['BYTESIZE']
+		frmwk_serial_settings['stopbits'] = self.advanced_options['STOPBITS']
 		
 		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
 		

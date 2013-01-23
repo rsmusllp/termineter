@@ -36,6 +36,15 @@ class C1218Request(object):
 	@staticmethod
 	def parse(data):
 		raise Exception('No parse method is defined')
+	
+	@property
+	def name(self):
+		name = self.__class__.__name__
+		if not name.startswith('C1218'):
+			raise Exception('class name does not start with \'C1218\'')
+		if not name.endswith('Request'):
+			raise Exception('class name does not end with \'Request\'')
+		return name[5:-7]
 
 class C1218LogonRequest(C1218Request):
 	logon = '\x50'
@@ -225,10 +234,10 @@ class C1218ReadRequest(C1218Request):
 
 	def set_tableid(self, tableid):
 		self.__tableid__ = pack('>H', tableid)
-	
+
 	def set_offset(self, offset):
 		self.__offset__ = pack('>I', (offset & 0xffffff))[1:]
-	
+
 	def set_octetcount(self, octetcount):
 		self.__octetcount__ = pack('>H', octetcount)
 
@@ -349,5 +358,6 @@ C1218_REQUEST_IDS = {
 	0x51: C1218SecurityRequest,
 	0x52: C1218LogoffRequest,
 	0x60: C1218NegotiateRequest,
+	0x61: C1218NegotiateRequest,
 	0x70: C1218WaitRequest,
 }

@@ -18,7 +18,25 @@
 #  MA 02110-1301, USA.
 
 import os
+import copy
+import serial
 import itertools
+
+DEFAULT_SERIAL_SETTINGS = {
+	'parity': serial.PARITY_NONE,
+	'baudrate': 9600,
+	'bytesize': serial.EIGHTBITS,
+	'xonxoff': False,
+	'interCharTimeout': None,
+	'rtscts': False,
+	'timeout': 1,
+	'stopbits': serial.STOPBITS_ONE,
+	'dsrdtr': False,
+	'writeTimeout': None
+}
+
+def GetDefaultSerialSettings():
+	return copy.copy(DEFAULT_SERIAL_SETTINGS)
 
 class FileWalker:
 	def __init__(self, filespath):
