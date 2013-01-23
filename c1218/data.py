@@ -154,9 +154,9 @@ class C1218NegotiateRequest(C1218Request):
 			baudrate = ord(data[4])
 			if baudrate == 0 or baudrate > 10:
 				raise Exception('invalid data (invalid baudrate)')
-		frame = C1218NegotiateRequest(pktsize, nbrpkt, baudrate)
-		frame.negotiate = data[0]
-		return frame
+		request = C1218NegotiateRequest(pktsize, nbrpkt, baudrate)
+		request.negotiate = data[0]
+		return request
 	
 	def set_pktsize(self, pktsize):
 		self.__pktsize__ = pack('>H', pktsize)
@@ -231,6 +231,17 @@ class C1218ReadRequest(C1218Request):
 
 	def do_build(self):
 		return self.read + self.__tableid__ + self.__offset__ + self.__octetcount__
+
+	@staticmethod
+	def parse(data):
+		if len(data) < 3:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x30' and data[0] != '\x3f':
+			raise Exception('invalid start byte')
+		tableid = unpack('>H', data[1:3])[0]
+		request = C1218ReadRequest(tableid)
+		request.read = data[0]
+		return request
 
 	def set_tableid(self, tableid):
 		self.__tableid__ = pack('>H', tableid)
@@ -354,6 +365,8 @@ class C1218Packet(C1218Request):
 C1218_REQUEST_IDS = {
 	0x20: C1218IdentRequest,
 	0x21: C1218TerminateRequest,
+	0x30: C1218ReadRequest,
+	0x3f: C1218ReadRequest,
 	0x50: C1218LogonRequest,
 	0x51: C1218SecurityRequest,
 	0x52: C1218LogoffRequest,
