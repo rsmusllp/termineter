@@ -19,13 +19,13 @@
 
 from framework.templates import optical_module_template
 from time import sleep
-from c1218.data import C1218ReadRequest
+from c1218.data import C1218ReadRequest, C1218_RESPONSE_CODES
 from c1219.data import C1219_TABLES
 
 class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
-		self.version = 2
+		self.version = 3
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
@@ -48,7 +48,9 @@ class Module(optical_module_template):
 				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				tables_found += 1
 			else:
-				logger.info('received nak/error code: ' + str(ord(data[0])))
+				error_code = ord(data[0])
+				error_type = str(C1218_RESPONSE_CODES.get(error_code) or 'UNKNOWN')
+				logger.info('received error code: ' + str(error_code) + ' type: ' + error_type)
 			while not conn.stop():
 				sleep(0.5)
 			sleep(0.25)
