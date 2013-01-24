@@ -32,8 +32,6 @@ from c1219.errors import C1219ProcedureError
 if hasattr(logging, 'NullHandler'):
 	logging.getLogger('c1218').addHandler(logging.NullHandler())
 
-ERROR_CODE_DICT = {1:'err (Error)', 2:'sns (Service Not Supported)', 3:'isc (Insufficient Security Clearance)', 4:'onp (Operation Not Possible)', 5:'iar (Inappropriate Action Requested)', 6:'bsy (Device Busy)', 7:'dnr (Data Not Ready)', 8:'dlk (Data Locked)', 9:'rno (Renegotiate Request)', 10:'isss (Invalid Service Sequence State)'}
-
 class ConnectionRaw:
 	def __init__(self, device, c1218_settings = {}, serial_settings = None, toggle_control = True, **kwargs):
 		"""
@@ -375,7 +373,7 @@ class Connection(ConnectionRaw):
 		status = data[0]
 		if status != '\x00':
 			status = ord(status)
-			details = (ERROR_CODE_DICT.get(status) or 'unknown response code')
+			details = (C1218_RESPONSE_CODES.get(status) or 'unknown response code')
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: ' + details)
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: ' + details, status)
 		if len(data) < 4:
@@ -415,7 +413,7 @@ class Connection(ConnectionRaw):
 		data = self.recv()
 		if data[0] != '\x00':
 			status = ord(data[0])
-			details = (ERROR_CODE_DICT.get(status) or 'unknown response code')
+			details = (C1218_RESPONSE_CODES.get(status) or 'unknown response code')
 			self.logger.error('could not write data to the table, error: ' + details)
 			raise C1218WriteTableError('could not write data to the table, error: ' + details, status)
 		return None

@@ -23,6 +23,32 @@ from c1218.utils import crc, crc_str, data_chksum, data_chksum_str
 ACK = '\x06'
 NACK = '\x15'
 
+C1218_RESPONSE_CODES = {
+	0: 'ok (Acknowledge)',
+	1: 'err (Error)',
+	2: 'sns (Service Not Supported)',
+	3: 'isc (Insufficient Security Clearance)',
+	4: 'onp (Operation Not Possible)',
+	5: 'iar (Inappropriate Action Requested)',
+	6: 'bsy (Device Busy)',
+	7: 'dnr (Data Not Ready)',
+	8: 'dlk (Data Locked)',
+	9: 'rno (Renegotiate Request)',
+	10: 'isss (Invalid Service Sequence State)',
+
+	'ok':   0,
+	'err':  1,
+	'sns':  2,
+	'isc':  3,
+	'onp':  4,
+	'iar':  5,
+	'bsy':  6,
+	'dnr':  7,
+	'dlk':  8,
+	'rno':  9,
+	'isss': 10,
+}
+
 class C1218Request(object):
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' >'
@@ -176,17 +202,24 @@ class C1218NegotiateRequest(C1218Request):
 
 class C1218WaitRequest(C1218Request):
 	wait = '\x70'
+	__time__ = '\x01'
+	
+	def __init__(self, time = 1):
+		self.set_time(time)
 	
 	def do_build(self):
-		return self.wait
+		return self.wait + self.__time__
 	
 	@staticmethod
 	def parse(data):
-		if len(data) != 1:
+		if len(data) != 2:
 			raise Exception('invalid data (size)')
 		if data[0] != '\x70':
 			raise Exception('invalid start byte')
-		return C1218WaitRequest()
+		return C1218WaitRequest(ord(data[1]))
+	
+	def set_time(time):
+		self.__time__ = chr(time)
 
 class C1218IdentRequest(C1218Request):
 	ident = '\x20'
@@ -234,12 +267,18 @@ class C1218ReadRequest(C1218Request):
 
 	@staticmethod
 	def parse(data):
-		if len(data) < 3:
+		if (data[0] == '\x30' and len(data) < 3) or (data[0] == '\x3f' and len(data) < 8):
 			raise Exception('invalid data (size)')
 		if data[0] != '\x30' and data[0] != '\x3f':
 			raise Exception('invalid start byte')
 		tableid = unpack('>H', data[1:3])[0]
-		request = C1218ReadRequest(tableid)
+		if data[0] == '\x30':
+			offset = None
+			octetcount = None
+		elif data[0] == '\x3f':
+			offset = unpack('>I', '\x00' + data[3:7])[0]
+			octetcount = unpack('>H', data[7:9])[0]
+		request = C1218ReadRequest(tableid, offset, octetcount)
 		request.read = data[0]
 		return request
 
@@ -266,7 +305,6 @@ class C1218WriteRequest(C1218Request):
 		if offset != None and offset != 0:
 			self.write = '\x4f'
 			self.set_offset(offset)
-		
 	
 	def do_build(self):
 		packet = self.write
@@ -276,6 +314,26 @@ class C1218WriteRequest(C1218Request):
 		packet += self.__data__
 		packet += data_chksum_str(self.__data__)
 		return packet
+	
+	@staticmethod
+	def parse(data):
+		if len(data) < 3:
+			raise Exception('invalid data (size)')
+		if data[0] != '\x40' and data[0] != '\x4f':
+			raise Exception('invalid start byte')
+		tableid = unpack('>H', data[1:3])[0]
+		chksum = data[-1]
+		if data[0] == '\x40':
+			table_data = data[5:-1]
+			offset = None
+		elif data[0] == '\x4f':
+			table_data = data[7:-1]
+			offset = unpack('>I', '\x00' + data[3:7])[0]
+		if data_chksum_str(table_data) != chksum:
+			raise Exception('invalid check sum')
+		request = C1218WriteRequest(tableid, table_data, offset = offset)
+		request.write = data[0]
+		return request
 	
 	def set_tableid(self, tableid):
 		self.__tableid__ = pack('>H', tableid)
@@ -367,6 +425,8 @@ C1218_REQUEST_IDS = {
 	0x21: C1218TerminateRequest,
 	0x30: C1218ReadRequest,
 	0x3f: C1218ReadRequest,
+	0x40: C1218WriteRequest,
+	0x4f: C1218WriteRequest,
 	0x50: C1218LogonRequest,
 	0x51: C1218SecurityRequest,
 	0x52: C1218LogoffRequest,
