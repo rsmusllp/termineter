@@ -257,10 +257,10 @@ class C1218ReadRequest(C1218Request):
 
 	def __init__(self, tableid, offset = None, octetcount = None):
 		self.set_tableid(tableid)
-		if (offset != None and offset != 0) and (octetcount != None and octetcount != 0):
+		if (offset != None) or (octetcount != None):
 			self.read = '\x3f'
-			self.set_offset(offset)
-			self.set_octetcount(octetcount)
+			self.set_offset(offset or 0)
+			self.set_octetcount(octetcount or 0)
 
 	def do_build(self):
 		return self.read + self.__tableid__ + self.__offset__ + self.__octetcount__
@@ -276,8 +276,8 @@ class C1218ReadRequest(C1218Request):
 			offset = None
 			octetcount = None
 		elif data[0] == '\x3f':
-			offset = unpack('>I', '\x00' + data[3:7])[0]
-			octetcount = unpack('>H', data[7:9])[0]
+			offset = unpack('>I', '\x00' + data[3:6])[0]
+			octetcount = unpack('>H', data[6:8])[0]
 		request = C1218ReadRequest(tableid, offset, octetcount)
 		request.read = data[0]
 		return request
@@ -285,11 +285,31 @@ class C1218ReadRequest(C1218Request):
 	def set_tableid(self, tableid):
 		self.__tableid__ = pack('>H', tableid)
 
+	@property
+	def tableid(self):
+		return unpack('>H', self.__tableid__)[0]
+
 	def set_offset(self, offset):
+		if self.__octetcount__ and self.__offset__:
+			self.read = '\x3f'
 		self.__offset__ = pack('>I', (offset & 0xffffff))[1:]
 
+	@property
+	def offset(self):
+		if self.__offset__ == '':
+			return None
+		return unpack('>I', '\x00' + self.__offset__)[0]
+
 	def set_octetcount(self, octetcount):
+		if self.__octetcount__ and self.__offset__:
+			self.read = '\x3f'
 		self.__octetcount__ = pack('>H', octetcount)
+
+	@property
+	def octetcount(self):
+		if self.__octetcount__ == '':
+			return None
+		return unpack('>H', self.__octetcount__)[0]
 
 class C1218WriteRequest(C1218Request):
 	write = '\x40'
@@ -298,14 +318,14 @@ class C1218WriteRequest(C1218Request):
 	__datalen__ = '\x00\x00'
 	__data__ = ''
 	__crc8__ = ''
-	
+
 	def __init__(self, tableid, data, offset = None):
 		self.set_tableid(tableid)
 		self.set_data(data)
 		if offset != None and offset != 0:
 			self.write = '\x4f'
 			self.set_offset(offset)
-	
+
 	def do_build(self):
 		packet = self.write
 		packet += self.__tableid__
@@ -314,7 +334,7 @@ class C1218WriteRequest(C1218Request):
 		packet += self.__data__
 		packet += data_chksum_str(self.__data__)
 		return packet
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) < 3:
@@ -327,8 +347,8 @@ class C1218WriteRequest(C1218Request):
 			table_data = data[5:-1]
 			offset = None
 		elif data[0] == '\x4f':
-			table_data = data[7:-1]
-			offset = unpack('>I', '\x00' + data[3:7])[0]
+			table_data = data[8:-1]
+			offset = unpack('>I', '\x00' + data[3:6])[0]
 		if data_chksum_str(table_data) != chksum:
 			raise Exception('invalid check sum')
 		request = C1218WriteRequest(tableid, table_data, offset = offset)
@@ -337,13 +357,27 @@ class C1218WriteRequest(C1218Request):
 	
 	def set_tableid(self, tableid):
 		self.__tableid__ = pack('>H', tableid)
-	
+
+	@property
+	def tableid(self):
+		return unpack('>H', self.__tableid__)[0]
+
 	def set_offset(self, offset):
 		self.__offset__ = pack('>I', (offset & 0xffffff))[1:]
-	
+
+	@property
+	def offset(self):
+		if self.__offset__ == '':
+			return None
+		return unpack('>I', '\x00' + self.__offset__)[0]
+
 	def set_data(self, data):
 		self.__data__ = data
 		self.__datalen__ = pack('>H', len(data))
+
+	@property
+	def data(self):
+		return self.__data__
 
 class C1218Packet(C1218Request):
 	start = '\xee'
