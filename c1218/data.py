@@ -101,12 +101,20 @@ class C1218LogonRequest(C1218Request):
 			ValueError('userid must be between 0x0000 and 0xffff')
 		if not 0x0000 <= userid <= 0xffff:
 			raise ValueError('userid must be between 0x0000 and 0xffff')
-		self.__userid__ = pack(">H", userid)
-	
+		self.__userid__ = pack('>H', userid)
+
+	@property
+	def userid(self):
+		return unpack('>H', self.__userid__)[0]
+
 	def set_username(self, value):
 		if len(value) > 10:
 			raise ValueError('username must be 10 characters or less')
 		self.__username__ = value + ('\x20' * (10 - len(value)))
+
+	@property
+	def username(self):
+		return self.__username__
 
 class C1218SecurityRequest(C1218Request):
 	security = '\x51'
@@ -131,6 +139,10 @@ class C1218SecurityRequest(C1218Request):
 		if len(value) > 20:
 			raise ValueError('password must be 20 characters or less')
 		self.__password__ = value + ('\x20' * (20 - len(value)))
+	
+	@property
+	def password(self):
+		return self.__password__
 
 class C1218LogoffRequest(C1218Request):
 	logoff = '\x52'
