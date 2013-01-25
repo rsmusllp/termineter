@@ -83,7 +83,7 @@ class Module(optical_module_template):
 			pw_generator = BruteForce(dictionary_path)
 		else:
 			self.frmwk.print_status('A pure brute force will take a very very long time')
-			usehex = True # if doing a prute brute force, it has to be True
+			usehex = True # if doing a prue brute force, it has to be True
 			pw_generator = BruteForce()
 		
 		hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
@@ -91,7 +91,7 @@ class Module(optical_module_template):
 		self.frmwk.print_status('Starting brute force')
 		
 		for password in pw_generator:
-			if not prute_brute:
+			if not pure_brute:
 				if usehex:
 					password = password.strip()
 					if hex_regex.match(password) == None:
