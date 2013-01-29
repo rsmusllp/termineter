@@ -28,6 +28,7 @@ from random import randint
 from framework.core import Framework, FrameworkConfigurationError
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import Options
+from framework.templates import optical_module_template, module_template
 
 __version__ = '0.1.0'
 
@@ -492,13 +493,12 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.print_error('Must \'use\' module first')
 			return
 		module = self.frmwk.current_module
-		missing_options = self.frmwk.options.getMissingOptions()
-		missing_options.extend(module.options.getMissingOptions())
+		missing_options = module.getMissingOptions()
 		if missing_options:
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
 			return
 		del missing_options
-		if not self.frmwk.is_serial_connected():
+		if isinstance(module, optical_module_template) and not self.frmwk.is_serial_connected():
 			try:
 				result = self.frmwk.serial_connect()
 			except Exception as error:

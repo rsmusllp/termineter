@@ -20,6 +20,8 @@
 from framework.options import AdvancedOptions, Options
 
 class module_template:
+	frmwk_required_options = ()
+
 	def __init__(self, frmwk):
 		self.frmwk = frmwk
 		
@@ -34,12 +36,36 @@ class module_template:
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' ' + self.name + ' >'
 
+	def getMissingOptions(self):
+		frmwk_missing_options = self.frmwk.options.getMissingOptions()
+		frmwk_missing_options.extend(self.frmwk.advanced_options.getMissingOptions())
+
+		missing_options = []
+		for required_option in self.frmwk_required_options:
+			if required_option in frmwk_missing_options:
+				missing_options.append(required_option)
+		missing_options.extend(self.options.getMissingOptions())
+		missing_options.extend(self.advanced_options.getMissingOptions())
+		return missing_options
+
 	@property
 	def logger(self):
 		return self.frmwk.get_module_logger(self.name)
 
 class optical_module_template(module_template):
-	pass
+	frmwk_required_options = (
+		'CONNECTION',
+		'USERNAME',
+		'USERID',
+		'PASSWORD',
+		'PASSWORDHEX',
+		'BAUDRATE',
+		'BYTESIZE',
+		'CACHETBLS',
+		'STOPBITS',
+		'NBRPKTS',
+		'PKTSIZE'
+	)
 
 class rfcat_module_template(module_template):
 	pass

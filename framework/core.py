@@ -67,9 +67,12 @@ class Framework(object):
 		logging.getLogger('').addHandler(main_file_handler)
 		
 		# setup and configure options
+		# Whether or not these are 'required' is really enforced by the individual
+		# modules getMissingOptions method and by which options they require based
+		# on their respective types.  See framework/templates.py for more info.
 		self.options = Options(self.directories)
 		self.options.addBoolean('USECOLOR', 'enable color on the console interface', default = False)
-		self.options.addString('CONNECTION', 'serial connection string', True)
+		self.options.addString('CONNECTION', 'serial connection string')
 		self.options.addString('USERNAME', 'serial username', default = '0000')
 		self.options.addInteger('USERID', 'serial userid', default = 0)
 		self.options.addString('PASSWORD', 'serial c12.18 password', default = '00000000000000000000')
