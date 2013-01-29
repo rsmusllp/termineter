@@ -19,6 +19,7 @@
 
 from framework.templates import optical_module_template
 from c1219.errors import C1219ProcedureError
+from c1219.constants import C1219_METER_MODE_NAMES
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
 
 class Module(optical_module_template):
@@ -39,7 +40,7 @@ class Module(optical_module_template):
 		mode = mode.replace(' ', '')
 		if mode[-4:] == 'MODE':
 			mode = mode[:-4]
-		mode_dict = {'METERING':1, 'TEST':2, 'METERSHOP':4, 'FACTORY':8}
+		mode_dict = C1219_METER_MODE_NAMES
 		if not mode in mode_dict:
 			self.frmwk.print_error('unknown mode, please use METERING, TEST, METERSHOP, or FACTORY')
 			return

@@ -297,5 +297,19 @@ C1219_CALL_STATUS_FLAGS = {
 	11: 'Not completed, No modem response'
 }
 
+C1219_METER_MODE_FLAGS = {
+	1:'METERING',
+	2:'TEST',
+	4:'METERSHOP',
+	8:'FACTORY',
+}
+
+C1219_METER_MODE_NAMES = {
+	'METERING':1,
+	'TEST':2,
+	'METERSHOP':4,
+	'FACTORY':8
+}
+
 LTIME_LENGTH = {0:0, 1:6, 2:6, 3:5, 4:4}
 MONTHS = {1:'JAN', 2:'FEB', 3:'MAR', 4:'APR', 5:'MAY', 6:'JUN', 7:'JUL', 8:'AUG', 9:'SEP', 10:'OCT', 11:'NOV', 12:'DEC'}

@@ -108,7 +108,7 @@ def getHistoryEntryRcd(endianess, hist_date_time_flag, tm_format, event_number_f
 		rcd['History Sequence Number'] = unpack(endianess + 'H', data[:2])[0]
 		data = data[2:]
 	rcd['User ID'] = unpack(endianess + 'H', data[:2])[0]
-	rcd['Procedure Number'], rcd['Std vs Mfg'] = getTableIDBBFLD(endianess, data[2:4])
+	rcd['Procedure Number'], rcd['Std vs Mfg'] = getTableIDBBFLD(endianess, data[2:4])[:2]
 	rcd['Arguments'] = data[4:]
 	return rcd
 
@@ -125,9 +125,10 @@ def getTableIDBBFLD(endianess, data):
 	@rtype: Tuple (proc_nbr, std_vs_mfg)
 	"""
 	bfld = unpack(endianess + 'H', data[:2])[0]
-	proc_nbr = bfld & 2047
-	std_vs_mfg = bool(bfld & 2048)
-	return (proc_nbr, std_vs_mfg)
+	proc_nbr = bfld & 0x7ff
+	std_vs_mfg = bool(bfld & 0x800)
+	selector = (bfld & 0xf000) >> 12
+	return (proc_nbr, std_vs_mfg, selector)
 
 def getTableIDCBFLD(endianess, data):
 	"""
@@ -186,12 +187,31 @@ class C1219ProcedureInit:
 		mfg_defined = 0
 		if std_vs_mfg:
 			mfg_defined = 1
+		self.mfg_defined = bool(mfg_defined)
+		self.selector = selector
+		
 		mfg_defined = mfg_defined << 11
-		selector = selector << 4
+		selector = selector << 12
 		
 		self.table_idb_bfld = pack(endianess + 'H', (table_proc_nbr | mfg_defined | selector))
-		self.seqnum = chr(seqnum)
+		self.endianess = endianess
+		self.proc_nbr = table_proc_nbr
+		self.seqnum = ord(chr(seqnum))
 		self.params = params
 	
+	def __repr__(self):
+		return '<' + self.__class__.__name__ + ' >'
+	
 	def __str__(self):
-		return self.table_idb_bfld + self.seqnum + self.params
+		return self.do_build()
+	
+	def do_build(self):
+		return self.table_idb_bfld + chr(self.seqnum) + self.params
+	
+	@staticmethod
+	def parse(endianess, data):
+		if len(data) < 3:
+			raise Exception('invalid data (size)')
+		proc_nbr, std_vs_mfg, selector = getTableIDBBFLD(endianess, data[0:2])
+		seqnum = ord(data[2])
+		return C1219ProcedureInit(endianess, proc_nbr, std_vs_mfg, selector, seqnum, data[3:])
