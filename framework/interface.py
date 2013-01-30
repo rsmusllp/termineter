@@ -462,7 +462,11 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			return
 		else:
 			module_path = args[0]
-		self.frmwk.reload_module(module_path)
+		try:
+			self.frmwk.reload_module(module_path)
+		except FrameworkRuntimeError as err:
+			self.print_error('Failed to reload module')
+			return
 		self.print_status('Successfully reloaded module: ' + module_path)
 	
 	def complete_reload(self, text, line, begidx, endidx):

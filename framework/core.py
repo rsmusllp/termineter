@@ -126,8 +126,10 @@ class Framework(object):
 				continue
 			# looks good, proceed to load
 			self.logger.debug('loading module: ' + module_path)
-			module = __import__(self.__package__ + '.modules.' + module_path.replace('/', '.'), None, None, ['Module'])
-			module_instance = module.Module(self)
+			try:
+				module_instance = self.import_module(module_path)
+			except FrameworkRuntimeError:
+				continue
 			if not isinstance(module_instance, module_template):
 				self.logger.error('module: ' + module_path + ' is not derived from the module_template class')
 				continue
@@ -167,11 +169,9 @@ class Framework(object):
 		if not module_path in self.modules.keys():
 			self.logger.error('invalid module requested for reload')
 			raise FrameworkRuntimeError('invalid module requested for reload')
-		self.logger.info('reloading module: ' + module_path)
 		
-		module = __import__(self.__package__ + '.modules.' + module_path.replace('/', '.'), None, None, ['Module'])
-		reload(module)
-		module_instance = module.Module(self)
+		self.logger.info('reloading module: ' + module_path)
+		module_instance = self.import_module(module_path, reload_module = True)
 		if not isinstance(module_instance, module_template):
 			self.logger.error('module: ' + module_path + ' is not derived from the module_template class')
 			raise FrameworkRuntimeError('module: ' + module_path + ' is not derived from the module_template class')
@@ -231,6 +231,20 @@ class Framework(object):
 		@param name: The name of the module requesting the logger
 		"""
 		return logging.getLogger(self.__package__ + '.modules.' + name)
+
+	def import_module(self, module_path, reload_module = False):
+		try:
+			module = __import__(self.__package__ + '.modules.' + module_path.replace('/', '.'), None, None, ['Module'])
+			if reload_module:
+				reload(module)
+			module_instance = module.Module(self)
+		except Exception as err:
+			message = 'failed to load module: ' + module_path
+			if isinstance(err, SyntaxError):
+				message += ', ' + err.msg + ' line number: ' + str(err.lineno)
+			self.logger.error(message)
+			raise FrameworkRuntimeError(message)
+		return module_instance
 
 	def print_error(self, message):
 		if self.options['USECOLOR']:
