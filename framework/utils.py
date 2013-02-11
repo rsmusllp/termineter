@@ -39,7 +39,7 @@ def GetDefaultSerialSettings():
 	return copy.copy(DEFAULT_SERIAL_SETTINGS)
 
 class FileWalker:
-	def __init__(self, filespath):
+	def __init__(self, filespath, absolute_path = False, skip_files = False, skip_dirs = False, filter_func = None):
 		"""
 		This class is used to easily iterate over files in a directory.
 		
@@ -48,22 +48,61 @@ class FileWalker:
 		file is passed then that will be the only file returned during the
 		iteration.  If a directory is passed, all files will be recursively
 		returned during the iteration.
+		
+		@type absolute_path: boolean
+		@param absolute_path: Whether or not the absolute path or a relative
+		path should be returned.
+		
+		@type skip_files: boolean
+		@param skip_files: Whether or not to skip files.
+		
+		@type skip_dirs: boolean
+		@param skip_dirs: Whether or not to skip directories.
+		
+		@type filter_func: function
+		@param filter_func: If defined, the filter_func function will be called
+		for each file and if the function returns false the file will be
+		skipped.
 		"""
-		self.filespath = filespath
+		if not (os.path.isfile(filespath) or os.path.isdir(filespath)):
+			raise Exception(filespath + ' is neither a file or directory')
+		if absolute_path:
+			self.filespath = os.path.abspath(filespath)
+		else:
+			self.filespath = os.path.relpath(filespath)
+		self.skip_files = skip_files
+		self.skip_dirs = skip_dirs
+		self.filter_func = filter_func
 		if os.path.isdir(self.filespath):
 			self.__iter__= self.nextDir
 		elif os.path.isfile(self.filespath):
 			self.__iter__ = self.nextFile
 
+	def skip(self, curFile):
+		if self.skip_files and os.path.isfile(curFile):
+			return True
+		if self.skip_dirs and os.path.isdir(curFile):
+			return True
+		if self.filter_func != None:
+			if not self.filter_func(curFile):
+				return True
+		return False
+
 	def nextDir(self):
-		for root, subFolder, files in os.walk(self.filespath):
+		for root, dirs, files in os.walk(self.filespath):
 			for curFile in files:
 				curFile = os.path.join(root, curFile)
-				yield curFile
+				if not self.skip(curFile):
+					yield curFile
+			for curDir in dirs:
+				curDir = os.path.join(root, curDir)
+				if not self.skip(curDir):
+					yield curDir
 		raise StopIteration
 	
 	def nextFile(self):
-		yield self.filespath
+		if not self.skip(self.filespath):
+			yield self.filespath
 		raise StopIteration
 
 class Namespace:

@@ -111,7 +111,7 @@ class Framework(object):
 		if not os.path.isdir(modules_path):
 			self.logger.critical('path to modules not found')
 			raise FrameworkConfigurationError('path to modules not found')
-		for module_path in FileWalker(modules_path):
+		for module_path in FileWalker(modules_path, absolute_path = True, skip_dirs = True):
 			module_path = module_path.replace(os.path.sep, '/')
 			if not module_path.endswith('.py'):
 				continue
