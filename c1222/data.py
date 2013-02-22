@@ -251,6 +251,7 @@ class C1222Packet(C1222Request):
 			raise Exception('invalid start byte')
 			
 		(called_ap, data) = ber_decoder.decode(data)
+		(called_ap_invocation_id, data) = ber_decoder.decode(data)
 		(calling_ap, data) = ber_decoder.decode(data)
 		(calling_ap_invocation_id , data) = ber_decoder.decode(data)
 		
