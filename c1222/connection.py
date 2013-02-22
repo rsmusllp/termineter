@@ -17,8 +17,10 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from random import randint
 from binascii import hexlify, unhexlify
 from struct import pack, unpack
+from select import select
 import logging
 import socket
 from c1222.data import *
@@ -26,10 +28,21 @@ from c1222.data import *
 if hasattr(logging, 'NullHandler'):
 	logging.getLogger('c1222').addHandler(logging.NullHandler())
 
+def sock_read_ready(socket, timeout):
+	readys = select([socket.fileno()], [], [], timeout)
+	return len(readys[0]) == 1
+
 class Connection:
-	def __init__(self, host, called_ap, calling_ap, enable_cache = True):
+	def __init__(self, host, called_ap, calling_ap, enable_cache = True, bind_host = ('', 1153)):
 		self.logger = logging.getLogger('c1222.connection')
 		self.loggerio = logging.getLogger('c1222.connection.io')
+		
+		self.read_timeout = 3.0
+		self.server_sock_h = None
+		self.read_sock_h = None
+		self.bind_host = bind_host
+		self.start_listener()
+		
 		self.host = host
 		self.sock_h = socket.create_connection(host)
 		self.logger.debug('successfully connected to: ' + host[0] + ':' + str(host[1]))
@@ -50,3 +63,59 @@ class Connection:
 		self.__tbl_cache__ = {}
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
+
+	def start_listener(self):
+		if self.server_sock_h != None:
+			raise Exception('server socket already created')
+		self.server_sock_h = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server_sock_h.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		self.server_sock_h.bind(self.bind_host)
+		self.server_sock_h.listen(1)
+
+	def stop_listener(self):
+		if self.server_sock_h == None:
+			return
+		self.server_sock_h.close()
+		self.server_sock_h = None
+
+	def recv(self):
+		if self.read_sock_h == None:
+			readable = select([self.sock_h.fileno(), self.server_sock_h.fileno()], [], [], self.read_timeout)
+			readable = readable[0]
+			if len(readable) > 1:
+				raise Exception('too many file handles available for reading')
+			if len(readable) < 1:
+				raise Exception('not enough file handles available for reading')
+			readable = readable[0]
+			if readable == self.server_sock_h.fileno():
+				(self.read_sock_h, addr) = self.server_sock_h.accept()
+				self.logger.info("received connection from {0}:{1}".format(addr[0], addr[1]))
+				self.stop_listener()
+			elif readable == self.sock_h.fileno():
+				self.read_sock_h = self.sock_h
+				self.stop_listener()
+			else:
+				raise Exception('unknown file handle is available for reading')
+		data = ''
+		while sock_read_ready(self.read_sock_h, self.read_timeout):
+			tmp_data = self.read_sock_h.recv(8192)
+			data += tmp_data
+			if len(tmp_data) != 8192:
+				break
+		pkt = C1222Packet.parse(data)
+		if not isinstance(pkt.data, C1222UserInformation):
+			return pkt.data
+		return C1222EPSEM.parse(pkt.data.data)
+
+	def send(self, data):
+		pkt = C1222Packet(self.called_ap, self.calling_ap, randint(0, 999999), data = C1222UserInformation(C1222EPSEM(data)))
+		self.sock_h.send(str(pkt))
+
+	def start(self):
+		self.send(C1222IdentRequest())
+
+	def close(self):
+		self.sock_h.close()
+		if self.read_sock_h != None:
+			self.read_sock_h.close()
+		self.stop_listener()

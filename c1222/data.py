@@ -42,7 +42,11 @@ class C1222CalledAPTitle(univ.ObjectIdentifier):
 	def encode(self):
 		return ber_encoder.encode(self)
 
-class C1222Request(object):
+class C1222Data(object):
+	"""
+	This class provides basic methods for constructable data fragments of the
+	C12.22 protocol.
+	"""
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' >'
 	
@@ -51,7 +55,94 @@ class C1222Request(object):
 	
 	def __len__(self):
 		return len(str(self))
+	
+	def do_build(self):
+		return ''
 
+class C1222EPSEM(C1222Data):
+	def __init__(self, data, ed_class = ''):
+		self.data = data
+		# flags
+		self.reserved = False
+		self.recovery = False
+		self.proxy_service = False
+		self.ed_class = ed_class
+		self.security_mode = 0
+		self.response_mode = 0
+	
+	@staticmethod
+	def parse(data):
+		if len(data) < 2:
+			raise Exception('invalid data (size)')
+		flags = ord(data[0])
+		
+		reserved = bool(flags & (1 << 7))
+		recovery = bool(flags & (1 << 6))
+		proxy_service = bool(flags & (1 << 5))
+		ed_class = bool(flags & (1 << 4))
+		security_mode = ((flags & (3 << 2)) >> 2)
+		response_mode = (flags & 3)
+		if ed_class:
+			ed_class = data[1:5]
+			length = ord(data[5])
+			data = data[6:]
+		else:
+			ed_class = ''
+			length = ord(data[1])
+			data = data[2:]
+		if length != len(data):
+			raise Exception('invalid data (size)')
+		epsem = C1222EPSEM(data, ed_class)
+		epsem.reserved = reserved
+		epsem.recovery = recovery
+		epsem.proxy_service = proxy_service
+		epsem.security_mode = security_mode
+		epsem.response_mode = response_mode
+		return epsem
+	
+	def do_build(self):
+		flags  = 0
+		flags |= (int(self.reserved) << 7)
+		flags |= (int(self.recovery) << 6)
+		flags |= (int(self.proxy_service) << 5)
+		flags |= (int(bool(self.ed_class)) << 4)
+		flags |= (self.security_mode << 2)
+		flags |= (self.response_mode)
+		data = str(self.data)
+		return chr(flags) + self.ed_class + chr(len(data)) + data
+
+class C1222UserInformation(C1222Data):
+	def __init__(self, data):
+		self.data = data
+
+	@staticmethod
+	def parse(data):
+		if len(data) < 6:
+			raise Exception('invalid data (size)')
+		if data[0] != '\xbe':
+			raise Exception('invalid start byte')
+		if ord(data[1]) != len(data[2:]):
+			raise Exception('invalid data (size)')
+		
+		if data[2] != '\x28':
+			raise Exception('invalid start byte')
+		if ord(data[3]) != len(data[4:]):
+			raise Exception('invalid data (size)')
+		
+		if data[4] != '\x81':
+			raise Exception('invalid start byte')
+		if ord(data[5]) != len(data[6:]):
+			raise Exception('invalid data (size)')
+		return C1222UserInformation(data[6:])
+
+	def do_build(self):
+		data = str(self.data)
+		data = '\x81' + chr(len(data)) + data
+		data = '\x28' + chr(len(data)) + data
+		data = '\xbe' + chr(len(data)) + data
+		return data
+
+class C1222Request(C1222Data):
 	@property
 	def name(self):
 		name = self.__class__.__name__
@@ -255,6 +346,12 @@ class C1222Packet(C1222Request):
 		(calling_ap, data) = ber_decoder.decode(data)
 		(calling_ap_invocation_id , data) = ber_decoder.decode(data)
 		
+		if data[0] == '\xbe':
+			try:
+				data = C1222UserInformation.parse(data)
+			except:
+				pass
+		
 		called_ap = C1222CalledAPTitle(called_ap)
 		calling_ap = C1222CallingAPTitle(calling_ap)
 		calling_ap_invocation_id = C1222CallingAPInvocationID(calling_ap_invocation_id)
@@ -283,7 +380,10 @@ class C1222Packet(C1222Request):
 			self.set_length(length)
 	
 	def __repr__(self):
-		return '<C1222Packet data=0x' + str(self.__data__).encode('hex') + ' data_len=' + str(len(self.__data__)) + ' >'
+		if isinstance(self.__data__, C1222Data):
+			return '<C1222Packet data=' + repr(self.__data__) + ' data_len=' + str(len(self.__data__)) + ' >'
+		else:
+			return '<C1222Packet data=0x' + str(self.__data__).encode('hex') + ' data_len=' + str(len(self.__data__)) + ' >'
 	
 	@property
 	def data(self):
