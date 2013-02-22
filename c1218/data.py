@@ -230,7 +230,7 @@ class C1218WaitRequest(C1218Request):
 			raise Exception('invalid start byte')
 		return C1218WaitRequest(ord(data[1]))
 	
-	def set_time(time):
+	def set_time(self, time):
 		self.__time__ = chr(time)
 
 class C1218IdentRequest(C1218Request):

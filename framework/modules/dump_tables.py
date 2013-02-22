@@ -54,7 +54,7 @@ class Module(optical_module_template):
 					conn.stop()
 					logger.warning('received ISSS error, connection stopped, will sleep before retrying')
 					sleep(0.5)
-					if not frmwk.serial_login():
+					if not self.frmwk.serial_login():
 						logger.warning('meter login failed, some tables may not be accessible')
 					try:
 						data = conn.getTableData(tableid)
