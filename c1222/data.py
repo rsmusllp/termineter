@@ -70,6 +70,9 @@ class C1222EPSEM(C1222Data):
 		self.security_mode = 0
 		self.response_mode = 0
 	
+	def __repr__(self):
+		return '<C1222EPSEM data=0x' + str(self.data).encode('hex') + ' data_len=' + str(len(self.data)) + ' >'
+	
 	@staticmethod
 	def parse(data):
 		if len(data) < 2:
