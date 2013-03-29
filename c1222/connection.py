@@ -24,6 +24,7 @@ from select import select
 import logging
 import socket
 from c1222.data import *
+from c1222.errors import C1222IOError
 
 if hasattr(logging, 'NullHandler'):
 	logging.getLogger('c1222').addHandler(logging.NullHandler())
@@ -83,9 +84,9 @@ class Connection:
 			readable = select([self.sock_h.fileno(), self.server_sock_h.fileno()], [], [], self.read_timeout)
 			readable = readable[0]
 			if len(readable) > 1:
-				raise Exception('too many file handles available for reading')
+				raise C1222IOError('too many file handles available for reading')
 			if len(readable) < 1:
-				raise Exception('not enough file handles available for reading')
+				raise C1222IOError('not enough file handles available for reading')
 			readable = readable[0]
 			if readable == self.server_sock_h.fileno():
 				(self.read_sock_h, addr) = self.server_sock_h.accept()
@@ -95,7 +96,7 @@ class Connection:
 				self.read_sock_h = self.sock_h
 				self.stop_listener()
 			else:
-				raise Exception('unknown file handle is available for reading')
+				raise C1222IOError('unknown file handle is available for reading')
 		data = ''
 		while sock_read_ready(self.read_sock_h, self.read_timeout):
 			tmp_data = self.read_sock_h.recv(8192)
@@ -113,6 +114,12 @@ class Connection:
 
 	def start(self):
 		self.send(C1222IdentRequest())
+		try:
+			data = self.recv()
+		except C1222IOError:
+			self.logger.error('received incorrect response to identification service request')
+			return False
+		return True
 
 	def close(self):
 		self.sock_h.close()
