@@ -44,11 +44,11 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 		necessary tables.
 		"""
 		self.conn = conn
-		act_security_table = conn.getTableData(ACT_SECURITY_LIMITING_TBL)
-		security_table = conn.getTableData(SECURITY_TBL)
-		access_ctl_table = conn.getTableData(ACCESS_CONTROL_TBL)
+		act_security_table = conn.get_table_data(ACT_SECURITY_LIMITING_TBL)
+		security_table = conn.get_table_data(SECURITY_TBL)
+		access_ctl_table = conn.get_table_data(ACCESS_CONTROL_TBL)
 		try:
-			key_table = conn.getTableData(KEY_TBL)
+			key_table = conn.get_table_data(KEY_TBL)
 		except C1218ReadTableError:
 			key_table = None
 		

@@ -68,7 +68,7 @@ class Framework(object):
 		
 		# setup and configure options
 		# Whether or not these are 'required' is really enforced by the individual
-		# modules getMissingOptions method and by which options they require based
+		# modules get_missing_options method and by which options they require based
 		# on their respective types.  See framework/templates.py for more info.
 		self.options = Options(self.directories)
 		self.options.addBoolean('USECOLOR', 'enable color on the console interface', default = False)
@@ -362,7 +362,7 @@ class Framework(object):
 			raise error
 		
 		try:
-			general_config_table = self.serial_connection.getTableData(0)
+			general_config_table = self.serial_connection.get_table_data(0)
 		except C1218ReadTableError as error:
 			self.logger.error('serial connection as been opened but the general configuration table (table #0) could not be read')
 			raise error
@@ -419,5 +419,5 @@ class Framework(object):
 	
 	def __optCallbackSetTableCachePolicy__(self, policy):
 		if self.is_serial_connected():
-			self.serial_connection.setTableCachePolicy(policy)
+			self.serial_connection.set_table_cache_policy(policy)
 		return True

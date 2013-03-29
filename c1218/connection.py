@@ -261,18 +261,18 @@ class Connection(ConnectionRaw):
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
 	
-	def flushTableCache(self):
+	def flush_table_cache(self):
 		self.logger.info('flushing all cached tables')
 		self.__tbl_cache__ = {}
 
-	def setTableCachePolicy(self, cache_policy):
+	def set_table_cache_policy(self, cache_policy):
 		if self.caching_enabled == cache_policy:
 			return
 		self.caching_enabled = cache_policy
 		if cache_policy:
 			self.logger.info('selective table caching has been enabled')
 		else:
-			self.flushTableCache()
+			self.flush_table_cache()
 			self.logger.info('selective table caching has been disabled')
 		return
 
@@ -352,7 +352,7 @@ class Connection(ConnectionRaw):
 			return True
 		return False
 	
-	def getTableData(self, tableid, octetcount = None, offset = None):
+	def get_table_data(self, tableid, octetcount = None, offset = None):
 		"""
 		Read data from a table. If successful, all of the data from the 
 		requested table will be returned.
@@ -398,7 +398,7 @@ class Connection(ConnectionRaw):
 			self.__tbl_cache__[tableid] = data
 		return data
 
-	def setTableData(self, tableid, data, offset = None):
+	def set_table_data(self, tableid, data, offset = None):
 		"""
 		Write data to a table.
 		
@@ -420,7 +420,7 @@ class Connection(ConnectionRaw):
 			raise C1218WriteTableError('could not write data to the table, error: ' + details, status)
 		return None
 
-	def runProcedure(self, process_number, std_vs_mfg, params = ''):
+	def run_procedure(self, process_number, std_vs_mfg, params = ''):
 		"""
 		Initiate a C1219 procedure, the request is written to table 7 and
 		the response is read from table 8.
@@ -439,9 +439,9 @@ class Connection(ConnectionRaw):
 		seqnum = randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
 		procedure_request = str(C1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
-		self.setTableData(7, procedure_request)
+		self.set_table_data(7, procedure_request)
 		
-		response = self.getTableData(8)
+		response = self.get_table_data(8)
 		if response[:3] == procedure_request[:3]:
 			return ord(response[3]), response[4:]
 		else:

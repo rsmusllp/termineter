@@ -36,16 +36,16 @@ class module_template:
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' ' + self.name + ' >'
 
-	def getMissingOptions(self):
-		frmwk_missing_options = self.frmwk.options.getMissingOptions()
-		frmwk_missing_options.extend(self.frmwk.advanced_options.getMissingOptions())
+	def get_missing_options(self):
+		frmwk_missing_options = self.frmwk.options.get_missing_options()
+		frmwk_missing_options.extend(self.frmwk.advanced_options.get_missing_options())
 
 		missing_options = []
 		for required_option in self.frmwk_required_options:
 			if required_option in frmwk_missing_options:
 				missing_options.append(required_option)
-		missing_options.extend(self.options.getMissingOptions())
-		missing_options.extend(self.advanced_options.getMissingOptions())
+		missing_options.extend(self.options.get_missing_options())
+		missing_options.extend(self.advanced_options.get_missing_options())
 		return missing_options
 
 	@property

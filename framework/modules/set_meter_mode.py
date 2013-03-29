@@ -56,7 +56,7 @@ class Module(optical_module_template):
 		mode = mode_dict[mode]
 		errCode, data = None, ''
 		try:
-			errCode, data = conn.runProcedure(6, False, chr(mode))
+			errCode, data = conn.run_procedure(6, False, chr(mode))
 			self.frmwk.print_good('Sucessfully Changed The Mode')
 		except C1218ReadTableError as error:
 			logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))

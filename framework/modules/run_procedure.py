@@ -45,7 +45,7 @@ class Module(optical_module_template):
 		
 		self.frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
 		
-		errCode, data = conn.runProcedure(self.options['PROCNBR'], self.advanced_options['STDVSMFG'], data)
+		errCode, data = conn.run_procedure(self.options['PROCNBR'], self.advanced_options['STDVSMFG'], data)
 		conn.stop()
 		
 		self.frmwk.print_status('Finished running procedure #' + str(self.options['PROCNBR']))

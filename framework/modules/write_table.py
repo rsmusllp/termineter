@@ -53,7 +53,7 @@ class Module(optical_module_template):
 			return
 		
 		try:
-			conn.setTableData(tableid, data, offset)
+			conn.set_table_data(tableid, data, offset)
 			self.frmwk.print_status('Successfully Wrote Data')
 		except C1218WriteTableError as error:
 			self.frmwk.print_error('Caught C1218WriteTableError: ' + str(error))

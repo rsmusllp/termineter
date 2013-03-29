@@ -206,7 +206,7 @@ class Options(dict):
 			options_def[4](value)
 		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], value, options_def[4]))
 	
-	def getMissingOptions(self):
+	def get_missing_options(self):
 		"""
 		Get a list of options that are required, but with default values
 		of None.

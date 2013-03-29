@@ -49,11 +49,11 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		necessary tables.
 		"""
 		self.conn = conn
-		actual_telephone_table = self.conn.getTableData(ACT_TELEPHONE_TBL)
-		global_parameters_table = self.conn.getTableData(GLOBAL_PARAMETERS_TBL)
-		originate_parameters_table = self.conn.getTableData(ORIGINATE_PARAMETERS_TBL)
-		originate_schedule_table = self.conn.getTableData(ORIGINATE_SCHEDULE_TBL)
-		answer_parameters_table = self.conn.getTableData(ANSWER_PARAMETERS_TBL)
+		actual_telephone_table = self.conn.get_table_data(ACT_TELEPHONE_TBL)
+		global_parameters_table = self.conn.get_table_data(GLOBAL_PARAMETERS_TBL)
+		originate_parameters_table = self.conn.get_table_data(ORIGINATE_PARAMETERS_TBL)
+		originate_schedule_table = self.conn.get_table_data(ORIGINATE_SCHEDULE_TBL)
+		answer_parameters_table = self.conn.get_table_data(ANSWER_PARAMETERS_TBL)
 
 		if (actual_telephone_table) < 14:
 			raise C1219ParseError('expected to read more data from ACT_TELEPHONE_TBL', ACT_TELEPHONE_TBL)
@@ -121,11 +121,11 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 	
 	@staticmethod
 	def initiateCallEx(conn, idx):
-		return conn.runProcedure(20, False, chr(idx))
+		return conn.run_procedure(20, False, chr(idx))
 
 	def updateLastCallStatuses(self):
 		tmp = 0
-		call_status_table = self.conn.getTableData(CALL_STATUS_TBL)
+		call_status_table = self.conn.get_table_data(CALL_STATUS_TBL)
 		if (len(call_status_table) % self.nbr_originate_numbers) != 0:
 			raise C1219ParseError('expected to read more data from CALL_STATUS_TBL', CALL_STATUS_TBL)
 		call_status_rcd_length = (len(call_status_table) / self.nbr_originate_numbers)

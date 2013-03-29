@@ -271,7 +271,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		if self.frmwk.is_serial_connected():
 			self.print_status('Already connected')
 			return
-		missing_options = self.frmwk.options.getMissingOptions()
+		missing_options = self.frmwk.options.get_missing_options()
 		if missing_options:
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
 			return
@@ -294,7 +294,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		else:
 			self.print_error('An error occured while closing the serial interface')
 		if args[0] == '-r':
-			missing_options = self.frmwk.options.getMissingOptions()
+			missing_options = self.frmwk.options.get_missing_options()
 			if missing_options:
 				self.print_error('The following options must be set: ' + ', '.join(missing_options))
 				return
@@ -497,7 +497,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.print_error('Must \'use\' module first')
 			return
 		module = self.frmwk.current_module
-		missing_options = module.getMissingOptions()
+		missing_options = module.get_missing_options()
 		if missing_options:
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
 			return

@@ -37,7 +37,7 @@ class Module(optical_module_template):
 		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
 		try:
-			data = conn.getTableData(tableid)
+			data = conn.get_table_data(tableid)
 		except C1218ReadTableError as error:
 			self.frmwk.print_error('Caught C1218ReadTableError: ' + str(error))
 			conn.stop()

@@ -48,14 +48,14 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 		necessary tables.
 		"""
 		self.conn = conn
-		general_config_table = conn.getTableData(GEN_CONFIG_TBL)
-		general_mfg_table = conn.getTableData(GENERAL_MFG_ID_TBL)
+		general_config_table = conn.get_table_data(GEN_CONFIG_TBL)
+		general_mfg_table = conn.get_table_data(GENERAL_MFG_ID_TBL)
 		try:
-			mode_status_table = conn.getTableData(ED_MODE_STATUS_TBL)
+			mode_status_table = conn.get_table_data(ED_MODE_STATUS_TBL)
 		except C1218ReadTableError:
 			mode_status_table = None
 		try:
-			ident_table = conn.getTableData(DEVICE_IDENT_TBL)
+			ident_table = conn.get_table_data(DEVICE_IDENT_TBL)
 		except C1218ReadTableError:
 			ident_table = None
 		
@@ -132,9 +132,9 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 	
 	def set_device_id(self, newid):
 		if self.__id_form__ == 0:
-			self.conn.setTableData(DEVICE_IDENT_TBL, (newid + (' ' * (20 - len(newid)))))
+			self.conn.set_table_data(DEVICE_IDENT_TBL, (newid + (' ' * (20 - len(newid)))))
 		else:
-			self.conn.setTableData(DEVICE_IDENT_TBL, (newid + (' ' * (10 - len(newid)))))
+			self.conn.set_table_data(DEVICE_IDENT_TBL, (newid + (' ' * (10 - len(newid)))))
 		
 		self.conn.send(C1218WriteRequest(PROC_INITIATE_TBL, '\x46\x08\x1c\x03\x0b\x0c\x09\x0f\x12'))
 		data = self.conn.recv()
@@ -142,7 +142,7 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 			pass
 		
 		try:
-			ident_table = self.conn.getTableData(DEVICE_IDENT_TBL)
+			ident_table = self.conn.get_table_data(DEVICE_IDENT_TBL)
 		except C1218ReadTableError:
 			return 1
 		

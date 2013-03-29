@@ -49,7 +49,7 @@ class Module(optical_module_template):
 		conn = self.frmwk.serial_connection
 		errCode, data = None, ''
 		try:
-			errCode, data = conn.runProcedure(9, False, chr(params))
+			errCode, data = conn.run_procedure(9, False, chr(params))
 			self.frmwk.print_good('Sucessfully Reset The Meter')
 		except (C1218ReadTableError, C1218WriteTableError, C1219ProcedureError) as error:
 			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))

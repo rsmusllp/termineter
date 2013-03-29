@@ -47,7 +47,7 @@ class Module(optical_module_template):
 		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.getOptionValue('FILE'))
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
 			try:
-				data = conn.getTableData(tableid)
+				data = conn.get_table_data(tableid)
 			except C1218ReadTableError as error:
 				data = None
 				if error.errCode == 10:	# ISSS
@@ -57,7 +57,7 @@ class Module(optical_module_template):
 					if not self.frmwk.serial_login():
 						logger.warning('meter login failed, some tables may not be accessible')
 					try:
-						data = conn.getTableData(tableid)
+						data = conn.get_table_data(tableid)
 					except C1218ReadTableError as error:
 						data = None
 						if error.errCode == 10:

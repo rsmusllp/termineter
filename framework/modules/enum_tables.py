@@ -43,7 +43,7 @@ class Module(optical_module_template):
 		self.frmwk.print_status('Enumerating tables, please wait...')
 		tables_found = 0
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
-			data = self.getTableDataEx(conn, tableid, 4)
+			data = self.get_table_data_ex(conn, tableid, 4)
 			if data[0] == '\x00':
 				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				tables_found += 1
@@ -63,7 +63,7 @@ class Module(optical_module_template):
 		self.frmwk.print_status('Found ' + str(tables_found) + ' table(s).')
 		return
 
-	def getTableDataEx(self, conn, tableid, octetcount = 244):
+	def get_table_data_ex(self, conn, tableid, octetcount = 244):
 		conn.send(C1218ReadRequest(tableid, 0, octetcount))
 		data = conn.recv()
 		return data

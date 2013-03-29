@@ -43,9 +43,9 @@ class C1219LogAccess(object):		# Corresponds To Decade 7x
 		necessary tables.
 		"""
 		self.conn = conn
-		general_config_table = self.conn.getTableData(GEN_CONFIG_TBL)
-		actual_log_table = self.conn.getTableData(ACT_LOG_TBL)
-		history_log_data_table = self.conn.getTableData(HISTORY_LOG_DATA_TBL)
+		general_config_table = self.conn.get_table_data(GEN_CONFIG_TBL)
+		actual_log_table = self.conn.get_table_data(ACT_LOG_TBL)
+		history_log_data_table = self.conn.get_table_data(HISTORY_LOG_DATA_TBL)
 		
 		if len(general_config_table) < 19:
 			raise C1219ParseError('expected to read more data from GEN_CONFIG_TBL', GEN_CONFIG_TBL)
