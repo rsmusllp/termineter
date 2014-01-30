@@ -1,17 +1,17 @@
 #  framework/modules/get_modem_info.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -30,20 +30,20 @@ class Module(optical_module_template):
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Get Information About The Integrated Modem'
 		self.detailed_description = 'This module reads various C1219 tables from decade 90 to gather information about the integrated modem. If successfully parsed, useful information will be displayed.'
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
 		if not self.frmwk.serial_login():	# don't alert on failed logins
 			logger.warning('meter login failed')
-		
+
 		try:
 			telephoneCtl = C1219TelephoneAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read necessary tables, a modem is not likely present')
 			return
 		conn.stop()
-		
+
 		info = {}
 		info['Can Answer'] = telephoneCtl.can_answer
 		info['Extended Status Available'] = telephoneCtl.use_extended_status
@@ -57,14 +57,14 @@ class Module(optical_module_template):
 		info['Dial Delay'] = telephoneCtl.dial_delay
 		if len(telephoneCtl.prefix_number):
 			info['Prefix Number'] = telephoneCtl.prefix_number
-		
+
 		keys = info.keys()
 		keys.sort()
 		self.frmwk.print_status('General Information:')
 		fmt_string = "    {0:.<38}.{1}"
 		for key in keys:
 			self.frmwk.print_status(fmt_string.format(key, info[key]))
-		
+
 		self.frmwk.print_status('Stored Telephone Numbers:')
 		fmt_string = "    {0:<6} {1:<16} {2:<32}"
 		self.frmwk.print_status(fmt_string.format('Index', 'Number', 'Last Status'))

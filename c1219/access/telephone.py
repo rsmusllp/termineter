@@ -1,17 +1,17 @@
 #  c1219/access/telephone.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -38,12 +38,12 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 	__prefix_number__ = ''
 	__primary_phone_number_idx__ = None
 	__secondary_phone_number_idx__ = None
-	
+
 	def __init__(self, conn):
 		"""
 		Initializes a new instance of the class and reads tables from the
 		corresponding decades to populate information.
-		
+
 		@type conn: c1218.connection.Connection
 		@param conn: The driver to be used for interacting with the
 		necessary tables.
@@ -57,7 +57,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 
 		if (actual_telephone_table) < 14:
 			raise C1219ParseError('expected to read more data from ACT_TELEPHONE_TBL', ACT_TELEPHONE_TBL)
-		
+
 		info = {}
 		### Parse ACT_TELEPHONE_TBL ###
 		use_extended_status = bool(ord(actual_telephone_table[0]) & 128)
@@ -68,7 +68,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		self.__can_answer__ = bool(ord(actual_telephone_table[0]) & 1)
 		self.__use_extended_status__ = use_extended_status
 		self.__nbr_originate_numbers__ = nbr_originate_numbers
-		
+
 		### Parse GLOBAL_PARAMETERS_TBL ###
 		self.__psem_identity__ = ord(global_parameters_table[0])
 		if bit_rate_settings == 1:
@@ -82,11 +82,11 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 			originate_parameters_table = originate_parameters_table[4:]
 		self.__dial_delay__ = ord(originate_parameters_table[0])
 		originate_parameters_table = originate_parameters_table[1:]
-		
+
 		if prefix_length != 0:
 			self.__prefix_number__ = originate_parameters_table[:prefix_length]
 			originate_parameters_table = originate_parameters_table[prefix_length:]
-		
+
 		self.__originating_numbers__ = {}
 		tmp = 0
 		while tmp < self.__nbr_originate_numbers__:
@@ -106,7 +106,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		if bit_rate_settings == 2:
 			self.__answer_bit_rate__ = unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
 		self.updateLastCallStatuses()
-	
+
 	def initiateCall(self, number = None, idx = None):
 		if number:
 			idx = None
@@ -118,7 +118,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		if not idx in self.__originating_numbers__.keys():
 			raise C1219ProcedureError('phone number index not within originating numbers range')
 		return self.initiateCallEx(self.conn, idx)
-	
+
 	@staticmethod
 	def initiateCallEx(conn, idx):
 		return conn.run_procedure(20, False, chr(idx))
@@ -133,51 +133,51 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 			self.__originating_numbers__[tmp]['status'] = ord(call_status_table[0])
 			call_status_table = call_status_table[call_status_rcd_length:]
 			tmp += 1
-	
+
 	@property
 	def answer_bit_rate(self):
 		return self.__answer_bit_rate__
-	
+
 	@property
 	def can_answer(self):
 		return self.__can_answer__
-	
+
 	@property
 	def dial_delay(self):
 		return self.__dial_delay__
-	
+
 	@property
 	def global_bit_rate(self):
 		return self.__global_bit_rate__
-	
+
 	@property
 	def nbr_originate_numbers(self):
 		return self.__nbr_originate_numbers__
-	
+
 	@property
 	def originate_bit_rate(self):
 		return self.__originate_bit_rate__
-	
+
 	@property
 	def originating_numbers(self):
 		return self.__originating_numbers__
-	
+
 	@property
 	def prefix_number(self):
 		return self.__prefix_number__
-	
+
 	@property
 	def primary_phone_number_idx(self):
 		return self.__primary_phone_number_idx__
-	
+
 	@property
 	def psem_identity(self):
 		return self.__psem_identity__
-	
+
 	@property
 	def secondary_phone_number_idx(self):
 		return self.__secondary_phone_number_idx__
-	
+
 	@property
 	def use_extended_status(self):
 		return self.__use_extended_status__

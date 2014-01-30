@@ -1,17 +1,17 @@
 #  c1219/access/security.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -38,7 +38,7 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 		"""
 		Initializes a new instance of the class and reads tables from the
 		corresponding decades to populate information.
-		
+
 		@type conn: c1218.connection.Connection
 		@param conn: The driver to be used for interacting with the
 		necessary tables.
@@ -51,17 +51,17 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 			key_table = conn.get_table_data(KEY_TBL)
 		except C1218ReadTableError:
 			key_table = None
-		
+
 		if len(act_security_table) < 6:
 			raise C1219ParseError('expected to read more data from ACT_SECURITY_LIMITING_TBL', ACT_SECURITY_LIMITING_TBL)
-		
+
 		### Parse ACT_SECURITY_LIMITING_TBL ###
 		self.__nbr_passwords__ = ord(act_security_table[0])
 		self.__password_len__ = ord(act_security_table[1])
 		self.__nbr_keys__ = ord(act_security_table[2])
 		self.__key_len__ = ord(act_security_table[3])
 		self.__nbr_perm_used__ = unpack(self.conn.c1219_endian + 'H', act_security_table[4:6])[0]
-		
+
 		### Parse SECURITY_TBL ###
 		if len(security_table) != ((self.nbr_passwords * self.password_len) + self.nbr_passwords):
 			raise C1219ParseError('expected to read more data from SECURITY_TBL', SECURITY_TBL)
@@ -71,7 +71,7 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 			self.__passwords__[tmp] = {'idx':tmp, 'password':security_table[:self.password_len], 'groups':ord(security_table[self.password_len])}
 			security_table = security_table[self.password_len + 1:]
 			tmp += 1
-		
+
 		### Parse ACCESS_CONTROL_TBL ###
 		if len(access_ctl_table) != (self.nbr_perm_used * 4):
 			raise C1219ParseError('expected to read more data from ACCESS_CONTROL_TBL', ACCESS_CONTROL_TBL)
@@ -86,7 +86,7 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 				self.__table_permissions__[proc_nbr] = {'idx':proc_nbr, 'mfg':std_vs_mfg, 'anyread':flag1, 'anywrite':flag2, 'read':ord(access_ctl_table[2]), 'write':ord(access_ctl_table[3])}
 			access_ctl_table = access_ctl_table[4:]
 			tmp += 1
-		
+
 		### Parse KEY_TBL ###
 		self.__keys__ = {}
 		if key_table != None:
@@ -97,39 +97,39 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 				self.__keys__[tmp] = key_table[:self.key_len]
 				key_table = key_table[self.key_len:]
 				tmp += 1
-	
+
 	@property
 	def nbr_passwords(self):
 		return self.__nbr_passwords__
-	
+
 	@property
 	def password_len(self):
 		return self.__password_len__
-	
+
 	@property
 	def nbr_keys(self):
 		return self.__nbr_keys__
-	
+
 	@property
 	def key_len(self):
 		return self.__key_len__
-	
+
 	@property
 	def nbr_perm_used(self):
 		return self.__nbr_perm_used__
-	
+
 	@property
 	def passwords(self):
 		return self.__passwords__
-	
+
 	@property
 	def table_permissions(self):
 		return self.__table_permissions__
-	
+
 	@property
 	def procedure_permissions(self):
 		return self.__procedure_permissions__
-	
+
 	@property
 	def keys(self):
 		return self.__keys__

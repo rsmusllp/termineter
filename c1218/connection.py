@@ -1,17 +1,17 @@
 #  c1218/connection.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -38,21 +38,21 @@ class ConnectionRaw:
 		This is a C12.18 driver for serial connections.  It relies on PySerial
 		to communicate with an ANSI Type-2 Optical probe to communciate
 		with a device (presumably a smart meter).
-		
+
 		@type device: String
 		@param device: A connection string to be passed to the PySerial
 		library.  If PySerial is new enough, the serial_for_url function
 		will be used to allow the user to use a rfc2217 bridge.
-		
+
 		@type c1218_settings: Dictionary
-		@param settings: A settings dictionary to configure the C1218 
+		@param settings: A settings dictionary to configure the C1218
 		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
 		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
-		
+
 		@type serial_settings: Dictionary
 		@param settings: A PySerial settings dictionary to be applied to
 		the serial connection instance.
-		
+
 		@type toggle_control: Boolean
 		@param toggle_control: Enables or diables automatically settings
 		the toggle bit in C12.18 frames.
@@ -68,10 +68,10 @@ class ConnectionRaw:
 			self.serial_h = serial.Serial(device)
 		self.logger.debug('successfully opened serial device: ' + device)
 		self.device = device
-		
+
 		self.c1218_pktsize = (c1218_settings.get('pktsize') or 512)
 		self.c1218_nbrpkts = (c1218_settings.get('nbrpkts') or 2)
-		
+
 		if serial_settings:
 			self.logger.debug('applying pySerial settings dictionary')
 			self.serial_h.parity = serial_settings['parity']
@@ -84,7 +84,7 @@ class ConnectionRaw:
 			self.serial_h.stopbits = serial_settings['stopbits']
 			self.serial_h.dsrdtr = serial_settings['dsrdtr']
 			self.serial_h.writeTimeout = serial_settings['writeTimeout']
-		
+
 		try:
 			self.serial_h.setRTS(True)
 			self.logger.debug('set RTS to True')
@@ -95,20 +95,20 @@ class ConnectionRaw:
 			self.logger.debug('set DTR to False')
 		except IOError:
 			self.logger.warning('could not set DTR to False')
-		
+
 		self.logged_in = False
 		self.__initialized__ = False
 		self.c1219_endian = '<'
-	
+
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Device: ' + self.device + ' >'
-	
+
 	def send(self, data):
 		"""
 		This sends a raw C12.18 frame and waits checks for an ACK response.
 		In the event that a NACK is received, this function will attempt
 		to resend the frame up to 3 times.
-		
+
 		@type data: either a raw string of bytes which will be placed into
 		a c1218.data.C1218Packet or a c1218.data.C1218Packet instance to
 		be sent
@@ -143,11 +143,11 @@ class ConnectionRaw:
 				return
 		self.loggerio.critical('failed 3 times to correctly send a frame')
 		raise C1218IOError('failed 3 times to correctly send a frame')
-	
+
 	def recv(self, full_frame = False):
 		"""
 		Receive a C1218Packet, the payload data is returned.
-		
+
 		@type full_frame: Boolean
 		@param full_frame: If set to True, the entire C1218 frame is returned
 		instead of just the payload.
@@ -186,23 +186,23 @@ class ConnectionRaw:
 				tries -= 1
 		self.loggerio.critical('failed 3 times to correctly receive a frame')
 		raise C1218IOError('failed 3 times to correctly receive a frame')
-	
+
 	def write(self, data):
 		"""
 		Write raw data to the serial connection. The CRC must already be
 		included at the end. This function is not meant to be called
 		directly.
-		
+
 		@type data: String
 		@param data: The raw data to write to the serial connection.
 		"""
 		return self.serial_h.write(data)
-	
+
 	def read(self, size):
 		"""
 		Read raw data from the serial connection. This function is not
 		meant to be called directly.
-		
+
 		@type size: Integer
 		@param size: The number of bytes to read from the serial connection.
 		"""
@@ -210,7 +210,7 @@ class ConnectionRaw:
 		self.logger.debug('read data, length: ' + str(len(data)) + ' data: ' + hexlify(data))
 		self.serial_h.write(ACK)
 		return data
-		
+
 	def close(self):
 		"""
 		Send a terminate request and then disconnect from the serial device.
@@ -219,32 +219,32 @@ class ConnectionRaw:
 			self.stop()
 		self.logged_in = False
 		return self.serial_h.close()
-	
+
 class Connection(ConnectionRaw):
 	def __init__(self, *args, **kwargs):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
 		to communicate with an ANSI Type-2 Optical probe to communciate
 		with a device (presumably a smart meter).
-		
+
 		@type device: String
 		@param device: A connection string to be passed to the PySerial
 		library.  If PySerial is new enough, the serial_for_url function
 		will be used to allow the user to use a rfc2217 bridge.
-		
+
 		@type c1218_settings: Dictionary
-		@param settings: A settings dictionary to configure the C1218 
+		@param settings: A settings dictionary to configure the C1218
 		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
 		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
-		
+
 		@type serial_settings: Dictionary
 		@param settings: A PySerial settings dictionary to be applied to
 		the serial connection instance.
-		
+
 		@type toggle_control: Boolean
 		@param toggle_control: Enables or diables automatically settings
 		the toggle bit in C12.18 frames.
-		
+
 		@type enable_cache: Boolean
 		@param enable_cache: Cache specific, read only tables in memory,
 		the first time the table is read it will be stored for retreival
@@ -260,7 +260,7 @@ class Connection(ConnectionRaw):
 		self.__tbl_cache__ = {}
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
-	
+
 	def flush_table_cache(self):
 		self.logger.info('flushing all cached tables')
 		self.__tbl_cache__ = {}
@@ -294,7 +294,7 @@ class Connection(ConnectionRaw):
 			self.stop()
 			raise C1218NegotiateError('received incorrect response to negotiate service request', ord(data[0]))
 		return True
-	
+
 	def stop(self):
 		"""
 		Send a terminate request.
@@ -307,40 +307,40 @@ class Connection(ConnectionRaw):
 				self.__toggle_bit__ = False
 				return True
 		return False
-	
+
 	def login(self, username = '0000', userid = 0, password = None):
 		"""
 		Log into the connected device.
-		
+
 		@type username: String (len(username) <= 10)
 		@param username: the username to log in with
-		
+
 		@type userid: Integer (0x0000 <= userid <= 0xffff)
 		@param userid: the userid to log in with
-		
+
 		@type password: String (len(password) <= 20)
 		@param password: password to log in with
 		"""
 		if password != None and len(password) > 20:
 			self.logger.error('password longer than 20 characters received')
 			raise Exception('password longer than 20 characters, login failed')
-		
+
 		self.send(C1218LogonRequest(username, userid))
 		data = self.recv()
 		if data != '\x00':
 			self.logger.error('login failed, user name and user id rejected')
 			return False
-		
+
 		if password != None:
 			self.send(C1218SecurityRequest(password))
 			data = self.recv()
 			if data != '\x00':
 				self.logger.error('login failed, password rejected')
 				return False
-		
+
 		self.logged_in = True
 		return True
-	
+
 	def logoff(self):
 		"""
 		Send a logoff request.
@@ -351,21 +351,21 @@ class Connection(ConnectionRaw):
 			self.__initialized__ = False
 			return True
 		return False
-	
+
 	def get_table_data(self, tableid, octetcount = None, offset = None):
 		"""
-		Read data from a table. If successful, all of the data from the 
+		Read data from a table. If successful, all of the data from the
 		requested table will be returned.
-		
+
 		@type tableid: Integer (0x0000 <= tableid <= 0xffff)
 		@param tableid: The table number to read from
-		
+
 		@type octetcount: Integer (0x0000 <= tableid <= 0xffff)
-		@param octetcount: Limit the amount of data read, only works if 
+		@param octetcount: Limit the amount of data read, only works if
 		the meter supports this type of reading.
-		
+
 		@type offset: Integer (0x000000 <= octetcount <= 0xffffff)
-		@param offset: The offset at which to start to read the data from.		
+		@param offset: The offset at which to start to read the data from.
 		"""
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and tableid in self.__tbl_cache__.keys():
 			self.logger.info('returning cached table #' + str(tableid))
@@ -401,15 +401,15 @@ class Connection(ConnectionRaw):
 	def set_table_data(self, tableid, data, offset = None):
 		"""
 		Write data to a table.
-		
+
 		@type tableid: Integer (0x0000 <= tableid <= 0xffff)
 		@param tableid: The table number to write to
-		
+
 		@type data: String
 		@param data: The data to write into the table.
-		
+
 		@type offset: Integer (0x000000 <= octetcount <= 0xffffff)
-		@param offset: The offset at which to start to write the data.	
+		@param offset: The offset at which to start to write the data.
 		"""
 		self.send(C1218WriteRequest(tableid, data, offset))
 		data = self.recv()
@@ -424,14 +424,14 @@ class Connection(ConnectionRaw):
 		"""
 		Initiate a C1219 procedure, the request is written to table 7 and
 		the response is read from table 8.
-		
+
 		@type process_number: Integer (0 <= process_number <= 2047)
 		@param process_number: The numeric procedure identifier.
-		
+
 		@type std_vs_mfg: Boolean
 		@param std_vs_mfg: Whether the procedure is manufacturer specified
 		or not.  True is manufacturer specified.
-		
+
 		@type params: String
 		@param params: The parameters to pass to the procedure initiation
 		request.
@@ -440,7 +440,7 @@ class Connection(ConnectionRaw):
 		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
 		procedure_request = str(C1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
 		self.set_table_data(7, procedure_request)
-		
+
 		response = self.get_table_data(8)
 		if response[:3] == procedure_request[:3]:
 			return ord(response[3]), response[4:]

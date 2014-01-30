@@ -1,17 +1,17 @@
 #  framework/modules/diff_tables.py
-#  
+#
 #  Copyright 2013 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -70,7 +70,7 @@ class Module(module_template):
 		self.options.addString('SECONDFILE', 'the second csv file to compare')
 		self.options.addString('REPORTFILE', 'file to write the report data into', default = 'table_diff.html')
 		self.advanced_options.addBoolean('ALLTABLES', 'do not skip tables that typically change', default = False)
-	
+
 	def run(self):
 		logger = self.logger
 		first_file = self.options['FIRSTFILE']
@@ -84,13 +84,13 @@ class Module(module_template):
 			c1219.constants.PROC_RESPONSE_TBL,
 			c1219.constants.PRESENT_REGISTER_DATA_TBL
 		]
-		
+
 		self.report.write(HTML_HEADER)
 		self.report.write(HTML_TABLE_LEGEND)
 		self.report.write('<br />\n')
 		self.report.write(HTML_TABLE_HEADER)
 		self.highlight_table = True
-		
+
 		self.frmwk.print_status('Generating Diff...')
 		fid, fline = self.get_line(first_file)
 		sid, sline = self.get_line(second_file)
@@ -105,7 +105,7 @@ class Module(module_template):
 			elif sid < fid:
 				self.report_line('', sline, sid)
 				sid, sline = self.get_line(second_file)
-		
+
 		self.report.write(HTML_TABLE_FOOTER)
 		self.report.write(HTML_FOOTER)
 		self.report.close()
@@ -139,7 +139,7 @@ class Module(module_template):
 		self.highlight_table = (not self.highlight_table)
 		top_row = row_header.format(lineno = lineno, highlight_table = highlight_table, highlight_row = '')
 		bottom_row = row_header.format(lineno = lineno, highlight_table = highlight_table, highlight_row = 'class="diff_highlight" ')
-		
+
 		for tag, i1, i2, j1, j2 in opcodes:
 			top_chunk = hexlify(fline[i1:i2])
 			bottom_chunk = hexlify(sline[j1:j2])

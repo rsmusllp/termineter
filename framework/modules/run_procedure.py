@@ -1,17 +1,17 @@
 #  framework/modules/run_procedure.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -32,22 +32,22 @@ class Module(optical_module_template):
 		self.options.addString('PARAMS', 'parameters to pass to the executed procedure', default = '')
 		self.options.addBoolean('USEHEX', 'specifies that the \'PARAMS\' option is represented in hex', default = True)
 		self.advanced_options.addBoolean('STDVSMFG', 'if true, specifies that this procedure is defined by the manufacturer', default = False)
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		if not self.frmwk.serial_login():	# don't alert on failed logins
 			self.logger.warning('meter login failed')
 			self.frmwk.print_error('Meter login failed, procedure may fail')
-		
+
 		data = self.options['PARAMS']
 		if self.options['USEHEX']:
 			data = unhexlify(data)
-		
+
 		self.frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
-		
+
 		errCode, data = conn.run_procedure(self.options['PROCNBR'], self.advanced_options['STDVSMFG'], data)
 		conn.stop()
-		
+
 		self.frmwk.print_status('Finished running procedure #' + str(self.options['PROCNBR']))
 		self.frmwk.print_status('Received respose from procedure: ' + (C1219_PROC_RESULT_CODES.get(errCode) or 'UNKNOWN'))
 		if len(data):

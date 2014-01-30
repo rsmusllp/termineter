@@ -1,17 +1,17 @@
 #  framework/modules/enum_tables.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -31,7 +31,7 @@ class Module(optical_module_template):
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
 		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)
 		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
@@ -39,7 +39,7 @@ class Module(optical_module_template):
 		upper_boundary = self.options['UPPER']
 		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
-		
+
 		self.frmwk.print_status('Enumerating tables, please wait...')
 		tables_found = 0
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):

@@ -1,17 +1,17 @@
 #  framework/modules/dump_tables.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -33,7 +33,7 @@ class Module(optical_module_template):
 		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)
 		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
 		self.options.addString('FILE', 'file to write the csv data into', default = 'smart_meter_tables.csv')
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
@@ -42,7 +42,7 @@ class Module(optical_module_template):
 		out_file = open(self.options['FILE'], 'w', 1)
 		if not self.frmwk.serial_login():
 			logger.warning('meter login failed, some tables may not be accessible')
-		
+
 		number_of_tables = 0
 		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.getOptionValue('FILE'))
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
@@ -67,7 +67,7 @@ class Module(optical_module_template):
 				# format is: table id, table name, table data length, table data
 				out_file.write(','.join([str(tableid), (C1219_TABLES.get(tableid) or 'UNKNOWN'), str(len(data)), data.encode('hex')]) + os.linesep)
 				number_of_tables += 1
-		
+
 		out_file.close()
 		self.frmwk.print_status('Successfully copied ' + str(number_of_tables) + ' tables to disk.')
 		return

@@ -1,17 +1,17 @@
 #  framework/interface.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -36,11 +36,11 @@ class OverrideCmd(cmd.Cmd, object):
 	__doc__ = 'OverrideCmd class is meant to override methods from cmd.Cmd so they can\nbe imported into the base interpreter class.'
 	def __init__(self, *args, **kwargs):
 		cmd.Cmd.__init__(self, *args, **kwargs)
-		
+
 		self.__hidden_commands__ = ['EOF']
 		self.__disabled_commands__ = [ ]
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
-	
+
 	def cmdloop(self):
 		while True:
 			try:
@@ -50,8 +50,8 @@ class OverrideCmd(cmd.Cmd, object):
 				self.print_line('')
 				self.print_error('Please use the \'exit\' command to quit')
 				continue
-	
-	def get_names(self):												
+
+	def get_names(self):
 		commands = super(OverrideCmd, self).get_names()
 		for name in self.__hidden_commands__:
 			if 'do_' + name in commands:
@@ -60,13 +60,13 @@ class OverrideCmd(cmd.Cmd, object):
 			if 'do_' + name in commands:
 				commands.remove('do_' + name)
 		return commands
-	
+
 	def emptyline(self): 					# Don't do anything on a blank line being passed
 		pass								# stupid repeats are annoying
-	
+
 	def help_help(self): 					# Get help out of the undocumented section, stupid python
 		self.do_help('')
-		
+
 	def precmd(self, line):					# use this to allow using '?' after the command for help
 		tmpLine = line.split()
 		if len(tmpLine) == 0:
@@ -83,7 +83,7 @@ class OverrideCmd(cmd.Cmd, object):
 
 	def do_exit(self, args):
 		return True
-	
+
 	def do_EOF(self, args):
 		"""Exit The Interpreter"""
 		self.print_line('')
@@ -95,7 +95,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 	prompt = __name__ + ' > '
 	ruler = '+'
 	doc_header = 'Type help <command> For Information\nList Of Available Commands:'
-	
+
 	@property
 	def intro(self):
 		intro = os.linesep
@@ -113,7 +113,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		#else:
 		#	intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
 		return intro
-	
+
 	@property
 	def prompt(self):
 		if self.frmwk.current_module:
@@ -123,14 +123,14 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				return self.__name__ + ' (' + self.frmwk.current_module.name + ') > '
 		else:
 			return self.__name__ + ' > '
-	
+
 	def __init__(self, check_rc_file = True, stdin = None, stdout = None, log_handler = None):
 		OverrideCmd.__init__(self, stdin = stdin, stdout = stdout)
 		if stdin != None:
 			self.use_rawinput = False
 			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
 			self.__disabled_commands__.append('ipy')
-		
+
 		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
 		self.log_handler = log_handler
@@ -142,7 +142,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		self.print_good = self.frmwk.print_good
 		self.print_line = self.frmwk.print_line
 		self.print_status = self.frmwk.print_status
-		
+
 		if check_rc_file:
 			if check_rc_file == True:
 				check_rc_file = self.frmwk.directories.user_data + 'console.rc'
@@ -162,7 +162,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 		except (ImportError, IOError):
 			pass
-	
+
 	def run_rc_file(self, rc_file):
 		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
 			self.logger.info('processing "' + rc_file + '" for commands')
@@ -177,14 +177,14 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.logger.error('invalid rc file: ' + rc_file)
 			return False
 		return True
-	
+
 	@staticmethod
 	def serve(addr, run_once = False, log_level = None, use_ssl = False, ssl_cert = None):
 		if use_ssl:
 			import ssl
 		__package__ = '.'.join(InteractiveInterpreter.__module__.split('.')[:-1])
 		logger = logging.getLogger(__package__ + '.interpreter.server')
-		
+
 		srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		srv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		srv_sock.bind(addr)
@@ -196,7 +196,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			except KeyboardInterrupt:
 				break
 			logger.info('received connection from: ' + clt_addr[0] + ':' + str(clt_addr[1]))
-			
+
 			if use_ssl:
 				ssl_sock = ssl.wrap_socket(clt_sock, server_side = True, certfile = ssl_cert)
 				ins = ssl_sock.makefile('r', 1)
@@ -204,13 +204,13 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			else:
 				ins = clt_sock.makefile('r', 1)
 				outs = clt_sock.makefile('w', 1)
-			
+
 			log_stream = logging.StreamHandler(outs)
 			if log_level != None:
 				log_stream.setLevel(log_level)
 			log_stream.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
 			logging.getLogger('').addHandler(log_stream)
-			
+
 			interpreter = InteractiveInterpreter(check_rc_file = False, stdin = ins, stdout = outs)
 			try:
 				interpreter.cmdloop()
@@ -222,7 +222,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			log_stream.flush()
 			log_stream.close()
 			logging.getLogger('').removeHandler(log_stream)
-			
+
 			outs.close()
 			ins.close()
 			clt_sock.shutdown(socket.SHUT_RDWR)
@@ -233,15 +233,15 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		srv_sock.shutdown(socket.SHUT_RDWR)
 		srv_sock.close()
 		del(srv_sock)
-	
+
 	def do_back(self, args):
 		"""Stop using a module"""
 		self.frmwk.current_module = None
-	
+
 	def do_banner(self, args):
 		"""Print the banner"""
 		self.print_line(self.intro)
-	
+
 	def do_cd(self, args):
 		"""Change the current working directory"""
 		path = args.split(' ')[0]
@@ -265,7 +265,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		else:
 			path = os.getcwd() + os.sep
 		return [i for i in os.listdir(path) if i.startswith(text)]
-	
+
 	def do_connect(self, args):
 		"""Connect the serial interface"""
 		if self.frmwk.is_serial_connected():
@@ -281,7 +281,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 			return
 		self.print_good('Successfully connected and the device is responding')
-	
+
 	def do_disconnect(self, args):
 		"""Disconnect the serial interface"""
 		args = args.split(' ')
@@ -304,7 +304,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 				return
 			self.print_good('Successfully reconnected and the device is responding')
-	
+
 	def do_exit(self, args):
 		"""Exit The Interpreter"""
 		QUOTES = [	'I\'ll be back.',
@@ -320,15 +320,15 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		except (ImportError, IOError):
 			pass
 		return True
-	
+
 	def do_exploit(self, args):
 		"""Run the currently selected module"""
 		self.do_run(args)
-	
+
 	def do_help(self, args):
 		super(InteractiveInterpreter, self).do_help(args)
 		self.print_line('')
-	
+
 	def do_logging(self, args):
 		"""Set and show logging options"""
 		args = args.split(' ')
@@ -356,10 +356,10 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				self.print_status('Successfully changed the logging level to: ' + new_lvl)
 			else:
 				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
-	
+
 	def complete_logging(self, text, line, begidx, endidx):
 		return [i for i in ['set', 'show', 'debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text)]
-	
+
 	def do_info(self, args):
 		"""Show module information"""
 		args = args.split(' ')
@@ -412,10 +412,10 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				y += 1
 		self.print_line('  ' + ' '.join(description_text[x:y]))
 		self.print_line('')
-	
+
 	def complete_info(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
-	
+
 	def do_ipy(self, args):
 		"""Start an interactive Python interpreter"""
 		from c1218.data import C1218Packet
@@ -423,7 +423,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		from c1219.access.security import C1219SecurityAccess
 		from c1219.access.log import C1219LogAccess
 		from c1219.access.telephone import C1219TelephoneAccess
-		vars = { 
+		vars = {
 			'__version__':__version__,
 			'frmwk':self.frmwk,
 			'C1218Packet':C1218Packet,
@@ -437,7 +437,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			vars['conn'] = self.frmwk.serial_connection
 			banner = banner + 'The Connection Instance Is In The Variable \'conn\'' + os.linesep
 		pyconsole = code.InteractiveConsole(vars)
-		
+
 		savestdin = os.dup(sys.stdin.fileno())
 		savestdout = os.dup(sys.stdout.fileno())
 		savestderr = os.dup(sys.stderr.fileno())
@@ -447,7 +447,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			sys.stdin = os.fdopen(savestdin, 'r', 0)
 			sys.stdout = os.fdopen(savestdout, 'w', 0)
 			sys.stderr = os.fdopen(savestderr, 'w', 0)
-	
+
 	def do_reload(self, args):
 		"""Reload a module in to the framework"""
 		args = args.split(' ')
@@ -468,10 +468,10 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.print_error('Failed to reload module')
 			return
 		self.print_status('Successfully reloaded module: ' + module_path)
-	
+
 	def complete_reload(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
-	
+
 	def do_resource(self, args):
 		"""Run a resource file"""
 		args = args.split(' ')
@@ -485,7 +485,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				if not os.access(rc_file, os.R_OK):
 					self.print_error('Invalid resource file: ' + rc_file + ' (no read permissions)')
 				return
-		
+
 	def do_run(self, args):
 		"""Run the currently selected module"""
 		args = args.split(' ')
@@ -520,10 +520,10 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			old_module = None
 		if old_module:
 			self.frmwk.current_module = old_module
-	
+
 	def complete_run(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
-	
+
 	def do_set(self, args):
 		"""Set an option, usage: set [option] [value]"""
 		args = args.split(' ')
@@ -532,7 +532,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			return
 		name = args[0].upper()
 		value = ' '.join(args[1:])
-		
+
 		if self.frmwk.current_module:
 			options = self.frmwk.current_module.options
 			advanced_options = self.frmwk.current_module.advanced_options
@@ -554,13 +554,13 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				self.print_error('Invalid data type')
 			return
 		self.print_error('Unknown variable name')
-	
+
 	def complete_set(self, text, line, begidx, endidx):
 		if self.frmwk.current_module:
 			return [i for i in self.frmwk.current_module.options.keys() if i.startswith(text.upper())]
 		else:
 			return [i for i in self.frmwk.options.keys() if i.startswith(text.upper())]
-	
+
 	def do_show(self, args):
 		"""Valid parameters for the "show" command are: modules, options"""
 		args = args.split(' ')
@@ -613,7 +613,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				longest_name = max(longest_name, len(option_name))
 				longest_value = max(longest_value, len(str(options[option_name])))
 			fmt_string = "  {0:<" + str(longest_name) + "} {1:<" + str(longest_value) + "} {2}"
-			
+
 			self.print_line(fmt_string.format('Name', 'Value', 'Description'))
 			self.print_line(fmt_string.format('----', '-----', '------------'))
 			for option_name in options.keys():
@@ -625,10 +625,10 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.print_line('')
 		elif args[0] == '-h':
 			self.print_status('Valid parameters for the "show" command are: modules, options')
-	
+
 	def complete_show(self, text, line, begidx, endidx):
 		return [i for i in ['advanced', 'modules', 'options'] if i.startswith(text)]
-	
+
 	def do_use(self, args):
 		"""Select a module to use"""
 		args = args.split(' ')
@@ -638,6 +638,6 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		else:
 			self.logger.error('failed to load module: ' + mod_name)
 			self.print_error('Failed to load module: ' + mod_name)
-	
+
 	def complete_use(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]

@@ -1,17 +1,17 @@
 #  c1218/data.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -52,17 +52,17 @@ C1218_RESPONSE_CODES = {
 class C1218Request(object):
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' >'
-	
+
 	def __str__(self):
 		return self.do_build()
-	
+
 	def __len__(self):
 		return len(str(self))
-	
+
 	@staticmethod
 	def parse(data):
 		raise Exception('No parse method is defined')
-	
+
 	@property
 	def name(self):
 		name = self.__class__.__name__
@@ -76,14 +76,14 @@ class C1218LogonRequest(C1218Request):
 	logon = '\x50'
 	__userid__ = '\x00\x00'
 	__username__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
-	
+
 	def __init__(self, username = '', userid = 0):
 		self.set_username(username)
 		self.set_userid(userid)
-	
+
 	def do_build(self):
 		return self.logon + self.__userid__ + self.__username__
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) != 13:
@@ -93,7 +93,7 @@ class C1218LogonRequest(C1218Request):
 		userid = unpack(">H", data[1:3])[0]
 		username = data[3:]
 		return C1218LogonRequest(username, userid)
-	
+
 	def set_userid(self, userid):
 		if isinstance(userid, str) and userid.isdigit():
 			userid = int(userid)
@@ -119,13 +119,13 @@ class C1218LogonRequest(C1218Request):
 class C1218SecurityRequest(C1218Request):
 	security = '\x51'
 	__password__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
-	
+
 	def __init__(self, password = ''):
 		self.set_password(password)
-	
+
 	def do_build(self):
 		return self.security + self.__password__
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) != 21:
@@ -134,22 +134,22 @@ class C1218SecurityRequest(C1218Request):
 			raise Exception('invalid start byte')
 		password = data[1:21]
 		return C1218SecurityRequest(password)
-	
+
 	def set_password(self, value):
 		if len(value) > 20:
 			raise ValueError('password must be 20 characters or less')
 		self.__password__ = value + ('\x20' * (20 - len(value)))
-	
+
 	@property
 	def password(self):
 		return self.__password__
 
 class C1218LogoffRequest(C1218Request):
 	logoff = '\x52'
-	
+
 	def do_build(self):
 		return self.logoff
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) != 1:
@@ -163,16 +163,16 @@ class C1218NegotiateRequest(C1218Request):
 	__pktsize__ = '\x01\x00'
 	__nbrpkt__ = 1
 	__baudrate__ = ''
-	
+
 	def __init__(self, pktsize, nbrpkt, baudrate = None):
 		self.set_pktsize(pktsize)
 		self.set_nbrpkt(nbrpkt)
 		if baudrate:
 			self.set_baudrate(baudrate)
-	
+
 	def do_build(self):
 		return self.negotiate + self.__pktsize__ + self.__nbrpkt__ + self.__baudrate__
-	
+
 	@staticmethod
 	def parse(data):
 		if ord(data[0]) == 0x60:
@@ -195,13 +195,13 @@ class C1218NegotiateRequest(C1218Request):
 		request = C1218NegotiateRequest(pktsize, nbrpkt, baudrate)
 		request.negotiate = data[0]
 		return request
-	
+
 	def set_pktsize(self, pktsize):
 		self.__pktsize__ = pack('>H', pktsize)
-	
+
 	def set_nbrpkt(self, nbrpkt):
 		self.__nbrpkt__ = chr(nbrpkt)
-	
+
 	def set_baudrate(self, baudrate):
 		c1218_baudrate_codes = {300:1, 600:2, 1200:3, 2400:4, 4800:5, 9600:6, 14400:7, 19200:8, 28800:9, 57600:10}
 		if baudrate in c1218_baudrate_codes:
@@ -215,13 +215,13 @@ class C1218NegotiateRequest(C1218Request):
 class C1218WaitRequest(C1218Request):
 	wait = '\x70'
 	__time__ = '\x01'
-	
+
 	def __init__(self, time = 1):
 		self.set_time(time)
-	
+
 	def do_build(self):
 		return self.wait + self.__time__
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) != 2:
@@ -229,16 +229,16 @@ class C1218WaitRequest(C1218Request):
 		if data[0] != '\x70':
 			raise Exception('invalid start byte')
 		return C1218WaitRequest(ord(data[1]))
-	
+
 	def set_time(self, time):
 		self.__time__ = chr(time)
 
 class C1218IdentRequest(C1218Request):
 	ident = '\x20'
-	
+
 	def do_build(self):
 		return self.ident
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) != 1:
@@ -249,10 +249,10 @@ class C1218IdentRequest(C1218Request):
 
 class C1218TerminateRequest(C1218Request):
 	terminate = '\x21'
-	
+
 	def do_build(self):
 		return self.terminate
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) != 1:
@@ -366,7 +366,7 @@ class C1218WriteRequest(C1218Request):
 		request = C1218WriteRequest(tableid, table_data, offset = offset)
 		request.write = data[0]
 		return request
-	
+
 	def set_tableid(self, tableid):
 		self.__tableid__ = pack('>H', tableid)
 
@@ -398,7 +398,7 @@ class C1218Packet(C1218Request):
 	sequence = '\x00'
 	__length__ = '\x00\x00' # can never exceed 8183
 	__data__ = ''
-	
+
 	@staticmethod
 	def parse(data):
 		if len(data) < 8:
@@ -419,7 +419,7 @@ class C1218Packet(C1218Request):
 		frame.identity = identity
 		frame.sequence = sequence
 		return frame
-	
+
 	def __init__(self, data = None, control = None, length = None):
 		if data:
 			self.set_data(data)
@@ -431,31 +431,31 @@ class C1218Packet(C1218Request):
 					raise ValueError('control must be between 0x00 and 0xff')
 				control = pack('B', control)
 			self.control = control
-	
+
 	def __repr__(self):
 		if isinstance(self.__data__, C1218Request):
 			repr_data = repr(self.__data__)
 		else:
 			repr_data = '0x' + str(self.__data__).encode('hex')
 		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + str(self.__data__)).encode('hex') + ' >'
-	
+
 	@property
 	def data(self):
 		return self.__data__
-	
+
 	@data.setter
 	def data(self, value):
 		self.set_data(value)
-	
+
 	def set_data(self, data):
 		self.__data__ = data
 		self.set_length(len(str(self.__data__)))
-	
+
 	def set_length(self, length):
 		if length > 8183:
 			raise ValueError('length can not exceed 8183')
 		self.__length__ = pack('>H', length)
-	
+
 	def do_build(self):
 		packet = self.start
 		packet += self.identity

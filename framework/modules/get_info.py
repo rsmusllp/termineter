@@ -1,17 +1,17 @@
 #  framework/modules/get_info.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -28,7 +28,7 @@ class Module(optical_module_template):
 		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
 		self.description = 'Get Basic Meter Information By Reading Tables'
 		self.detailed_description = 'This module retreives some basic meter information and displays it in a human-readable way.'
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
@@ -36,14 +36,14 @@ class Module(optical_module_template):
 			logger.warning('meter login failed, not all information may be available')
 			self.frmwk.print_error('Meter login failed, not all information may be available')
 		conn = self.frmwk.serial_connection
-		
+
 		try:
 			generalCtl = C1219GeneralAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read the necessary tables')
 			return
 		conn.stop()
-		
+
 		meter_info = {}
 		meter_info['Character Encoding'] = generalCtl.char_format
 		meter_info['Device Type'] = generalCtl.nameplate_type
@@ -53,7 +53,7 @@ class Module(optical_module_template):
 		meter_info['Hardware Version'] = str(generalCtl.hw_version_no) + '.' + str(generalCtl.hw_revision_no)
 		meter_info['Firmware Version'] = str(generalCtl.fw_version_no) + '.' + str(generalCtl.fw_revision_no)
 		meter_info['Serial Number'] = generalCtl.mfg_serial_no
-		
+
 		if generalCtl.ed_mode != None:
 			modes = []
 			flags = ['Metering', 'Test Mode', 'Meter Shop Mode', 'Factory']
@@ -62,7 +62,7 @@ class Module(optical_module_template):
 					modes.append(flags[i])
 			if len(modes):
 				meter_info['Mode Flags'] = ', '.join(modes)
-		
+
 		if generalCtl.std_status != None:
 			status = []
 			flags = ['Unprogrammed', 'Configuration Error', 'Self Check Error', 'RAM Failure', 'ROM Failure', 'Non Volatile Memory Failure', 'Clock Error', 'Measurement Error', 'Low Battery', 'Low Loss Potential', 'Demand Overload', 'Power Failure', 'Tamper Detect', 'Reverse Rotation']
@@ -73,7 +73,7 @@ class Module(optical_module_template):
 				meter_info['Status Flags'] = ', '.join(status)
 		if generalCtl.device_id != None:
 			meter_info['Device ID'] = generalCtl.device_id
-		
+
 		self.frmwk.print_status('General Information:')
 		fmt_string = "    {0:.<38}.{1}"
 		keys = meter_info.keys()

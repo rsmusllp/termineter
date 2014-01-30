@@ -1,17 +1,17 @@
 #  framework/modules/write_table.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -33,7 +33,7 @@ class Module(optical_module_template):
 		self.options.addString('DATA', 'data to write to the table', True)
 		self.options.addBoolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default = False)
 		self.options.addInteger('OFFSET', 'offset to start writing data at', required = False, default = None)
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
@@ -46,12 +46,12 @@ class Module(optical_module_template):
 				self.frmwk.print_error('Non-hex characters found in \'DATA\'')
 				return
 			data = unhexlify(data)
-		
+
 		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
 			self.frmwk.print_error('Meter login failed')
 			return
-		
+
 		try:
 			conn.set_table_data(tableid, data, offset)
 			self.frmwk.print_status('Successfully Wrote Data')

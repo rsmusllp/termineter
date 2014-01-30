@@ -1,17 +1,17 @@
 #  framework/modules/brute_force_login.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -30,7 +30,7 @@ class BruteForce:
 			self.dictionary = None
 		else:
 			self.dictionary = open(dictionary_path, 'r')
-	
+
 	def __iter__(self):
 		if self.dictionary == None:
 			for password in StringGenerator(20):
@@ -54,11 +54,11 @@ class Module(optical_module_template):
 		self.options.addRFile('DICTIONARY', 'dictionary of passwords to try', required = False, default = '$DATA_PATH smeter_passwords.txt')
 		self.options.addString('USERNAME', 'user name to attempt to log in as', default = '0000')
 		self.options.addInteger('USERID', 'user id to attempt to log in as', default = 1)
-		
+
 		self.advanced_options.addBoolean('PUREBRUTE', 'perform a pure bruteforce', default = False)
 		self.advanced_options.addBoolean('STOPONSUCCESS', 'stop after the first successful login', default = True)
 		self.advanced_options.addFloat('DELAY', 'time in seconds to wait between attempts', default = 0.20)
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
@@ -68,14 +68,14 @@ class Module(optical_module_template):
 		userid = self.options.getOptionValue('USERID')
 		pure_brute = self.advanced_options.getOptionValue('PUREBRUTE')
 		time_delay = self.advanced_options.getOptionValue('DELAY')
-		
+
 		if len(username) > 10:
 			self.frmwk.print_error('Username cannot be longer than 10 characters')
 			return
 		if not (0 <= userid <= 0xffff):
 			self.frmwk.print_error('User id must be between 0 and 0xffff')
 			return
-		
+
 		if not pure_brute:
 			if not os.path.isfile(dictionary_path):
 				self.frmwk.print_error('Can not find dictionary path')
@@ -85,11 +85,11 @@ class Module(optical_module_template):
 			self.frmwk.print_status('A pure brute force will take a very very long time')
 			usehex = True # if doing a prue brute force, it has to be True
 			pw_generator = BruteForce()
-		
+
 		hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
-		
+
 		self.frmwk.print_status('Starting brute force')
-		
+
 		for password in pw_generator:
 			if not pure_brute:
 				if usehex:

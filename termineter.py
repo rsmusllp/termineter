@@ -1,19 +1,19 @@
 #!/usr/bin/python -B
 #
 #  termineter.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -31,7 +31,7 @@ def main():
 	parser.add_argument('-L', '--log', dest = 'loglvl', action = 'store', choices = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default = 'CRITICAL', help = 'set the logging level')
 	parser.add_argument('-r', '--rc-file', dest = 'resource_file', action = 'store', default = True, help = 'execute a resource file')
 	arguments = parser.parse_args()
-	
+
 	logging.getLogger('').setLevel(logging.DEBUG)
 	console_log_handler = logging.StreamHandler()
 	console_log_handler.setLevel(getattr(logging, arguments.loglvl))
@@ -39,7 +39,7 @@ def main():
 	logging.getLogger('').addHandler(console_log_handler)
 	rc_file = arguments.resource_file
 	del arguments, parser
-	
+
 	interpreter = InteractiveInterpreter(rc_file, log_handler = console_log_handler)
 	interpreter.cmdloop()
 	logging.shutdown()

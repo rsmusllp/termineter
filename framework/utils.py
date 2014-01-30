@@ -1,17 +1,17 @@
 #  framework/utils.py
-#  
+#
 #  Copyright 2012 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -42,23 +42,23 @@ class FileWalker:
 	def __init__(self, filespath, absolute_path = False, skip_files = False, skip_dirs = False, filter_func = None):
 		"""
 		This class is used to easily iterate over files in a directory.
-		
+
 		@type filespath: string
 		@param filespath: A path to either a file or a directory.  If a
 		file is passed then that will be the only file returned during the
 		iteration.  If a directory is passed, all files will be recursively
 		returned during the iteration.
-		
+
 		@type absolute_path: boolean
 		@param absolute_path: Whether or not the absolute path or a relative
 		path should be returned.
-		
+
 		@type skip_files: boolean
 		@param skip_files: Whether or not to skip files.
-		
+
 		@type skip_dirs: boolean
 		@param skip_dirs: Whether or not to skip directories.
-		
+
 		@type filter_func: function
 		@param filter_func: If defined, the filter_func function will be called
 		for each file and if the function returns false the file will be
@@ -99,7 +99,7 @@ class FileWalker:
 				if not self.skip(curDir):
 					yield curDir
 		raise StopIteration
-	
+
 	def nextFile(self):
 		if not self.skip(self.filespath):
 			yield self.filespath
@@ -112,10 +112,10 @@ class Namespace:
 	"""
 	pass
 
-def unique(seq, idfunc = None): 
+def unique(seq, idfunc = None):
 	"""
 	Unique a list or tuple and preserve the order
-	
+
 	@type idfunc: Function or None
 	@param idfunc: If idfunc is provided it will be called during the
 	comparison process.
@@ -137,15 +137,15 @@ class StringGenerator:
 	def __init__(self, startlen, endlen = None, charset = None):
 		"""
 		This class is used to generate raw strings for bruteforcing.
-		
+
 		@type startlen: Integer
 		@param startlen: The minimum size of the string to bruteforce.
-		
+
 		@type endlen: Integer
 		@param endlen: The maximum size of the string to bruteforce.
-		
+
 		@type charset: String, Tuple or None
-		@param charset: the character set to use while generating the 
+		@param charset: the character set to use while generating the
 		strings.  If None, the full binary space will be used (0 - 255).
 		"""
 		self.startlen = startlen
@@ -160,7 +160,7 @@ class StringGenerator:
 		charset = unique(charset)
 		charset.sort()
 		self.charset = tuple(charset)
-	
+
 	def __iter__(self):
 		length = self.startlen
 		while (length <= self.endlen):

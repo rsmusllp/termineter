@@ -1,17 +1,17 @@
 #  framework/modules/set_meter_mode.py
-#  
+#
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
-#  
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#  
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
@@ -30,7 +30,7 @@ class Module(optical_module_template):
 		self.description = 'Change the Meter\'s Operating Mode'
 		self.detailed_description = 'Change the operating mode of the meter. Accepted values for MODE are METERING, TEST, METERSHOP, and FACTORY.'
 		self.options.addString('MODE', 'the mode to set the meter to', True)
-	
+
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
@@ -44,15 +44,15 @@ class Module(optical_module_template):
 		if not mode in mode_dict:
 			self.frmwk.print_error('unknown mode, please use METERING, TEST, METERSHOP, or FACTORY')
 			return
-		
+
 		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
 			self.frmwk.print_error('Meter login failed, can not execute procedure')
 			return
-		
+
 		logger.info('setting mode to: ' + mode)
 		self.frmwk.print_status('Setting Mode To: ' + mode)
-		
+
 		mode = mode_dict[mode]
 		errCode, data = None, ''
 		try:
