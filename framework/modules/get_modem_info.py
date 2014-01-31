@@ -27,7 +27,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Get Information About The Integrated Modem'
 		self.detailed_description = 'This module reads various C1219 tables from decade 90 to gather information about the integrated modem. If successfully parsed, useful information will be displayed.'
 

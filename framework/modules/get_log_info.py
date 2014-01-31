@@ -27,7 +27,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Get Information About The Meter\'s Logs'
 		self.detailed_description = 'This module reads various C1219 tables from decade 70 to gather log information from the smart meter. If successful the parsed contents of the logs will be displayed.'
 

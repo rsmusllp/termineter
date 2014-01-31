@@ -26,7 +26,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Change the Meter\'s Operating Mode'
 		self.detailed_description = 'Change the operating mode of the meter. Accepted values for MODE are METERING, TEST, METERSHOP, and FACTORY.'
 		self.options.addString('MODE', 'the mode to set the meter to', True)

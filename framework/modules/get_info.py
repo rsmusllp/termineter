@@ -25,7 +25,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Get Basic Meter Information By Reading Tables'
 		self.detailed_description = 'This module retreives some basic meter information and displays it in a human-readable way.'
 

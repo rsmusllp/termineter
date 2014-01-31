@@ -26,7 +26,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 3
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
 		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)

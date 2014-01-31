@@ -26,7 +26,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Write Data To A C12.19 Table'
 		self.detailed_description = 'This will over write the data in a write able table on the smart meter. If USEHEX is set to true then the DATA variable is expected to be represented as a string of hex characters.'
 		self.options.addInteger('TABLEID', 'table to read from', True)

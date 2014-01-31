@@ -25,7 +25,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Initiate A Reset Procedure'
 		self.detailed_description = 'Initiate a remote reset procedure. Despite the name, this module is used locally through the optical interface.'
 		self.options.addBoolean('DEMAND', 'perform a demand reset', default = False)

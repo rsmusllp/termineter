@@ -24,7 +24,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Set The Meter\'s I.D.'
 		self.detailed_description = 'This module will over write the Smart Meter\'s device ID with the new value specified in METERID.'
 		self.options.addString('METERID', 'value to set the meter id to', True)

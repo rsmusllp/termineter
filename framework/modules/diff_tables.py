@@ -63,7 +63,7 @@ class Module(module_template):
 	def __init__(self, *args, **kwargs):
 		module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Check C12.19 Tables For Differences'
 		self.detailed_description = 'This module will compare two CSV files created with dump_tables and display differences in a formatted HTML file.'
 		self.options.addString('FIRSTFILE', 'the first csv file to compare')

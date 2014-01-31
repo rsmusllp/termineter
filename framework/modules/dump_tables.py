@@ -27,7 +27,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 2
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Dump Readable C12.19 Tables From The Device To A CSV File'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter and write them out to a CSV formated file for analysis. The format is table id, table name, table data length, table data.  The table data is represented in hex.'
 		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)

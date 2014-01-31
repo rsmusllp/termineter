@@ -184,7 +184,7 @@ class Options(dict):
 		same as it was defined with using the addX function.
 		"""
 		if self.__contains__(name) == False:
-			raise ValueError('invalid variable\option name')
+			raise ValueError('invalid variable\\option name')
 		options_def = dict.__getitem__(self, name)
 		if options_def[0] in [ 'str', 'rfile' ]:
 			pass

@@ -26,7 +26,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Get Information About The Meter\'s Access Control'
 		self.detailed_description = 'This module reads various tables from 40 to gather information regarding access control. Password constraints, and access permissions to procedures and tables can be gathered with this module.'
 

@@ -25,7 +25,7 @@ class Module(optical_module_template):
 	def __init__(self, *args, **kwargs):
 		optical_module_template.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre <smcintyre@securestate.net>' ]
+		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Read Data From A C12.19 Table'
 		self.detailed_description = 'This module allows individual tables to be read from the smart meter.'
 		self.options.addInteger('TABLEID', 'table to read from', True)
