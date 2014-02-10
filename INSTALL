@@ -24,6 +24,7 @@ How To Install Termineter (Linux):
 	# modprobe ftdi-sio vendor=0xVVVV product=0xPPPP
 
 	Kernel version >= 3.12
+	# modprobe ftdi-sio
 	# echo VVVV PPPP > /sys/bus/usb-serial/drivers/ftdi_sio/new_id
 
 	Where VVVV is the vendor ID and PPPP is the product ID.  These
