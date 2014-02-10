@@ -280,7 +280,9 @@ class Connection(ConnectionRaw):
 		"""
 		Send an identity request and then a negotiation request.
 		"""
-		self.send(C1218IdentRequest())	# identity
+		self.serial_h.flushOutput()
+		self.serial_h.flushInput()
+		self.send(C1218IdentRequest())
 		data = self.recv()
 		if data[0] != '\x00':
 			self.logger.error('received incorrect response to identification service request')
