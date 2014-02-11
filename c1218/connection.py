@@ -297,14 +297,17 @@ class Connection(ConnectionRaw):
 			raise C1218NegotiateError('received incorrect response to negotiate service request', ord(data[0]))
 		return True
 
-	def stop(self):
+	def stop(self, force = False):
 		"""
 		Send a terminate request.
+
+		@type force: Boolean
+		@param force: ignore the remote devices response
 		"""
 		if self.__initialized__ == True:
 			self.send(C1218TerminateRequest())
 			data = self.recv()
-			if data == '\x00':
+			if data == '\x00' or force:
 				self.__initialized__ = False
 				self.__toggle_bit__ = False
 				return True
