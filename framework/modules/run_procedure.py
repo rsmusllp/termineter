@@ -17,13 +17,13 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import optical_module_template
+from framework.templates import TermineterModuleOptical
 from binascii import unhexlify
 from c1219.constants import C1219_PROCEDURE_NAMES, C1219_PROC_RESULT_CODES
 
-class Module(optical_module_template):
+class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
-		optical_module_template.__init__(self, *args, **kwargs)
+		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 2
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Initiate A Custom Procedure'

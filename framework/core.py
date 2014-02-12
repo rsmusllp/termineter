@@ -27,7 +27,7 @@ from binascii import unhexlify
 from serial.serialutil import SerialException
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
-from framework.templates import module_template, optical_module_template
+from framework.templates import TermineterModule, TermineterModuleOptical
 from framework.utils import FileWalker, Namespace, GetDefaultSerialSettings
 from c1218.connection import Connection
 from c1218.errors import C1218IOError, C1218ReadTableError
@@ -130,10 +130,10 @@ class Framework(object):
 				module_instance = self.import_module(module_path)
 			except FrameworkRuntimeError:
 				continue
-			if not isinstance(module_instance, module_template):
-				self.logger.error('module: ' + module_path + ' is not derived from the module_template class')
+			if not isinstance(module_instance, TermineterModule):
+				self.logger.error('module: ' + module_path + ' is not derived from the TermineterModule class')
 				continue
-			# if isinstance(module_instance, rfcat_module_template) and not self.rfcat_available:
+			# if isinstance(module_instance, TermineterModuleRfcat) and not self.rfcat_available:
 			# 	self.logger.debug('skipping module: ' + module_path + ' because rfcat is not available')
 			#	continue
 			if not hasattr(module_instance, 'run'):
@@ -172,9 +172,9 @@ class Framework(object):
 
 		self.logger.info('reloading module: ' + module_path)
 		module_instance = self.import_module(module_path, reload_module = True)
-		if not isinstance(module_instance, module_template):
-			self.logger.error('module: ' + module_path + ' is not derived from the module_template class')
-			raise FrameworkRuntimeError('module: ' + module_path + ' is not derived from the module_template class')
+		if not isinstance(module_instance, TermineterModule):
+			self.logger.error('module: ' + module_path + ' is not derived from the TermineterModule class')
+			raise FrameworkRuntimeError('module: ' + module_path + ' is not derived from the TermineterModule class')
 		if not hasattr(module_instance, 'run'):
 			self.logger.error('module: ' + module_path + ' has no run() method')
 			raise FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
@@ -190,14 +190,14 @@ class Framework(object):
 		return True
 
 	def run(self, module = None):
-		if not isinstance(module, module_template) and not isinstance(self.current_module, module_template):
+		if not isinstance(module, TermineterModule) and not isinstance(self.current_module, TermineterModule):
 			raise FrameworkRuntimeError('either the module or the current_module must be sent')
 		if module == None:
 			module = self.current_module
-		if isinstance(module, optical_module_template):
+		if isinstance(module, TermineterModuleOptical):
 			if not self.is_serial_connected:
 				raise FrameworkRuntimeError('the serial interface is disconnected')
-		# if isinstance(module, rfcat_module_template):
+		# if isinstance(module, TermineterModuleRfcat):
 		# 	self.rfcat_connect()
 
 		result = None
@@ -205,12 +205,12 @@ class Framework(object):
 		try:
 			result = module.run()
 		except KeyboardInterrupt as error:
-			if isinstance(module, optical_module_template):
+			if isinstance(module, TermineterModuleOptical):
 				self.serial_connection.stop()
-			# if isinstance(module, rfcat_module_template):
+			# if isinstance(module, TermineterModuleRfcat):
 			# 	self.rfcat_disconnect()
 			raise error
-		# if isinstance(module, rfcat_module_template):
+		# if isinstance(module, TermineterModuleRfcat):
 		# 	self.rfcat_disconnect()
 		return result
 

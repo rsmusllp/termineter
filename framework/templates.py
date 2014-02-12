@@ -19,7 +19,7 @@
 
 from framework.options import AdvancedOptions, Options
 
-class module_template:
+class TermineterModule:
 	frmwk_required_options = ()
 
 	def __init__(self, frmwk):
@@ -52,7 +52,7 @@ class module_template:
 	def logger(self):
 		return self.frmwk.get_module_logger(self.name)
 
-class optical_module_template(module_template):
+class TermineterModuleOptical(TermineterModule):
 	frmwk_required_options = (
 		'CONNECTION',
 		'USERNAME',
@@ -67,5 +67,5 @@ class optical_module_template(module_template):
 		'PKTSIZE'
 	)
 
-class rfcat_module_template(module_template):
+class TermineterModuleRfcat(TermineterModule):
 	pass

@@ -17,14 +17,14 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import optical_module_template
+from framework.templates import TermineterModuleOptical
 from time import sleep
 from c1218.data import C1218ReadRequest, C1218_RESPONSE_CODES
 from c1219.data import C1219_TABLES
 
-class Module(optical_module_template):
+class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
-		optical_module_template.__init__(self, *args, **kwargs)
+		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 3
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'

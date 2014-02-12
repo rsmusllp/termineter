@@ -19,13 +19,13 @@
 
 from time import sleep
 import os
-from framework.templates import optical_module_template
+from framework.templates import TermineterModuleOptical
 from c1219.data import C1219_TABLES
 from c1218.errors import C1218ReadTableError
 
-class Module(optical_module_template):
+class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
-		optical_module_template.__init__(self, *args, **kwargs)
+		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 2
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Dump Readable C12.19 Tables From The Device To A CSV File'

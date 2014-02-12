@@ -19,12 +19,12 @@
 
 import re
 from binascii import unhexlify
-from framework.templates import optical_module_template
+from framework.templates import TermineterModuleOptical
 from c1218.errors import C1218WriteTableError
 
-class Module(optical_module_template):
+class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
-		optical_module_template.__init__(self, *args, **kwargs)
+		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Write Data To A C12.19 Table'

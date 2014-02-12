@@ -17,15 +17,15 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import optical_module_template
+from framework.templates import TermineterModuleOptical
 from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_EVENT_CODES
 from c1219.access.log import C1219LogAccess
 from struct import pack, unpack
 
-class Module(optical_module_template):
+class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
-		optical_module_template.__init__(self, *args, **kwargs)
+		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Get Information About The Meter\'s Logs'

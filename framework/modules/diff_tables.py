@@ -19,7 +19,7 @@
 
 import difflib
 from binascii import hexlify, unhexlify
-from framework.templates import module_template
+from framework.templates import TermineterModule
 import c1219.constants
 
 HTML_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -59,9 +59,9 @@ HTML_TABLE_FOOTER = """</table>
 HTML_FOOTER = """</body>
 """
 
-class Module(module_template):
+class Module(TermineterModule):
 	def __init__(self, *args, **kwargs):
-		module_template.__init__(self, *args, **kwargs)
+		TermineterModule.__init__(self, *args, **kwargs)
 		self.version = 1
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Check C12.19 Tables For Differences'
