@@ -19,7 +19,7 @@
 
 from framework.options import AdvancedOptions, Options
 
-class TermineterModule:
+class TermineterModule(object):
 	frmwk_required_options = ()
 
 	def __init__(self, frmwk):
@@ -66,6 +66,9 @@ class TermineterModuleOptical(TermineterModule):
 		'NBRPKTS',
 		'PKTSIZE'
 	)
+	def __init__(self, *args, **kwargs):
+		self.require_connection = True
+		super(TermineterModuleOptical, self).__init__(*args, **kwargs)
 
 class TermineterModuleRfcat(TermineterModule):
 	pass

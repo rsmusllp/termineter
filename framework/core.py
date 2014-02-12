@@ -318,6 +318,29 @@ class Framework(object):
 			self.logger.warning('the serial interface has been disconnected')
 		return True
 
+	def serial_get(self):
+		"""
+		Create the serial connection from the framework settings and return
+		it, setting the framework instance in the process.
+		"""
+		frmwk_c1218_settings = {
+			'nbrpkts': self.advanced_options['NBRPKTS'],
+			'pktsize': self.advanced_options['PKTSIZE']
+		}
+
+		frmwk_serial_settings = GetDefaultSerialSettings()
+		frmwk_serial_settings['baudrate'] = self.advanced_options['BAUDRATE']
+		frmwk_serial_settings['bytesize'] = self.advanced_options['BYTESIZE']
+		frmwk_serial_settings['stopbits'] = self.advanced_options['STOPBITS']
+
+		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
+		try:
+			self.serial_connection = Connection(self.options['CONNECTION'], c1218_settings = frmwk_c1218_settings, serial_settings = frmwk_serial_settings, enable_cache = self.advanced_options['CACHETBLS'])
+		except Exception as error:
+			self.logger.error('could not open the serial device')
+			raise error
+		return self.serial_connection
+
 	def serial_connect(self):
 		"""
 		Connect to the serial device and then verifies that the meter is
@@ -334,24 +357,7 @@ class Framework(object):
 			self.logger.error('user id must be between 0 and 0xffff')
 			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
 
-		frmwk_c1218_settings = {
-			'nbrpkts': self.advanced_options['NBRPKTS'],
-			'pktsize': self.advanced_options['PKTSIZE']
-		}
-
-		frmwk_serial_settings = GetDefaultSerialSettings()
-		frmwk_serial_settings['baudrate'] = self.advanced_options['BAUDRATE']
-		frmwk_serial_settings['bytesize'] = self.advanced_options['BYTESIZE']
-		frmwk_serial_settings['stopbits'] = self.advanced_options['STOPBITS']
-
-		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
-
-		try:
-			self.serial_connection = Connection(self.options['CONNECTION'], c1218_settings = frmwk_c1218_settings, serial_settings = frmwk_serial_settings, enable_cache = self.advanced_options['CACHETBLS'])
-		except Exception as error:
-			self.logger.error('could not open the serial device')
-			raise error
-
+		self.serial_get()
 		try:
 			self.serial_connection.start()
 			if not self.serial_connection.login(username, userid):

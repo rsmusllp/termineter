@@ -502,13 +502,17 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
 			return
 		del missing_options
-		if isinstance(module, TermineterModuleOptical) and not self.frmwk.is_serial_connected():
-			try:
-				result = self.frmwk.serial_connect()
-			except Exception as error:
-				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
-				return
-			self.print_good('Successfully connected and the device is responding')
+
+		if isinstance(module, TermineterModuleOptical):
+			if module.require_connection and not self.frmwk.is_serial_connected():
+				try:
+					result = self.frmwk.serial_connect()
+				except Exception as error:
+					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+					return
+				self.print_good('Successfully connected and the device is responding')
+			else:
+				self.frmwk.serial_get()
 		try:
 			self.frmwk.run()
 		except KeyboardInterrupt:

@@ -46,7 +46,8 @@ class BruteForce:
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 3
+		self.require_connection = False
+		self.version = 4
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'
@@ -116,13 +117,13 @@ class Module(TermineterModuleOptical):
 				else:
 					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
 				if self.advanced_options.getOptionValue('STOPONSUCCESS'):
-					conn.stop()
+					conn.stop(force = True)
 					break
 			if usehex:
 				logger.warning('Failed logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
 			else:
 				logger.warning('Failed logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
-			while not conn.stop():
+			while not conn.stop(force = True):
 				sleep(time_delay)
 			sleep(time_delay)
 		return
