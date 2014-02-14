@@ -591,26 +591,20 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			self.print_line('')
 			return
 		elif args[0] == 'options' or args[0] == 'advanced':
+			self.print_line('')
 			if self.frmwk.current_module and args[0] == 'options':
 				options = self.frmwk.current_module.options
-				self.print_line('')
 				self.print_line('Module Options' + os.linesep + '==============')
-				self.print_line('')
 			if self.frmwk.current_module and args[0] == 'advanced':
 				options = self.frmwk.current_module.advanced_options
-				self.print_line('')
 				self.print_line('Advanced Module Options' + os.linesep + '=======================')
-				self.print_line('')
 			elif self.frmwk.current_module == None and args[0] == 'options':
 				options = self.frmwk.options
-				self.print_line('')
 				self.print_line('Framework Options' + os.linesep + '=================')
-				self.print_line('')
 			elif self.frmwk.current_module == None and args[0] == 'advanced':
 				options = self.frmwk.advanced_options
-				self.print_line('')
 				self.print_line('Advanced Framework Options' + os.linesep + '==========================')
-				self.print_line('')
+			self.print_line('')
 			longest_name = 16
 			longest_value = 10
 			for option_name, option_def in options.items():
@@ -619,7 +613,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			fmt_string = "  {0:<" + str(longest_name) + "} {1:<" + str(longest_value) + "} {2}"
 
 			self.print_line(fmt_string.format('Name', 'Value', 'Description'))
-			self.print_line(fmt_string.format('----', '-----', '------------'))
+			self.print_line(fmt_string.format('----', '-----', '-----------'))
 			for option_name in options.keys():
 				option_value = options[option_name]
 				if option_value == None:
