@@ -27,7 +27,7 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Set The Meter\'s I.D.'
 		self.detailed_description = 'This module will over write the Smart Meter\'s device ID with the new value specified in METERID.'
-		self.options.addString('METERID', 'value to set the meter id to', True)
+		self.options.add_string('METERID', 'value to set the meter id to', True)
 
 	def run(self):
 		conn = self.frmwk.serial_connection

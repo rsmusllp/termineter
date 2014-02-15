@@ -28,10 +28,10 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Initiate A Custom Procedure'
 		self.detailed_description = 'This module executes a user defined procedure and returns the response. This is achieved by writing to the Procedure Initiate Table (#7) and then reading the result from the Procedure Response Table (#8).'
-		self.options.addInteger('PROCNBR', 'procedure number to execute')
-		self.options.addString('PARAMS', 'parameters to pass to the executed procedure', default = '')
-		self.options.addBoolean('USEHEX', 'specifies that the \'PARAMS\' option is represented in hex', default = True)
-		self.advanced_options.addBoolean('STDVSMFG', 'if true, specifies that this procedure is defined by the manufacturer', default = False)
+		self.options.add_integer('PROCNBR', 'procedure number to execute')
+		self.options.add_string('PARAMS', 'parameters to pass to the executed procedure', default = '')
+		self.options.add_boolean('USEHEX', 'specifies that the \'PARAMS\' option is represented in hex', default = True)
+		self.advanced_options.add_boolean('STDVSMFG', 'if true, specifies that this procedure is defined by the manufacturer', default = False)
 
 	def run(self):
 		conn = self.frmwk.serial_connection

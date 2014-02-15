@@ -29,10 +29,10 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Write Data To A C12.19 Table'
 		self.detailed_description = 'This will over write the data in a write able table on the smart meter. If USEHEX is set to true then the DATA variable is expected to be represented as a string of hex characters.'
-		self.options.addInteger('TABLEID', 'table to read from', True)
-		self.options.addString('DATA', 'data to write to the table', True)
-		self.options.addBoolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default = False)
-		self.options.addInteger('OFFSET', 'offset to start writing data at', required = False, default = None)
+		self.options.add_integer('TABLEID', 'table to read from', True)
+		self.options.add_string('DATA', 'data to write to the table', True)
+		self.options.add_boolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default = False)
+		self.options.add_integer('OFFSET', 'offset to start writing data at', required = False, default = None)
 
 	def run(self):
 		conn = self.frmwk.serial_connection

@@ -397,7 +397,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			option_value = module.options[option_name]
 			if option_value == None:
 				option_value = ''
-			option_desc = module.options.getOptionHelp(option_name)
+			option_desc = module.options.get_option_help(option_name)
 			self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
 		self.print_line('')
 		self.print_line('Description:')
@@ -545,14 +545,14 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			advanced_options = self.frmwk.advanced_options
 		if name in options:
 			try:
-				options.setOption(name, value)
+				options.set_option(name, value)
 				self.print_line(name + ' => ' + value)
 			except TypeError:
 				self.print_error('Invalid data type')
 			return
 		elif name in advanced_options:
 			try:
-				advanced_options.setOption(name, value)
+				advanced_options.set_option(name, value)
 				self.print_line(name + ' => ' + value)
 			except TypeError:
 				self.print_error('Invalid data type')
@@ -618,7 +618,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 				option_value = options[option_name]
 				if option_value == None:
 					option_value = ''
-				option_desc = options.getOptionHelp(option_name)
+				option_desc = options.get_option_help(option_name)
 				self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
 			self.print_line('')
 		elif args[0] == '-h':

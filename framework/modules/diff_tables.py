@@ -66,10 +66,10 @@ class Module(TermineterModule):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Check C12.19 Tables For Differences'
 		self.detailed_description = 'This module will compare two CSV files created with dump_tables and display differences in a formatted HTML file.'
-		self.options.addString('FIRSTFILE', 'the first csv file to compare')
-		self.options.addString('SECONDFILE', 'the second csv file to compare')
-		self.options.addString('REPORTFILE', 'file to write the report data into', default = 'table_diff.html')
-		self.advanced_options.addBoolean('ALLTABLES', 'do not skip tables that typically change', default = False)
+		self.options.add_string('FIRSTFILE', 'the first csv file to compare')
+		self.options.add_string('SECONDFILE', 'the second csv file to compare')
+		self.options.add_string('REPORTFILE', 'file to write the report data into', default = 'table_diff.html')
+		self.advanced_options.add_boolean('ALLTABLES', 'do not skip tables that typically change', default = False)
 
 	def run(self):
 		logger = self.logger

@@ -29,7 +29,7 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Change the Meter\'s Operating Mode'
 		self.detailed_description = 'Change the operating mode of the meter. Accepted values for MODE are METERING, TEST, METERSHOP, and FACTORY.'
-		self.options.addString('MODE', 'the mode to set the meter to', True)
+		self.options.add_string('MODE', 'the mode to set the meter to', True)
 
 	def run(self):
 		conn = self.frmwk.serial_connection

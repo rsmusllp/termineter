@@ -28,8 +28,8 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Initiate A Reset Procedure'
 		self.detailed_description = 'Initiate a remote reset procedure. Despite the name, this module is used locally through the optical interface.'
-		self.options.addBoolean('DEMAND', 'perform a demand reset', default = False)
-		self.options.addBoolean('SELFREAD', 'perform a self read', default = False)
+		self.options.add_boolean('DEMAND', 'perform a demand reset', default = False)
+		self.options.add_boolean('SELFREAD', 'perform a self read', default = False)
 
 	def run(self):
 		conn = self.frmwk.serial_connection

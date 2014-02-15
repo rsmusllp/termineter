@@ -51,24 +51,24 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'
-		self.options.addBoolean('USEHEX', 'values in word list are in hex', default = True)
-		self.options.addRFile('DICTIONARY', 'dictionary of passwords to try', required = False, default = '$DATA_PATH smeter_passwords.txt')
-		self.options.addString('USERNAME', 'user name to attempt to log in as', default = '0000')
-		self.options.addInteger('USERID', 'user id to attempt to log in as', default = 1)
+		self.options.add_boolean('USEHEX', 'values in word list are in hex', default = True)
+		self.options.add_rfile('DICTIONARY', 'dictionary of passwords to try', required = False, default = '$DATA_PATH smeter_passwords.txt')
+		self.options.add_string('USERNAME', 'user name to attempt to log in as', default = '0000')
+		self.options.add_integer('USERID', 'user id to attempt to log in as', default = 1)
 
-		self.advanced_options.addBoolean('PUREBRUTE', 'perform a pure bruteforce', default = False)
-		self.advanced_options.addBoolean('STOPONSUCCESS', 'stop after the first successful login', default = True)
-		self.advanced_options.addFloat('DELAY', 'time in seconds to wait between attempts', default = 0.20)
+		self.advanced_options.add_boolean('PUREBRUTE', 'perform a pure bruteforce', default = False)
+		self.advanced_options.add_boolean('STOPONSUCCESS', 'stop after the first successful login', default = True)
+		self.advanced_options.add_float('DELAY', 'time in seconds to wait between attempts', default = 0.20)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
-		usehex = self.options.getOptionValue('USEHEX')
-		dictionary_path = self.options.getOptionValue('DICTIONARY')
-		username = self.options.getOptionValue('USERNAME')
-		userid = self.options.getOptionValue('USERID')
-		pure_brute = self.advanced_options.getOptionValue('PUREBRUTE')
-		time_delay = self.advanced_options.getOptionValue('DELAY')
+		usehex = self.options.get_option_value('USEHEX')
+		dictionary_path = self.options.get_option_value('DICTIONARY')
+		username = self.options.get_option_value('USERNAME')
+		userid = self.options.get_option_value('USERID')
+		pure_brute = self.advanced_options.get_option_value('PUREBRUTE')
+		time_delay = self.advanced_options.get_option_value('DELAY')
 
 		if len(username) > 10:
 			self.frmwk.print_error('Username cannot be longer than 10 characters')
@@ -116,7 +116,7 @@ class Module(TermineterModuleOptical):
 					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
 				else:
 					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
-				if self.advanced_options.getOptionValue('STOPONSUCCESS'):
+				if self.advanced_options.get_option_value('STOPONSUCCESS'):
 					conn.stop(force = True)
 					break
 			if usehex:

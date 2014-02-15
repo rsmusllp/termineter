@@ -21,7 +21,7 @@ import time
 from struct import pack, unpack
 from c1219.constants import *
 
-def formatLTime(endianess, tm_format, data):
+def format_ltime(endianess, tm_format, data):
 	"""
 	Return data formatted into a human readable time stamp.
 
@@ -69,7 +69,7 @@ def formatLTime(endianess, tm_format, data):
 
 	return "{0} {1} {2} {3}:{4}:{5}".format((MONTHS.get(month) or 'UNKNOWN'), day, year, hour, minute, second)
 
-def getHistoryEntryRcd(endianess, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, data):
+def get_history_entry_record(endianess, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, data):
 	"""
 	Return data formatted into a log entry.
 
@@ -97,7 +97,7 @@ def getHistoryEntryRcd(endianess, hist_date_time_flag, tm_format, event_number_f
 	"""
 	rcd = {}
 	if hist_date_time_flag:
-		tmstmp = formatLTime(endianess, tm_format, data[0:LTIME_LENGTH.get(tm_format)])
+		tmstmp = format_ltime(endianess, tm_format, data[0:LTIME_LENGTH.get(tm_format)])
 		if tmstmp:
 			rcd['Time'] = tmstmp
 		data = data[LTIME_LENGTH.get(tm_format):]
@@ -108,11 +108,11 @@ def getHistoryEntryRcd(endianess, hist_date_time_flag, tm_format, event_number_f
 		rcd['History Sequence Number'] = unpack(endianess + 'H', data[:2])[0]
 		data = data[2:]
 	rcd['User ID'] = unpack(endianess + 'H', data[:2])[0]
-	rcd['Procedure Number'], rcd['Std vs Mfg'] = getTableIDBBFLD(endianess, data[2:4])[:2]
+	rcd['Procedure Number'], rcd['Std vs Mfg'] = get_table_idbb_field(endianess, data[2:4])[:2]
 	rcd['Arguments'] = data[4:]
 	return rcd
 
-def getTableIDBBFLD(endianess, data):
+def get_table_idbb_field(endianess, data):
 	"""
 	Return data from a packed TABLE_IDB_BFLD bit-field.
 
@@ -130,7 +130,7 @@ def getTableIDBBFLD(endianess, data):
 	selector = (bfld & 0xf000) >> 12
 	return (proc_nbr, std_vs_mfg, selector)
 
-def getTableIDCBFLD(endianess, data):
+def get_table_idcb_field(endianess, data):
 	"""
 	Return data from a packed TABLE_IDC_BFLD bit-field.
 
@@ -212,6 +212,6 @@ class C1219ProcedureInit:
 	def parse(endianess, data):
 		if len(data) < 3:
 			raise Exception('invalid data (size)')
-		proc_nbr, std_vs_mfg, selector = getTableIDBBFLD(endianess, data[0:2])
+		proc_nbr, std_vs_mfg, selector = get_table_idbb_field(endianess, data[0:2])
 		seqnum = ord(data[2])
 		return C1219ProcedureInit(endianess, proc_nbr, std_vs_mfg, selector, seqnum, data[3:])

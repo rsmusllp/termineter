@@ -29,8 +29,8 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
-		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)
-		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
+		self.options.add_integer('LOWER', 'table id to start reading from', default = 0)
+		self.options.add_integer('UPPER', 'table id to stop reading from', default = 256)
 
 	def run(self):
 		conn = self.frmwk.serial_connection

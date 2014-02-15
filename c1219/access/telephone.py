@@ -105,9 +105,9 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		### Prase ANSWER_PARAMETERS_TBL ###
 		if bit_rate_settings == 2:
 			self.__answer_bit_rate__ = unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
-		self.updateLastCallStatuses()
+		self.update_last_call_statuses()
 
-	def initiateCall(self, number = None, idx = None):
+	def initiate_call(self, number = None, idx = None):
 		if number:
 			idx = None
 			for tmpidx in self.__originating_numbers__.keys():
@@ -117,13 +117,13 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 				raise C1219ProcedureError('target phone number not found in originating numbers')
 		if not idx in self.__originating_numbers__.keys():
 			raise C1219ProcedureError('phone number index not within originating numbers range')
-		return self.initiateCallEx(self.conn, idx)
+		return self.initiate_call_ex(self.conn, idx)
 
 	@staticmethod
-	def initiateCallEx(conn, idx):
+	def initiate_call_ex(conn, idx):
 		return conn.run_procedure(20, False, chr(idx))
 
-	def updateLastCallStatuses(self):
+	def update_last_call_statuses(self):
 		tmp = 0
 		call_status_table = self.conn.get_table_data(CALL_STATUS_TBL)
 		if (len(call_status_table) % self.nbr_originate_numbers) != 0:

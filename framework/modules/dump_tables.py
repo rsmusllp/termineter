@@ -30,9 +30,9 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Dump Readable C12.19 Tables From The Device To A CSV File'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter and write them out to a CSV formated file for analysis. The format is table id, table name, table data length, table data.  The table data is represented in hex.'
-		self.options.addInteger('LOWER', 'table id to start reading from', default = 0)
-		self.options.addInteger('UPPER', 'table id to stop reading from', default = 256)
-		self.options.addString('FILE', 'file to write the csv data into', default = 'smart_meter_tables.csv')
+		self.options.add_integer('LOWER', 'table id to start reading from', default = 0)
+		self.options.add_integer('UPPER', 'table id to stop reading from', default = 256)
+		self.options.add_string('FILE', 'file to write the csv data into', default = 'smart_meter_tables.csv')
 
 	def run(self):
 		conn = self.frmwk.serial_connection
@@ -44,7 +44,7 @@ class Module(TermineterModuleOptical):
 			logger.warning('meter login failed, some tables may not be accessible')
 
 		number_of_tables = 0
-		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.getOptionValue('FILE'))
+		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.get_option_value('FILE'))
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
 			try:
 				data = conn.get_table_data(tableid)

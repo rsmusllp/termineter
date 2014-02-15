@@ -44,7 +44,7 @@ class Options(dict):
 		options_def = dict.__getitem__(self, name)
 		return options_def[3]
 
-	def addString(self, name, help, required = True, default = None):
+	def add_string(self, name, help, required = True, default = None):
 		"""
 		Add a new option with a type of String.
 
@@ -64,7 +64,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('str', help, required, default, None))
 
-	def addInteger(self, name, help, required = True, default = None):
+	def add_integer(self, name, help, required = True, default = None):
 		"""
 		Add a new option with a type of Integer.
 
@@ -84,7 +84,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('int', help, required, default, None))
 
-	def addFloat(self, name, help, required = True, default = None):
+	def add_float(self, name, help, required = True, default = None):
 		"""
 		Add a new option with a type of Float.
 
@@ -104,7 +104,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('flt', help, required, default, None))
 
-	def addBoolean(self, name, help, required = True, default = None):
+	def add_boolean(self, name, help, required = True, default = None):
 		"""
 		Add a new option with a type of Boolean.
 
@@ -124,7 +124,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('bool', help, required, default, None))
 
-	def addRFile(self, name, help, required = True, default = None):
+	def add_rfile(self, name, help, required = True, default = None):
 		"""
 		Add a new option with a type of a readable file. This is the same
 		as the string option with the exception that the default value
@@ -154,7 +154,7 @@ class Options(dict):
 			default = default.replace('$DATA_PATH ', self.directories.data_path)
 		self.__setitem__(name, ('rfile', help, required, default, None))
 
-	def setCallback(self, name, callback):
+	def set_callback(self, name, callback):
 		"""
 		Set an options value
 
@@ -162,7 +162,7 @@ class Options(dict):
 		@param name: The options name that is to be changed
 
 		@type callback: Function
-		@param callback: This function will be called when the setOption()
+		@param callback: This function will be called when the set_option()
 		is called and will be passed a single parameter of the value that
 		is being set.  It will be called prior to the value being set and
 		an exception can be thrown to alert the user that the value is invalid.
@@ -172,7 +172,7 @@ class Options(dict):
 		options_def = dict.__getitem__(self, name)
 		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], options_def[3], callback))
 
-	def setOption(self, name, value):
+	def set_option(self, name, value):
 		"""
 		Set an options value
 
@@ -226,7 +226,7 @@ class Options(dict):
 				missing_options.append(option_name)
 		return missing_options
 
-	def getOptionValue(self, name):
+	def get_option_value(self, name):
 		"""
 		Return an options value.
 
@@ -238,7 +238,7 @@ class Options(dict):
 		options_def = dict.__getitem__(self, name)
 		return options_def[3]
 
-	def getOptionHelp(self, name):
+	def get_option_help(self, name):
 		"""
 		Return an options help string.
 

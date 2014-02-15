@@ -28,7 +28,7 @@ class Module(TermineterModuleOptical):
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Read Data From A C12.19 Table'
 		self.detailed_description = 'This module allows individual tables to be read from the smart meter.'
-		self.options.addInteger('TABLEID', 'table to read from', True)
+		self.options.add_integer('TABLEID', 'table to read from', True)
 
 	def run(self):
 		conn = self.frmwk.serial_connection

@@ -28,7 +28,7 @@ from serial.serialutil import SerialException
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
 from framework.templates import TermineterModule, TermineterModuleOptical
-from framework.utils import FileWalker, Namespace, GetDefaultSerialSettings
+from framework.utils import FileWalker, Namespace, get_default_serial_settings
 from c1218.connection import Connection
 from c1218.errors import C1218IOError, C1218ReadTableError
 
@@ -71,22 +71,22 @@ class Framework(object):
 		# modules get_missing_options method and by which options they require based
 		# on their respective types.  See framework/templates.py for more info.
 		self.options = Options(self.directories)
-		self.options.addBoolean('USECOLOR', 'enable color on the console interface', default = False)
-		self.options.addString('CONNECTION', 'serial connection string')
-		self.options.addString('USERNAME', 'serial username', default = '0000')
-		self.options.addInteger('USERID', 'serial userid', default = 0)
-		self.options.addString('PASSWORD', 'serial c12.18 password', default = '00000000000000000000')
-		self.options.addBoolean('PASSWORDHEX', 'if the password is in hex', default = True)
+		self.options.add_boolean('USECOLOR', 'enable color on the console interface', default = False)
+		self.options.add_string('CONNECTION', 'serial connection string')
+		self.options.add_string('USERNAME', 'serial username', default = '0000')
+		self.options.add_integer('USERID', 'serial userid', default = 0)
+		self.options.add_string('PASSWORD', 'serial c12.18 password', default = '00000000000000000000')
+		self.options.add_boolean('PASSWORDHEX', 'if the password is in hex', default = True)
 		self.advanced_options = AdvancedOptions(self.directories)
-		self.advanced_options.addInteger('BAUDRATE', 'serial connection baud rate', default = 9600)
-		self.advanced_options.addInteger('BYTESIZE', 'serial connection byte size', default = serial.EIGHTBITS)
-		self.advanced_options.addBoolean('CACHETBLS', 'cache certain read-only tables', default = True)
-		self.advanced_options.setCallback('CACHETBLS', self.__optCallbackSetTableCachePolicy__)
-		self.advanced_options.addInteger('STOPBITS', 'serial connection stop bits', default = serial.STOPBITS_ONE)
-		self.advanced_options.addInteger('NBRPKTS', 'c12.18 maximum packets for reassembly', default = 2)
-		self.advanced_options.addInteger('PKTSIZE', 'c12.18 maximum packet size', default = 512)
+		self.advanced_options.add_integer('BAUDRATE', 'serial connection baud rate', default = 9600)
+		self.advanced_options.add_integer('BYTESIZE', 'serial connection byte size', default = serial.EIGHTBITS)
+		self.advanced_options.add_boolean('CACHETBLS', 'cache certain read-only tables', default = True)
+		self.advanced_options.set_callback('CACHETBLS', self.__opt_callback_set_table_cache_policy)
+		self.advanced_options.add_integer('STOPBITS', 'serial connection stop bits', default = serial.STOPBITS_ONE)
+		self.advanced_options.add_integer('NBRPKTS', 'c12.18 maximum packets for reassembly', default = 2)
+		self.advanced_options.add_integer('PKTSIZE', 'c12.18 maximum packet size', default = 512)
 		if sys.platform.startswith('linux'):
-			self.options.setOption('USECOLOR', 'True')
+			self.options.set_option('USECOLOR', 'True')
 
 		# check and configure rfcat stuff
 		self.rfcat_available = False
@@ -102,7 +102,7 @@ class Framework(object):
 			self.rfcat_connection = None
 			self.__rfcat_connected__ = False
 			self.is_rfcat_connected = lambda: self.__rfcat_connected__
-			# self.options.addInteger('RFCATIDX', 'the rfcat device to use', default = 0)
+			# self.options.add_integer('RFCATIDX', 'the rfcat device to use', default = 0)
 
 		# start loading modules
 		modules_path = self.directories.modules_path
@@ -220,7 +220,7 @@ class Framework(object):
 
 	@use_colors.setter
 	def use_colors(self, value):
-		self.options.setOption('USECOLOR', str(value))
+		self.options.set_option('USECOLOR', str(value))
 
 	def get_module_logger(self, name):
 		"""
@@ -328,7 +328,7 @@ class Framework(object):
 			'pktsize': self.advanced_options['PKTSIZE']
 		}
 
-		frmwk_serial_settings = GetDefaultSerialSettings()
+		frmwk_serial_settings = get_default_serial_settings()
 		frmwk_serial_settings['baudrate'] = self.advanced_options['BAUDRATE']
 		frmwk_serial_settings['bytesize'] = self.advanced_options['BYTESIZE']
 		frmwk_serial_settings['stopbits'] = self.advanced_options['STOPBITS']
@@ -423,7 +423,7 @@ class Framework(object):
 		return True
 
 
-	def __optCallbackSetTableCachePolicy__(self, policy):
+	def __opt_callback_set_table_cache_policy(self, policy):
 		if self.is_serial_connected():
 			self.serial_connection.set_table_cache_policy(policy)
 		return True

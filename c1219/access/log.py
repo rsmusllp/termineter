@@ -25,7 +25,7 @@
 
 from struct import pack, unpack
 from c1219.constants import *
-from c1219.data import getHistoryEntryRcd
+from c1219.data import get_history_entry_record
 from c1219.errors import C1219ParseError
 
 class C1219LogAccess(object):		# Corresponds To Decade 7x
@@ -99,7 +99,7 @@ class C1219LogAccess(object):		# Corresponds To Decade 7x
 		entry_idx = 0
 		self.__logs__ = []
 		while entry_idx < self.nbr_history_entries:
-			self.__logs__.append(getHistoryEntryRcd(self.conn.c1219_endian, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, log_data[:size_of_log_rcd]))
+			self.__logs__.append(get_history_entry_record(self.conn.c1219_endian, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, log_data[:size_of_log_rcd]))
 			log_data = log_data[size_of_log_rcd:]
 			entry_idx += 1
 

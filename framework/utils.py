@@ -35,7 +35,7 @@ DEFAULT_SERIAL_SETTINGS = {
 	'writeTimeout': None
 }
 
-def GetDefaultSerialSettings():
+def get_default_serial_settings():
 	return copy.copy(DEFAULT_SERIAL_SETTINGS)
 
 class FileWalker:
@@ -74,9 +74,9 @@ class FileWalker:
 		self.skip_dirs = skip_dirs
 		self.filter_func = filter_func
 		if os.path.isdir(self.filespath):
-			self.__iter__= self.nextDir
+			self.__iter__= self.next_dir
 		elif os.path.isfile(self.filespath):
-			self.__iter__ = self.nextFile
+			self.__iter__ = self.next_file
 
 	def skip(self, curFile):
 		if self.skip_files and os.path.isfile(curFile):
@@ -88,7 +88,7 @@ class FileWalker:
 				return True
 		return False
 
-	def nextDir(self):
+	def next_dir(self):
 		for root, dirs, files in os.walk(self.filespath):
 			for curFile in files:
 				curFile = os.path.join(root, curFile)
@@ -100,7 +100,7 @@ class FileWalker:
 					yield curDir
 		raise StopIteration
 
-	def nextFile(self):
+	def next_file(self):
 		if not self.skip(self.filespath):
 			yield self.filespath
 		raise StopIteration

@@ -26,7 +26,7 @@
 from struct import pack, unpack
 from c1218.errors import C1218ReadTableError
 from c1219.constants import *
-from c1219.data import getTableIDCBFLD
+from c1219.data import get_table_idcb_field
 from c1219.errors import C1219ParseError
 
 class C1219SecurityAccess(object):		# Corresponds To Decade 4x
@@ -79,7 +79,7 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 		self.__procedure_permissions__ = {}
 		tmp = 0
 		while tmp < self.nbr_perm_used:
-			(proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3) = getTableIDCBFLD(self.conn.c1219_endian, access_ctl_table)
+			(proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3) = get_table_idcb_field(self.conn.c1219_endian, access_ctl_table)
 			if proc_flag:
 				self.__procedure_permissions__[proc_nbr] = {'idx':proc_nbr, 'mfg':std_vs_mfg, 'anyread':flag1, 'anywrite':flag2, 'read':ord(access_ctl_table[2]), 'write':ord(access_ctl_table[3])}
 			else:
