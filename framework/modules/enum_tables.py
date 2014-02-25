@@ -17,15 +17,16 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import TermineterModuleOptical
 from time import sleep
-from c1218.data import C1218ReadRequest, C1218_RESPONSE_CODES
+
+from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_TABLES
+from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 3
+		self.version = 4
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
@@ -40,30 +41,27 @@ class Module(TermineterModuleOptical):
 		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')
 
+		number_of_tables = 0
 		self.frmwk.print_status('Enumerating tables, please wait...')
-		tables_found = 0
 		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
-			data = self.get_table_data_ex(conn, tableid, 4)
-			if data[0] == '\x00':
+			try:
+				data = conn.get_table_data(tableid)
+			except C1218ReadTableError as error:
+				data = None
+				if error.errCode == 10: # ISSS
+					conn.stop()
+					logger.warning('received ISSS error, connection stopped, will sleep before retrying')
+					sleep(0.5)
+					if not self.frmwk.serial_login():
+						logger.warning('meter login failed, some tables may not be accessible')
+					try:
+						data = conn.get_table_data(tableid)
+					except C1218ReadTableError as error:
+						data = None
+						if error.errCode == 10:
+							raise error # tried to re-sync communications but failed, you should reconnect and rerun the module
+			if data:
 				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
-				tables_found += 1
-			else:
-				error_code = ord(data[0])
-				error_type = str(C1218_RESPONSE_CODES.get(error_code) or 'UNKNOWN')
-				logger.info('received error code: ' + str(error_code) + ' type: ' + error_type)
-			while not conn.stop():
-				sleep(0.5)
-			sleep(0.25)
-			while not conn.start():
-				sleep(0.5)
-			sleep(0.25)
-			while not conn.login():
-				sleep(0.5)
-			sleep(0.25)
-		self.frmwk.print_status('Found ' + str(tables_found) + ' table(s).')
+				number_of_tables += 1
+		self.frmwk.print_status('Found ' + str(number_of_tables) + ' table(s).')
 		return
-
-	def get_table_data_ex(self, conn, tableid, octetcount = 244):
-		conn.send(C1218ReadRequest(tableid, 0, octetcount))
-		data = conn.recv()
-		return data
