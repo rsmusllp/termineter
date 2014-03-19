@@ -29,7 +29,7 @@ from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError,
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
-if not 'c1218.urlhandler' in serial.protocol_handler_packages:
+if hasattr(serial, 'protocol_handler_packages') and not 'c1218.urlhandler' in serial.protocol_handler_packages:
 	serial.protocol_handler_packages.append('c1218.urlhandler')
 
 if hasattr(logging, 'NullHandler'):
