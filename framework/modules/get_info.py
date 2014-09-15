@@ -17,9 +17,9 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import TermineterModuleOptical
 from c1218.errors import C1218ReadTableError
 from c1219.access.general import C1219GeneralAccess
+from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	require_connection = False

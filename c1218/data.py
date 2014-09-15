@@ -17,7 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from struct import pack, unpack
+import struct
+
 from c1218.utils import crc, crc_str, data_chksum, data_chksum_str
 
 ACK = '\x06'
@@ -90,7 +91,7 @@ class C1218LogonRequest(C1218Request):
 			raise Exception('invalid data (size)')
 		if data[0] != '\x50':
 			raise Exception('invalid start byte')
-		userid = unpack(">H", data[1:3])[0]
+		userid = struct.unpack(">H", data[1:3])[0]
 		username = data[3:]
 		return C1218LogonRequest(username, userid)
 
@@ -101,11 +102,11 @@ class C1218LogonRequest(C1218Request):
 			ValueError('userid must be between 0x0000 and 0xffff')
 		if not 0x0000 <= userid <= 0xffff:
 			raise ValueError('userid must be between 0x0000 and 0xffff')
-		self.__userid__ = pack('>H', userid)
+		self.__userid__ = struct.pack('>H', userid)
 
 	@property
 	def userid(self):
-		return unpack('>H', self.__userid__)[0]
+		return struct.unpack('>H', self.__userid__)[0]
 
 	def set_username(self, value):
 		if len(value) > 10:
@@ -185,7 +186,7 @@ class C1218NegotiateRequest(C1218Request):
 				raise Exception('invalid data (size)')
 		else:
 			raise Exception('invalid start byte')
-		pktsize = unpack('>H', data[1:3])[0]
+		pktsize = struct.unpack('>H', data[1:3])[0]
 		nbrpkt = ord(data[3])
 		baudrate = None
 		if baud_included:
@@ -197,7 +198,7 @@ class C1218NegotiateRequest(C1218Request):
 		return request
 
 	def set_pktsize(self, pktsize):
-		self.__pktsize__ = pack('>H', pktsize)
+		self.__pktsize__ = struct.pack('>H', pktsize)
 
 	def set_nbrpkt(self, nbrpkt):
 		self.__nbrpkt__ = chr(nbrpkt)
@@ -283,45 +284,45 @@ class C1218ReadRequest(C1218Request):
 			raise Exception('invalid data (size)')
 		if data[0] != '\x30' and data[0] != '\x3f':
 			raise Exception('invalid start byte')
-		tableid = unpack('>H', data[1:3])[0]
+		tableid = struct.unpack('>H', data[1:3])[0]
 		if data[0] == '\x30':
 			offset = None
 			octetcount = None
 		elif data[0] == '\x3f':
-			offset = unpack('>I', '\x00' + data[3:6])[0]
-			octetcount = unpack('>H', data[6:8])[0]
+			offset = struct.unpack('>I', '\x00' + data[3:6])[0]
+			octetcount = struct.unpack('>H', data[6:8])[0]
 		request = C1218ReadRequest(tableid, offset, octetcount)
 		request.read = data[0]
 		return request
 
 	def set_tableid(self, tableid):
-		self.__tableid__ = pack('>H', tableid)
+		self.__tableid__ = struct.pack('>H', tableid)
 
 	@property
 	def tableid(self):
-		return unpack('>H', self.__tableid__)[0]
+		return struct.unpack('>H', self.__tableid__)[0]
 
 	def set_offset(self, offset):
 		if self.__octetcount__ and self.__offset__:
 			self.read = '\x3f'
-		self.__offset__ = pack('>I', (offset & 0xffffff))[1:]
+		self.__offset__ = struct.pack('>I', (offset & 0xffffff))[1:]
 
 	@property
 	def offset(self):
 		if self.__offset__ == '':
 			return None
-		return unpack('>I', '\x00' + self.__offset__)[0]
+		return struct.unpack('>I', '\x00' + self.__offset__)[0]
 
 	def set_octetcount(self, octetcount):
 		if self.__octetcount__ and self.__offset__:
 			self.read = '\x3f'
-		self.__octetcount__ = pack('>H', octetcount)
+		self.__octetcount__ = struct.pack('>H', octetcount)
 
 	@property
 	def octetcount(self):
 		if self.__octetcount__ == '':
 			return None
-		return unpack('>H', self.__octetcount__)[0]
+		return struct.unpack('>H', self.__octetcount__)[0]
 
 class C1218WriteRequest(C1218Request):
 	write = '\x40'
@@ -353,14 +354,14 @@ class C1218WriteRequest(C1218Request):
 			raise Exception('invalid data (size)')
 		if data[0] != '\x40' and data[0] != '\x4f':
 			raise Exception('invalid start byte')
-		tableid = unpack('>H', data[1:3])[0]
+		tableid = struct.unpack('>H', data[1:3])[0]
 		chksum = data[-1]
 		if data[0] == '\x40':
 			table_data = data[5:-1]
 			offset = None
 		elif data[0] == '\x4f':
 			table_data = data[8:-1]
-			offset = unpack('>I', '\x00' + data[3:6])[0]
+			offset = struct.unpack('>I', '\x00' + data[3:6])[0]
 		if data_chksum_str(table_data) != chksum:
 			raise Exception('invalid check sum')
 		request = C1218WriteRequest(tableid, table_data, offset = offset)
@@ -368,24 +369,24 @@ class C1218WriteRequest(C1218Request):
 		return request
 
 	def set_tableid(self, tableid):
-		self.__tableid__ = pack('>H', tableid)
+		self.__tableid__ = struct.pack('>H', tableid)
 
 	@property
 	def tableid(self):
-		return unpack('>H', self.__tableid__)[0]
+		return struct.unpack('>H', self.__tableid__)[0]
 
 	def set_offset(self, offset):
-		self.__offset__ = pack('>I', (offset & 0xffffff))[1:]
+		self.__offset__ = struct.pack('>I', (offset & 0xffffff))[1:]
 
 	@property
 	def offset(self):
 		if self.__offset__ == '':
 			return None
-		return unpack('>I', '\x00' + self.__offset__)[0]
+		return struct.unpack('>I', '\x00' + self.__offset__)[0]
 
 	def set_data(self, data):
 		self.__data__ = data
-		self.__datalen__ = pack('>H', len(data))
+		self.__datalen__ = struct.pack('>H', len(data))
 
 	@property
 	def data(self):
@@ -408,7 +409,7 @@ class C1218Packet(C1218Request):
 		identity = data[1]
 		control = ord(data[2])
 		sequence = data[3]
-		length = unpack('>H', data[4:6])[0]
+		length = struct.unpack('>H', data[4:6])[0]
 		chksum = data[-2:]
 		if crc_str(data[:-2]) != chksum:
 			raise Exception('invalid check sum')
@@ -429,7 +430,7 @@ class C1218Packet(C1218Request):
 			if isinstance(control, int):
 				if not (0x00 < control < 0xff):
 					raise ValueError('control must be between 0x00 and 0xff')
-				control = pack('B', control)
+				control = struct.pack('B', control)
 			self.control = control
 
 	def __repr__(self):
@@ -454,7 +455,7 @@ class C1218Packet(C1218Request):
 	def set_length(self, length):
 		if length > 8183:
 			raise ValueError('length can not exceed 8183')
-		self.__length__ = pack('>H', length)
+		self.__length__ = struct.pack('>H', length)
 
 	def do_build(self):
 		packet = self.start

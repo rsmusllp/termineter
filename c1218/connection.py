@@ -17,17 +17,18 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from binascii import hexlify, unhexlify
-from struct import pack, unpack
-from random import randint
-from time import sleep
 import logging
-import serial
+import random
+import struct
+import time
+
 from c1218.data import *
-from c1218.utils import find_strings, data_chksum_str
 from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError, C1218WriteTableError
+from c1218.utils import find_strings, data_chksum_str
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
+
+import serial
 
 if hasattr(serial, 'protocol_handler_packages') and not 'c1218.urlhandler' in serial.protocol_handler_packages:
 	serial.protocol_handler_packages.append('c1218.urlhandler')
@@ -130,16 +131,16 @@ class ConnectionRaw:
 		elif self.toggle_control and not isinstance(data, C1218Packet):
 			self.loggerio.warning('toggle bit is on but the data is not a C1218Packet instance')
 		data = str(data)
-		self.loggerio.debug("sending frame,  length: {0:<3} data: {1}".format(len(data), hexlify(data)))
+		self.loggerio.debug("sending frame,  length: {0:<3} data: {1}".format(len(data), data.encode('hex')))
 		for pktcount in xrange(0, 3):
 			self.write(data)
 			response = self.serial_h.read(1)
 			if response == NACK:
 				self.loggerio.warning('received a NACK after writing data')
-				sleep(0.10)
+				time.sleep(0.10)
 			elif response == '':
 				self.loggerio.error('received empty response after writing data')
-				sleep(0.10)
+				time.sleep(0.10)
 			elif response != ACK:
 				self.loggerio.error('received unknown response: ' + hex(ord(response)) + ' after writing data')
 			else:
@@ -168,14 +169,14 @@ class ConnectionRaw:
 			sequence = ord(tmpbuffer[-1])
 			length = self.serial_h.read(2)
 			tmpbuffer += length
-			length = unpack('>H', length)[0]
+			length = struct.unpack('>H', length)[0]
 			payload = self.serial_h.read(length)
 			tmpbuffer += payload
 			chksum = self.serial_h.read(2)
 			if chksum == crc_str(tmpbuffer):
 				self.serial_h.write(ACK)
 				data = tmpbuffer + chksum
-				self.loggerio.debug("received frame, length: {0:<3} data: {1}".format(len(data), hexlify(data)))
+				self.loggerio.debug("received frame, length: {0:<3} data: {1}".format(len(data), data.encode('hex')))
 				payloadbuffer += payload
 				if sequence == 0:
 					if full_frame:
@@ -210,7 +211,7 @@ class ConnectionRaw:
 		@param size: The number of bytes to read from the serial connection.
 		"""
 		data = self.serial_h.read(size)
-		self.logger.debug('read data, length: ' + str(len(data)) + ' data: ' + hexlify(data))
+		self.logger.debug('read data, length: ' + str(len(data)) + ' data: ' + data.encode('hex'))
 		self.serial_h.write(ACK)
 		return data
 
@@ -392,7 +393,7 @@ class Connection(ConnectionRaw):
 				raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: no data was returned')
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length (less than 4)')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length (less than 4)')
-		length = unpack('>H', data[1:3])[0]
+		length = struct.unpack('>H', data[1:3])[0]
 		chksum = data[-1]
 		data = data[3:-1]
 		if len(data) != length:
@@ -444,7 +445,7 @@ class Connection(ConnectionRaw):
 		@param params: The parameters to pass to the procedure initiation
 		request.
 		"""
-		seqnum = randint(2, 254)
+		seqnum = random.randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
 		procedure_request = str(C1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
 		self.set_table_data(7, procedure_request)

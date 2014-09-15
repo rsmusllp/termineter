@@ -23,7 +23,8 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
-from struct import pack, unpack
+import struct
+
 from c1218.errors import C1218ReadTableError
 from c1219.constants import *
 from c1219.data import get_table_idcb_field
@@ -60,7 +61,7 @@ class C1219SecurityAccess(object):		# Corresponds To Decade 4x
 		self.__password_len__ = ord(act_security_table[1])
 		self.__nbr_keys__ = ord(act_security_table[2])
 		self.__key_len__ = ord(act_security_table[3])
-		self.__nbr_perm_used__ = unpack(self.conn.c1219_endian + 'H', act_security_table[4:6])[0]
+		self.__nbr_perm_used__ = struct.unpack(self.conn.c1219_endian + 'H', act_security_table[4:6])[0]
 
 		### Parse SECURITY_TBL ###
 		if len(security_table) != ((self.nbr_passwords * self.password_len) + self.nbr_passwords):

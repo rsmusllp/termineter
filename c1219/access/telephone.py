@@ -23,7 +23,8 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
-from struct import pack, unpack
+import struct
+
 from c1219.constants import *
 from c1219.errors import C1219ParseError, C1219ProcedureError
 
@@ -74,11 +75,11 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		if bit_rate_settings == 1:
 			if len(global_parameters_table) < 5:
 				raise C1219ParseError('expected to read more data from GLOBAL_PARAMETERS_TBL', GLOBAL_PARAMETERS_TBL)
-			self.__global_bit_rate__ = unpack(conn.c1219_endian + 'I', global_parameters_table[1:5])[0]
+			self.__global_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', global_parameters_table[1:5])[0]
 
 		### Parse ORIGINATE_PARAMETERS_TBL ###
 		if bit_rate_settings == 2:
-			self.__originate_bit_rate__ = unpack(conn.c1219_endian + 'I', originate_parameters_table[0:4])[0]
+			self.__originate_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', originate_parameters_table[0:4])[0]
 			originate_parameters_table = originate_parameters_table[4:]
 		self.__dial_delay__ = ord(originate_parameters_table[0])
 		originate_parameters_table = originate_parameters_table[1:]
@@ -104,7 +105,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 
 		### Prase ANSWER_PARAMETERS_TBL ###
 		if bit_rate_settings == 2:
-			self.__answer_bit_rate__ = unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
+			self.__answer_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
 		self.update_last_call_statuses()
 
 	def initiate_call(self, number = None, idx = None):

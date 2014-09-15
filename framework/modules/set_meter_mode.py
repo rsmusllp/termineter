@@ -17,10 +17,10 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import TermineterModuleOptical
-from c1219.errors import C1219ProcedureError
-from c1219.constants import C1219_METER_MODE_NAMES
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
+from c1219.constants import C1219_METER_MODE_NAMES
+from c1219.errors import C1219ProcedureError
+from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
@@ -43,11 +43,6 @@ class Module(TermineterModuleOptical):
 		mode_dict = C1219_METER_MODE_NAMES
 		if not mode in mode_dict:
 			self.frmwk.print_error('unknown mode, please use METERING, TEST, METERSHOP, or FACTORY')
-			return
-
-		if not self.frmwk.serial_login():
-			logger.warning('meter login failed')
-			self.frmwk.print_error('Meter login failed, can not execute procedure')
 			return
 
 		logger.info('setting mode to: ' + mode)

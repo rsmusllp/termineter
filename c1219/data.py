@@ -17,8 +17,9 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+import struct
 import time
-from struct import pack, unpack
+
 from c1219.constants import *
 
 def format_ltime(endianess, tm_format, data):
@@ -55,11 +56,11 @@ def format_ltime(endianess, tm_format, data):
 		second = ord(data[5])
 	elif tm_format == 3 or tm_format == 4:
 		if tm_format == 3:
-			u_time = float(unpack(endianess + 'I', data[0:4])[0])
+			u_time = float(struct.unpack(endianess + 'I', data[0:4])[0])
 			second = float(data[4])
 			final_time = time.gmtime((u_time * 60) + second)
 		elif tm_format == 4:
-			final_time = time.gmtime(float(unpack(endianess + 'I', data[0:4])[0]))
+			final_time = time.gmtime(float(struct.unpack(endianess + 'I', data[0:4])[0]))
 		year = str(final_time.tm_year)
 		month = str(final_time.tm_mon)
 		day = str(final_time.tm_mday)
@@ -102,12 +103,12 @@ def get_history_entry_record(endianess, hist_date_time_flag, tm_format, event_nu
 			rcd['Time'] = tmstmp
 		data = data[LTIME_LENGTH.get(tm_format):]
 	if event_number_flag:
-		rcd['Event Number'] = unpack(endianess + 'H', data[:2])[0]
+		rcd['Event Number'] = struct.unpack(endianess + 'H', data[:2])[0]
 		data = data[2:]
 	if hist_seq_nbr_flag:
-		rcd['History Sequence Number'] = unpack(endianess + 'H', data[:2])[0]
+		rcd['History Sequence Number'] = struct.unpack(endianess + 'H', data[:2])[0]
 		data = data[2:]
-	rcd['User ID'] = unpack(endianess + 'H', data[:2])[0]
+	rcd['User ID'] = struct.unpack(endianess + 'H', data[:2])[0]
 	rcd['Procedure Number'], rcd['Std vs Mfg'] = get_table_idbb_field(endianess, data[2:4])[:2]
 	rcd['Arguments'] = data[4:]
 	return rcd
@@ -124,7 +125,7 @@ def get_table_idbb_field(endianess, data):
 
 	@rtype: Tuple (proc_nbr, std_vs_mfg)
 	"""
-	bfld = unpack(endianess + 'H', data[:2])[0]
+	bfld = struct.unpack(endianess + 'H', data[:2])[0]
 	proc_nbr = bfld & 0x7ff
 	std_vs_mfg = bool(bfld & 0x800)
 	selector = (bfld & 0xf000) >> 12
@@ -142,7 +143,7 @@ def get_table_idcb_field(endianess, data):
 
 	@rtype: Tuple (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
 	"""
-	bfld = unpack(endianess + 'H', data[:2])[0]
+	bfld = struct.unpack(endianess + 'H', data[:2])[0]
 	proc_nbr = bfld & 2047
 	std_vs_mfg = bool(bfld & 2048)
 	proc_flag = bool(bfld & 4096)
@@ -193,7 +194,7 @@ class C1219ProcedureInit:
 		mfg_defined = mfg_defined << 11
 		selector = selector << 12
 
-		self.table_idb_bfld = pack(endianess + 'H', (table_proc_nbr | mfg_defined | selector))
+		self.table_idb_bfld = struct.pack(endianess + 'H', (table_proc_nbr | mfg_defined | selector))
 		self.endianess = endianess
 		self.proc_nbr = table_proc_nbr
 		self.seqnum = ord(chr(seqnum))

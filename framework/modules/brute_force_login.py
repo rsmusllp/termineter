@@ -17,12 +17,12 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import TermineterModuleOptical
-from framework.utils import StringGenerator
-from binascii import unhexlify
-from time import sleep
 import os
 import re
+from time import sleep
+
+from framework.templates import TermineterModuleOptical
+from framework.utils import StringGenerator
 
 class BruteForce:
 	def __init__(self, dictionary_path = None):
@@ -99,7 +99,7 @@ class Module(TermineterModuleOptical):
 						logger.error('invalid characters found while searching for hex')
 						self.frmwk.print_error('Invalid characters found while searching for hex')
 						return
-					password = unhexlify(password)
+					password = password.decode('hex')
 				else:
 					password = password.rstrip()
 			if len(password) > 20:

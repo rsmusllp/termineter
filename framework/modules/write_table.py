@@ -18,9 +18,9 @@
 #  MA 02110-1301, USA.
 
 import re
-from binascii import unhexlify
-from framework.templates import TermineterModuleOptical
+
 from c1218.errors import C1218WriteTableError
+from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
@@ -45,7 +45,7 @@ class Module(TermineterModuleOptical):
 			if hex_regex.match(data) == None:
 				self.frmwk.print_error('Non-hex characters found in \'DATA\'')
 				return
-			data = unhexlify(data)
+			data = data.decode('hex')
 
 		if not self.frmwk.serial_login():
 			logger.warning('meter login failed')

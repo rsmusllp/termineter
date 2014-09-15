@@ -17,10 +17,10 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-import os
 import copy
-import serial
 import itertools
+import os
+import serial
 
 DEFAULT_SERIAL_SETTINGS = {
 	'parity': serial.PARITY_NONE,

@@ -17,12 +17,14 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from struct import pack, unpack
+import struct
+
 from c1222.utils import data_chksum, data_chksum_str
-from pyasn1.type import tag
-from pyasn1.type import univ
+
 from pyasn1.codec.ber import encoder as ber_encoder
 from pyasn1.codec.ber import decoder as ber_decoder
+from pyasn1.type import tag
+from pyasn1.type import univ
 
 class C1222CallingAPTitle(univ.ObjectIdentifier):
 	tagSet = univ.ObjectIdentifier.tagSet.tagExplicitly(tag.Tag(tag.tagClassContext, tag.tagFormatConstructed, 6))
@@ -174,7 +176,7 @@ class C1222Request(C1222Data):
 			ValueError('userid must be between 0x0000 and 0xffff')
 		if not 0x0000 <= userid <= 0xffff:
 			raise ValueError('userid must be between 0x0000 and 0xffff')
-		self.__userid__ = pack(">H", userid)
+		self.__userid__ = struct.pack('>H', userid)
 
 class C1222DisconnectRequest(C1222Request):
 	disconnect = '\x22'
@@ -218,7 +220,7 @@ class C1222LogonRequest(C1222Request):
 			ValueError('session_idle_timeout must be between 0x0000 and 0xffff')
 		if not 0x0000 <= session_idle_timeout <= 0xffff:
 			raise ValueError('session_idle_timeout must be between 0x0000 and 0xffff')
-		self.__session_idle_timeout__ = pack(">H", session_idle_timeout)
+		self.__session_idle_timeout__ = struct.pack('>H', session_idle_timeout)
 
 class C1222ReadRequest(C1222Request):
 	read = '\x30'
@@ -237,13 +239,13 @@ class C1222ReadRequest(C1222Request):
 		return self.read + self.__tableid__ + self.__offset__ + self.__octetcount__
 
 	def set_tableid(self, tableid):
-		self.__tableid__ = pack('>H', tableid)
+		self.__tableid__ = struct.pack('>H', tableid)
 
 	def set_offset(self, offset):
-		self.__offset__ = pack('>I', (offset & 0xffffff))[1:]
+		self.__offset__ = struct.pack('>I', (offset & 0xffffff))[1:]
 
 	def set_octetcount(self, octetcount):
-		self.__octetcount__ = pack('>H', octetcount)
+		self.__octetcount__ = struct.pack('>H', octetcount)
 
 class C1222ResolveRequest(C1222Request):
 	resolve = '\x25'
@@ -325,14 +327,14 @@ class C1222WriteRequest(C1222Request):
 		return packet
 
 	def set_tableid(self, tableid):
-		self.__tableid__ = pack('>H', tableid)
+		self.__tableid__ = struct.pack('>H', tableid)
 
 	def set_offset(self, offset):
-		self.__offset__ = pack('>I', (offset & 0xffffff))[1:]
+		self.__offset__ = struct.pack('>I', (offset & 0xffffff))[1:]
 
 	def set_data(self, data):
 		self.__data__ = data
-		self.__datalen__ = pack('>H', len(data))
+		self.__datalen__ = struct.pack('>H', len(data))
 
 class C1222Packet(C1222Request):
 	start = '\x60'

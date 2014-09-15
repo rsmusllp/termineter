@@ -17,17 +17,17 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from struct import pack, unpack
 import string
-from binascii import hexlify, unhexlify
+import struct
+
 import CrcMoose # Get it from: http://www.nightmare.com/~ryb/code/CrcMoose.py
 
 crc = CrcMoose.CRC_HDLC.calcString
-crc_str = lambda x: pack("<H", crc(x))
+crc_str = lambda x: struct.pack("<H", crc(x))
 
 def data_chksum(data):
 	chksum = 0
-	for i in unpack('B' * len(data), data):
+	for i in struct.unpack('B' * len(data), data):
 		chksum += i
 	return (((chksum - 1) & 0xff) ^ 0xff)
 

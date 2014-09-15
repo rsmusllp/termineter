@@ -23,12 +23,13 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
-from struct import pack, unpack
-from c1219.constants import *
-from c1219.errors import C1219ParseError
+import struct
+
 from c1218.data import C1218WriteRequest
 from c1218.errors import C1218ReadTableError
 from c1218.utils import find_strings
+from c1219.constants import *
+from c1219.errors import C1219ParseError
 
 class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 	"""
@@ -120,7 +121,7 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 		### Parse ED_MODE_STATUS_TBL ###
 		if mode_status_table:
 			self.__ed_mode__ = ord(mode_status_table[0])
-			self.__std_status__ = unpack(conn.c1219_endian + 'H', mode_status_table[1:3])[0]
+			self.__std_status__ = struct.unpack(conn.c1219_endian + 'H', mode_status_table[1:3])[0]
 
 		### Parse DEVICE_IDENT_TBL ###
 		if ident_table:

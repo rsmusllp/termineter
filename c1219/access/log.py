@@ -23,7 +23,8 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
-from struct import pack, unpack
+import struct
+
 from c1219.constants import *
 from c1219.data import get_history_entry_record
 from c1219.errors import C1219ParseError
@@ -70,10 +71,10 @@ class C1219LogAccess(object):		# Corresponds To Decade 7x
 		nbr_mfg_events = ord(actual_log_table[2])
 		hist_data_length = ord(actual_log_table[3])
 		event_data_length = ord(actual_log_table[4])
-		self.__nbr_history_entries__, self.__nbr_event_entries__ = unpack(self.conn.c1219_endian + 'HH', actual_log_table[5:9])
+		self.__nbr_history_entries__, self.__nbr_event_entries__ = struct.unpack(self.conn.c1219_endian + 'HH', actual_log_table[5:9])
 		if std_version_no > 1:
 			ext_log_flags = ord(actual_log_table[9])
-			nbr_program_tables = unpack(self.conn.c1219_endian + 'H', actual_log_table[10:12])
+			nbr_program_tables = struct.unpack(self.conn.c1219_endian + 'H', actual_log_table[10:12])
 		else:
 			ext_log_flags = None
 			nbr_program_tables = None
@@ -82,7 +83,7 @@ class C1219LogAccess(object):		# Corresponds To Decade 7x
 		overflow_flag = ord(history_log_data_table[0]) & 2
 		list_type_flag = ord(history_log_data_table[0]) & 4
 		inhibit_overflow_flag = ord(history_log_data_table[0]) & 8
-		nbr_valid_entries, last_entry_element, last_entry_seq_num, nbr_unread_entries = unpack(self.conn.c1219_endian + 'HHIH', history_log_data_table[1:11])
+		nbr_valid_entries, last_entry_element, last_entry_seq_num, nbr_unread_entries = struct.unpack(self.conn.c1219_endian + 'HHIH', history_log_data_table[1:11])
 
 		log_data = history_log_data_table[11:]
 		size_of_log_rcd = hist_data_length + 4 # hist_data_length + (SIZEOF(USER_ID) + SIZEOF(TABLE_IDB_BFLD))

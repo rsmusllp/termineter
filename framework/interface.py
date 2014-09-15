@@ -17,14 +17,15 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-import os
 import cmd
-import sys
 import code
-import socket
 import logging
-import traceback
+import os
 from random import randint
+import socket
+import sys
+import traceback
+
 from framework.core import Framework, FrameworkConfigurationError
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import Options

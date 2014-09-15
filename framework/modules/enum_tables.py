@@ -24,6 +24,7 @@ from c1219.data import C1219_TABLES
 from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
+	require_connection = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 4

@@ -18,9 +18,9 @@
 #  MA 02110-1301, USA.
 
 import difflib
-from binascii import hexlify, unhexlify
-from framework.templates import TermineterModule
+
 import c1219.constants
+from framework.templates import TermineterModule
 
 HTML_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -120,7 +120,7 @@ class Module(TermineterModule):
 		line = line.strip().split(',')
 		if not line:
 			return None, ''
-		lid, ldata = int(line[0]), unhexlify(line[-1])
+		lid, ldata = int(line[0]), line[-1].decode('hex')
 		return lid, ldata
 
 	def report_line(self, fline, sline, lineno):
@@ -141,8 +141,8 @@ class Module(TermineterModule):
 		bottom_row = row_header.format(lineno = lineno, highlight_table = highlight_table, highlight_row = 'class="diff_highlight" ')
 
 		for tag, i1, i2, j1, j2 in opcodes:
-			top_chunk = hexlify(fline[i1:i2])
-			bottom_chunk = hexlify(sline[j1:j2])
+			top_chunk = fline[i1:i2].encode('hex')
+			bottom_chunk = sline[j1:j2].encode('hex')
 			if tag != 'equal':
 				top_row += span_tag.format(dtype = tag[:3])
 				bottom_row += span_tag.format(dtype = tag[:3])

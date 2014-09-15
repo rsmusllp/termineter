@@ -17,9 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from framework.templates import TermineterModuleOptical
-from binascii import unhexlify
 from c1219.constants import C1219_PROCEDURE_NAMES, C1219_PROC_RESULT_CODES
+from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
@@ -41,7 +40,7 @@ class Module(TermineterModuleOptical):
 
 		data = self.options['PARAMS']
 		if self.options['USEHEX']:
-			data = unhexlify(data)
+			data = data.decode('hex')
 
 		self.frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
 

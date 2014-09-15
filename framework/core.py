@@ -17,20 +17,21 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-import os
-import re
-import sys
-import serial
 import logging
 import logging.handlers
-from binascii import unhexlify
-from serial.serialutil import SerialException
+import os
+import re
+import serial
+import sys
+
+from c1218.connection import Connection
+from c1218.errors import C1218IOError, C1218ReadTableError
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
 from framework.templates import TermineterModule, TermineterModuleOptical
 from framework.utils import FileWalker, Namespace, get_default_serial_settings
-from c1218.connection import Connection
-from c1218.errors import C1218IOError, C1218ReadTableError
+
+from serial.serialutil import SerialException
 
 class Framework(object):
 	"""
@@ -405,7 +406,7 @@ class Framework(object):
 			if hex_regex.match(password) == None:
 				self.print_error('Invalid characters in password')
 				raise FrameworkConfigurationError('invalid characters in password')
-			password = unhexlify(password)
+			password = password.decode('hex')
 		if len(username) > 10:
 			self.print_error('Username cannot be longer than 10 characters')
 			raise FrameworkConfigurationError('username cannot be longer than 10 characters')

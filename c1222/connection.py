@@ -17,12 +17,11 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-from random import randint
-from binascii import hexlify, unhexlify
-from struct import pack, unpack
-from select import select
 import logging
+import random
+import select
 import socket
+
 from c1222.data import *
 from c1222.errors import C1222IOError
 
@@ -30,7 +29,7 @@ if hasattr(logging, 'NullHandler'):
 	logging.getLogger('c1222').addHandler(logging.NullHandler())
 
 def sock_read_ready(socket, timeout):
-	readys = select([socket.fileno()], [], [], timeout)
+	readys = select.select([socket.fileno()], [], [], timeout)
 	return len(readys[0]) == 1
 
 class Connection:
@@ -81,7 +80,7 @@ class Connection:
 
 	def recv(self):
 		if self.read_sock_h == None:
-			readable = select([self.sock_h.fileno(), self.server_sock_h.fileno()], [], [], self.read_timeout)
+			readable = select.select([self.sock_h.fileno(), self.server_sock_h.fileno()], [], [], self.read_timeout)
 			readable = readable[0]
 			if len(readable) > 1:
 				raise C1222IOError('too many file handles available for reading')
@@ -109,7 +108,7 @@ class Connection:
 		return C1222EPSEM.parse(pkt.data.data)
 
 	def send(self, data):
-		pkt = C1222Packet(self.called_ap, self.calling_ap, randint(0, 999999), data = C1222UserInformation(C1222EPSEM(data)))
+		pkt = C1222Packet(self.called_ap, self.calling_ap, random.randint(0, 999999), data = C1222UserInformation(C1222EPSEM(data)))
 		self.sock_h.send(str(pkt))
 
 	def start(self):
