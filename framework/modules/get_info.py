@@ -22,6 +22,7 @@ from c1218.errors import C1218ReadTableError
 from c1219.access.general import C1219GeneralAccess
 
 class Module(TermineterModuleOptical):
+	require_connection = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1

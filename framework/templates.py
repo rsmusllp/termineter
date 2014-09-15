@@ -66,8 +66,8 @@ class TermineterModuleOptical(TermineterModule):
 		'NBRPKTS',
 		'PKTSIZE'
 	)
+	require_connection = True
 	def __init__(self, *args, **kwargs):
-		self.require_connection = True
 		super(TermineterModuleOptical, self).__init__(*args, **kwargs)
 
 class TermineterModuleRfcat(TermineterModule):

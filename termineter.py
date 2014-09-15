@@ -26,10 +26,10 @@ from framework.interface import InteractiveInterpreter
 __version__ = '0.1.0'
 
 def main():
-	parser = ArgumentParser(description = 'Termineter: Python Smart Meter Testing Framework', conflict_handler = 'resolve')
-	parser.add_argument('-v', '--version', action = 'version', version = parser.prog + ' Version: ' + __version__)
-	parser.add_argument('-L', '--log', dest = 'loglvl', action = 'store', choices = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default = 'CRITICAL', help = 'set the logging level')
-	parser.add_argument('-r', '--rc-file', dest = 'resource_file', action = 'store', default = True, help = 'execute a resource file')
+	parser = ArgumentParser(description='Termineter: Python Smart Meter Testing Framework', conflict_handler='resolve')
+	parser.add_argument('-v', '--version', action='version', version=parser.prog + ' Version: ' + __version__)
+	parser.add_argument('-L', '--log', dest='loglvl', action='store', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='CRITICAL', help='set the logging level')
+	parser.add_argument('-r', '--rc-file', dest='resource_file', action='store', default=True, help='execute a resource file')
 	arguments = parser.parse_args()
 
 	logging.getLogger('').setLevel(logging.DEBUG)
@@ -40,7 +40,7 @@ def main():
 	rc_file = arguments.resource_file
 	del arguments, parser
 
-	interpreter = InteractiveInterpreter(rc_file, log_handler = console_log_handler)
+	interpreter = InteractiveInterpreter(rc_file, log_handler=console_log_handler)
 	interpreter.cmdloop()
 	logging.shutdown()
 

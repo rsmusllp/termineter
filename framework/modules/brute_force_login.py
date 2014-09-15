@@ -44,9 +44,9 @@ class BruteForce:
 		raise StopIteration
 
 class Module(TermineterModuleOptical):
+	require_connection = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.require_connection = False
 		self.version = 4
 		self.author = [ 'Spencer McIntyre' ]
 		self.description = 'Brute Force Credentials'
