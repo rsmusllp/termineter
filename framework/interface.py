@@ -513,7 +513,11 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 					return
 				self.print_good('Successfully connected and the device is responding')
 			else:
-				self.frmwk.serial_get()
+				try:
+					self.frmwk.serial_get()
+				except Exception as error:
+					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+					return
 		try:
 			self.frmwk.run()
 		except KeyboardInterrupt:
