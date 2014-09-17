@@ -330,7 +330,7 @@ class Connection(ConnectionRaw):
 		@type password: String (len(password) <= 20)
 		@param password: password to log in with
 		"""
-		if password != None and len(password) > 20:
+		if password and len(password) > 20:
 			self.logger.error('password longer than 20 characters received')
 			raise Exception('password longer than 20 characters, login failed')
 

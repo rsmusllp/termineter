@@ -113,16 +113,17 @@ class Module(TermineterModuleOptical):
 			sleep(time_delay)
 			if conn.login(username, userid, password):
 				if usehex:
-					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password.encode('hex'))
 				else:
-					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
 				if self.advanced_options.get_option_value('STOPONSUCCESS'):
 					conn.stop(force = True)
 					break
-			if usehex:
-				logger.warning('Failed logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password.encode('hex'))
 			else:
-				logger.warning('Failed logged in. Username: ' + username + ' Userid: ' + str(userid) + ' Password: ' + password)
+				if usehex:
+					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password.encode('hex'))
+				else:
+					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
 			while not conn.stop(force = True):
 				sleep(time_delay)
 			sleep(time_delay)
