@@ -29,7 +29,7 @@ from c1218.errors import C1218IOError, C1218ReadTableError
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
 from framework.templates import TermineterModule, TermineterModuleOptical
-from framework.utils import FileWalker, Namespace, get_default_serial_settings
+from framework.utilities import FileWalker, Namespace, get_default_serial_settings
 
 from serial.serialutil import SerialException
 
@@ -39,8 +39,8 @@ class Framework(object):
 	manages the serial connection as well as all of the loaded
 	modules.
 	"""
-	def __init__(self, stdout = None):
-		self.modules = { }
+	def __init__(self, stdout=None):
+		self.modules = {}
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 		package_path = __import__(self.__package__, None, None, ['__path__']).__path__[0]	# that's some python black magic trickery for you
 		if stdout == None:
@@ -62,7 +62,7 @@ class Framework(object):
 
 		# setup logging stuff
 		self.logger = logging.getLogger(self.__package__ + '.' + self.__class__.__name__.lower())
-		main_file_handler = logging.handlers.RotatingFileHandler(self.directories.user_data + self.__package__ + '.log', maxBytes = 262144, backupCount = 5)
+		main_file_handler = logging.handlers.RotatingFileHandler(self.directories.user_data + self.__package__ + '.log', maxBytes=262144, backupCount=5)
 		main_file_handler.setLevel(logging.DEBUG)
 		main_file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)-50s %(levelname)-10s %(message)s"))
 		logging.getLogger('').addHandler(main_file_handler)
@@ -72,20 +72,20 @@ class Framework(object):
 		# modules get_missing_options method and by which options they require based
 		# on their respective types.  See framework/templates.py for more info.
 		self.options = Options(self.directories)
-		self.options.add_boolean('USECOLOR', 'enable color on the console interface', default = False)
+		self.options.add_boolean('USECOLOR', 'enable color on the console interface', default=False)
 		self.options.add_string('CONNECTION', 'serial connection string')
-		self.options.add_string('USERNAME', 'serial username', default = '0000')
-		self.options.add_integer('USERID', 'serial userid', default = 0)
-		self.options.add_string('PASSWORD', 'serial c12.18 password', default = '00000000000000000000')
-		self.options.add_boolean('PASSWORDHEX', 'if the password is in hex', default = True)
+		self.options.add_string('USERNAME', 'serial username', default='0000')
+		self.options.add_integer('USERID', 'serial userid', default=0)
+		self.options.add_string('PASSWORD', 'serial c12.18 password', default='00000000000000000000')
+		self.options.add_boolean('PASSWORDHEX', 'if the password is in hex', default=True)
 		self.advanced_options = AdvancedOptions(self.directories)
-		self.advanced_options.add_integer('BAUDRATE', 'serial connection baud rate', default = 9600)
-		self.advanced_options.add_integer('BYTESIZE', 'serial connection byte size', default = serial.EIGHTBITS)
-		self.advanced_options.add_boolean('CACHETBLS', 'cache certain read-only tables', default = True)
+		self.advanced_options.add_integer('BAUDRATE', 'serial connection baud rate', default=9600)
+		self.advanced_options.add_integer('BYTESIZE', 'serial connection byte size', default=serial.EIGHTBITS)
+		self.advanced_options.add_boolean('CACHETBLS', 'cache certain read-only tables', default=True)
 		self.advanced_options.set_callback('CACHETBLS', self.__opt_callback_set_table_cache_policy)
-		self.advanced_options.add_integer('STOPBITS', 'serial connection stop bits', default = serial.STOPBITS_ONE)
-		self.advanced_options.add_integer('NBRPKTS', 'c12.18 maximum packets for reassembly', default = 2)
-		self.advanced_options.add_integer('PKTSIZE', 'c12.18 maximum packet size', default = 512)
+		self.advanced_options.add_integer('STOPBITS', 'serial connection stop bits', default=serial.STOPBITS_ONE)
+		self.advanced_options.add_integer('NBRPKTS', 'c12.18 maximum packets for reassembly', default=2)
+		self.advanced_options.add_integer('PKTSIZE', 'c12.18 maximum packet size', default=512)
 		if sys.platform.startswith('linux'):
 			self.options.set_option('USECOLOR', 'True')
 
@@ -112,7 +112,7 @@ class Framework(object):
 		if not os.path.isdir(modules_path):
 			self.logger.critical('path to modules not found')
 			raise FrameworkConfigurationError('path to modules not found')
-		for module_path in FileWalker(modules_path, absolute_path = True, skip_dirs = True):
+		for module_path in FileWalker(modules_path, absolute_path=True, skip_dirs=True):
 			module_path = module_path.replace(os.path.sep, '/')
 			if not module_path.endswith('.py'):
 				continue
@@ -152,7 +152,7 @@ class Framework(object):
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Loaded Modules: ' + str(len(self.modules)) + ', Serial Connected: ' + str(self.is_serial_connected()) + ' >'
 
-	def reload_module(self, module_path = None):
+	def reload_module(self, module_path=None):
 		"""
 		Reloads a module into the framework.  If module_path is not
 		specified, then the curent_module variable is used.  Returns True
@@ -172,7 +172,7 @@ class Framework(object):
 			raise FrameworkRuntimeError('invalid module requested for reload')
 
 		self.logger.info('reloading module: ' + module_path)
-		module_instance = self.import_module(module_path, reload_module = True)
+		module_instance = self.import_module(module_path, reload_module=True)
 		if not isinstance(module_instance, TermineterModule):
 			self.logger.error('module: ' + module_path + ' is not derived from the TermineterModule class')
 			raise FrameworkRuntimeError('module: ' + module_path + ' is not derived from the TermineterModule class')
@@ -190,7 +190,7 @@ class Framework(object):
 				self.current_module = module_instance
 		return True
 
-	def run(self, module = None):
+	def run(self, module=None):
 		if not isinstance(module, TermineterModule) and not isinstance(self.current_module, TermineterModule):
 			raise FrameworkRuntimeError('either the module or the current_module must be sent')
 		if module == None:
@@ -233,7 +233,7 @@ class Framework(object):
 		"""
 		return logging.getLogger(self.__package__ + '.modules.' + name)
 
-	def import_module(self, module_path, reload_module = False):
+	def import_module(self, module_path, reload_module=False):
 		try:
 			module = __import__(self.__package__ + '.modules.' + module_path.replace('/', '.'), None, None, ['Module'])
 			if reload_module:
@@ -279,15 +279,15 @@ class Framework(object):
 		while i < l:
 			self.stdout.write("%04x   " % i)
 			for j in range(16):
-				if i+j < l:
-					self.stdout.write("%02X " % ord(x[i+j]))
+				if i + j < l:
+					self.stdout.write("%02X " % ord(x[i + j]))
 				else:
 					self.stdout.write("   ")
-				if j%16 == 7:
+				if j % 16 == 7:
 					self.stdout.write(" ")
 			self.stdout.write("  ")
 			r = ""
-			for j in x[i:i+16]:
+			for j in x[i:i + 16]:
 				j = ord(j)
 				if (j < 32) or (j >= 127):
 					r = r + "."
@@ -336,7 +336,7 @@ class Framework(object):
 
 		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
 		try:
-			self.serial_connection = Connection(self.options['CONNECTION'], c1218_settings = frmwk_c1218_settings, serial_settings = frmwk_serial_settings, enable_cache = self.advanced_options['CACHETBLS'])
+			self.serial_connection = Connection(self.options['CONNECTION'], c1218_settings=frmwk_c1218_settings, serial_settings=frmwk_serial_settings, enable_cache=self.advanced_options['CACHETBLS'])
 		except Exception as error:
 			self.logger.error('could not open the serial device')
 			raise error
@@ -422,7 +422,6 @@ class Framework(object):
 		if not self.serial_connection.login(username, userid, password):
 			return False
 		return True
-
 
 	def __opt_callback_set_table_cache_policy(self, policy):
 		if self.is_serial_connected():

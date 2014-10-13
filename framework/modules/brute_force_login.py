@@ -22,10 +22,10 @@ import re
 from time import sleep
 
 from framework.templates import TermineterModuleOptical
-from framework.utils import StringGenerator
+from framework.utilities import StringGenerator
 
 class BruteForce:
-	def __init__(self, dictionary_path = None):
+	def __init__(self, dictionary_path=None):
 		if dictionary_path == None:
 			self.dictionary = None
 		else:
@@ -48,17 +48,17 @@ class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 4
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'
-		self.options.add_boolean('USEHEX', 'values in word list are in hex', default = True)
-		self.options.add_rfile('DICTIONARY', 'dictionary of passwords to try', required = False, default = '$DATA_PATH smeter_passwords.txt')
-		self.options.add_string('USERNAME', 'user name to attempt to log in as', default = '0000')
-		self.options.add_integer('USERID', 'user id to attempt to log in as', default = 1)
+		self.options.add_boolean('USEHEX', 'values in word list are in hex', default=True)
+		self.options.add_rfile('DICTIONARY', 'dictionary of passwords to try', required=False, default='$DATA_PATH smeter_passwords.txt')
+		self.options.add_string('USERNAME', 'user name to attempt to log in as', default='0000')
+		self.options.add_integer('USERID', 'user id to attempt to log in as', default=1)
 
-		self.advanced_options.add_boolean('PUREBRUTE', 'perform a pure bruteforce', default = False)
-		self.advanced_options.add_boolean('STOPONSUCCESS', 'stop after the first successful login', default = True)
-		self.advanced_options.add_float('DELAY', 'time in seconds to wait between attempts', default = 0.20)
+		self.advanced_options.add_boolean('PUREBRUTE', 'perform a pure bruteforce', default=False)
+		self.advanced_options.add_boolean('STOPONSUCCESS', 'stop after the first successful login', default=True)
+		self.advanced_options.add_float('DELAY', 'time in seconds to wait between attempts', default=0.20)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
@@ -117,14 +117,14 @@ class Module(TermineterModuleOptical):
 				else:
 					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
 				if self.advanced_options.get_option_value('STOPONSUCCESS'):
-					conn.stop(force = True)
+					conn.stop(force=True)
 					break
 			else:
 				if usehex:
 					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password.encode('hex'))
 				else:
 					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
-			while not conn.stop(force = True):
+			while not conn.stop(force=True):
 				sleep(time_delay)
 			sleep(time_delay)
 		return

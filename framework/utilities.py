@@ -39,7 +39,7 @@ def get_default_serial_settings():
 	return copy.copy(DEFAULT_SERIAL_SETTINGS)
 
 class FileWalker:
-	def __init__(self, filespath, absolute_path = False, skip_files = False, skip_dirs = False, filter_func = None):
+	def __init__(self, filespath, absolute_path=False, skip_files=False, skip_dirs=False, filter_func=None):
 		"""
 		This class is used to easily iterate over files in a directory.
 
@@ -74,7 +74,7 @@ class FileWalker:
 		self.skip_dirs = skip_dirs
 		self.filter_func = filter_func
 		if os.path.isdir(self.filespath):
-			self.__iter__= self.next_dir
+			self.__iter__ = self.next_dir
 		elif os.path.isfile(self.filespath):
 			self.__iter__ = self.next_file
 
@@ -112,7 +112,7 @@ class Namespace:
 	"""
 	pass
 
-def unique(seq, idfunc = None):
+def unique(seq, idfunc=None):
 	"""
 	Unique a list or tuple and preserve the order
 
@@ -134,7 +134,7 @@ def unique(seq, idfunc = None):
 	return preserved_type(result)
 
 class StringGenerator:
-	def __init__(self, startlen, endlen = None, charset = None):
+	def __init__(self, startlen, endlen=None, charset=None):
 		"""
 		This class is used to generate raw strings for bruteforcing.
 
@@ -164,7 +164,7 @@ class StringGenerator:
 	def __iter__(self):
 		length = self.startlen
 		while (length <= self.endlen):
-			for string in itertools.product(self.charset, repeat = length):
+			for string in itertools.product(self.charset, repeat=length):
 				yield ''.join(string)
 			length += 1
 		raise StopIteration
