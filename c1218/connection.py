@@ -24,7 +24,7 @@ import time
 
 from c1218.data import *
 from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError, C1218WriteTableError
-from c1218.utils import find_strings, data_chksum_str
+from c1218.utilities import find_strings, data_chksum_str
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
@@ -37,7 +37,7 @@ if hasattr(logging, 'NullHandler'):
 	logging.getLogger('c1218').addHandler(logging.NullHandler())
 
 class ConnectionRaw:
-	def __init__(self, device, c1218_settings = {}, serial_settings = None, toggle_control = True, **kwargs):
+	def __init__(self, device, c1218_settings={}, serial_settings=None, toggle_control=True, **kwargs):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
 		to communicate with an ANSI Type-2 Optical probe to communciate
@@ -148,7 +148,7 @@ class ConnectionRaw:
 		self.loggerio.critical('failed 3 times to correctly send a frame')
 		raise C1218IOError('failed 3 times to correctly send a frame')
 
-	def recv(self, full_frame = False):
+	def recv(self, full_frame=False):
 		"""
 		Receive a C1218Packet, the payload data is returned.
 
@@ -293,7 +293,7 @@ class Connection(ConnectionRaw):
 			return False
 
 		self.__initialized__ = True
-		self.send(C1218NegotiateRequest(self.c1218_pktsize, self.c1218_nbrpkts, baudrate = 9600))
+		self.send(C1218NegotiateRequest(self.c1218_pktsize, self.c1218_nbrpkts, baudrate=9600))
 		data = self.recv()
 		if data[0] != '\x00':
 			self.logger.error('received incorrect response to negotiate service request')
@@ -301,7 +301,7 @@ class Connection(ConnectionRaw):
 			raise C1218NegotiateError('received incorrect response to negotiate service request', ord(data[0]))
 		return True
 
-	def stop(self, force = False):
+	def stop(self, force=False):
 		"""
 		Send a terminate request.
 
@@ -317,7 +317,7 @@ class Connection(ConnectionRaw):
 				return True
 		return False
 
-	def login(self, username = '0000', userid = 0, password = None):
+	def login(self, username='0000', userid=0, password=None):
 		"""
 		Log into the connected device.
 
@@ -361,7 +361,7 @@ class Connection(ConnectionRaw):
 			return True
 		return False
 
-	def get_table_data(self, tableid, octetcount = None, offset = None):
+	def get_table_data(self, tableid, octetcount=None, offset=None):
 		"""
 		Read data from a table. If successful, all of the data from the
 		requested table will be returned.
@@ -407,7 +407,7 @@ class Connection(ConnectionRaw):
 			self.__tbl_cache__[tableid] = data
 		return data
 
-	def set_table_data(self, tableid, data, offset = None):
+	def set_table_data(self, tableid, data, offset=None):
 		"""
 		Write data to a table.
 
@@ -429,7 +429,7 @@ class Connection(ConnectionRaw):
 			raise C1218WriteTableError('could not write data to the table, error: ' + details, status)
 		return None
 
-	def run_procedure(self, process_number, std_vs_mfg, params = ''):
+	def run_procedure(self, process_number, std_vs_mfg, params=''):
 		"""
 		Initiate a C1219 procedure, the request is written to table 7 and
 		the response is read from table 8.

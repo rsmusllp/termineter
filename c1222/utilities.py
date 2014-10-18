@@ -1,6 +1,6 @@
-#  c1218/utils.py
+#  c1222/utilities.py
 #
-#  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
+#  Copyright 2013 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import struct
 import CrcMoose # Get it from: http://www.nightmare.com/~ryb/code/CrcMoose.py
 
 crc = CrcMoose.CRC_HDLC.calcString
-crc_str = lambda x: struct.pack('<H', crc(x))
+crc_str = lambda x: struct.pack("<H", crc(x))
 
 def data_chksum(data):
 	chksum = 0
@@ -32,19 +32,3 @@ def data_chksum(data):
 	return (((chksum - 1) & 0xff) ^ 0xff)
 
 data_chksum_str = lambda x: chr(data_chksum(x))
-
-def find_strings(data, minchars = 4):
-	rstrings = []
-	myprintables = string.ascii_letters + string.digits + string.punctuation + '\n\t\r '
-	start = None
-	for p in xrange(0, len(data)):
-		if data[p] in myprintables:
-			if start == None:
-				start = p
-		elif start != None:
-			if (p - start) >= minchars:
-				rstrings.append(data[start:p])
-			start = None
-	if start != None and ((p + 1) - start) >= minchars:
-		rstrings.append(data[start:p + 1])
-	return rstrings

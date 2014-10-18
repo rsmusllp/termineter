@@ -18,14 +18,14 @@
 #  MA 02110-1301, USA.
 
 from c1218.errors import C1218ReadTableError
-from c1218.utils import find_strings
+from c1218.utilities import find_strings
 from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Read Data From A C12.19 Table'
 		self.detailed_description = 'This module allows individual tables to be read from the smart meter.'
 		self.options.add_integer('TABLEID', 'table to read from', True)

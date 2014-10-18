@@ -27,7 +27,7 @@ import struct
 
 from c1218.data import C1218WriteRequest
 from c1218.errors import C1218ReadTableError
-from c1218.utils import find_strings
+from c1218.utilities import find_strings
 from c1219.constants import *
 from c1219.errors import C1219ParseError
 
@@ -68,8 +68,8 @@ class C1219GeneralAccess(object):		# Corresponds To Decade 0x
 			raise C1219ParseError('expected to read more data from ED_MODE_STATUS_TBL', ED_MODE_STATUS_TBL)
 
 		### Parse GEN_CONFIG_TBL ###
-		self.__char_format__ = {1:'ISO/IEC 646 (7-bit)', 2:'ISO 8859/1 (Latin 1)', 3:'UTF-8', 4:'UTF-16', 5:'UTF-32'}.get((ord(general_config_table[0]) & 14) >> 1) or 'Unknown'
-		self.__nameplate_type__ = {0:'Gas', 1:'Water', 2:'Electric'}.get(ord(general_config_table[7])) or 'Unknown'
+		self.__char_format__ = {1: 'ISO/IEC 646 (7-bit)', 2: 'ISO 8859/1 (Latin 1)', 3: 'UTF-8', 4: 'UTF-16', 5: 'UTF-32'}.get((ord(general_config_table[0]) & 14) >> 1) or 'Unknown'
+		self.__nameplate_type__ = {0: 'Gas', 1: 'Water', 2: 'Electric'}.get(ord(general_config_table[7])) or 'Unknown'
 		self.__id_form__ = ord(general_config_table[1]) & 32
 		self.__std_version_no__ = ord(general_config_table[11])
 		self.__std_revision_no__ = ord(general_config_table[12])

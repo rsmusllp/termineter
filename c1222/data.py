@@ -19,7 +19,7 @@
 
 import struct
 
-from c1222.utils import data_chksum, data_chksum_str
+from c1222.utilities import data_chksum, data_chksum_str
 
 from pyasn1.codec.ber import encoder as ber_encoder
 from pyasn1.codec.ber import decoder as ber_decoder
@@ -62,7 +62,7 @@ class C1222Data(object):
 		return ''
 
 class C1222EPSEM(C1222Data):
-	def __init__(self, data, ed_class = ''):
+	def __init__(self, data, ed_class=''):
 		self.data = data
 		# flags
 		self.reserved = False
@@ -106,7 +106,7 @@ class C1222EPSEM(C1222Data):
 		return epsem
 
 	def do_build(self):
-		flags  = 0
+		flags = 0
 		flags |= (int(self.reserved) << 7)
 		flags |= (int(self.recovery) << 6)
 		flags |= (int(self.proxy_service) << 5)
@@ -202,7 +202,7 @@ class C1222LogonRequest(C1222Request):
 	__username__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 	__session_idle_timeout__ = '\x00\x00'
 
-	def __init__(self, username = '', userid = 0, session_idle_timeout = 0):
+	def __init__(self, username='', userid=0, session_idle_timeout=0):
 		self.set_username(username)
 		self.set_userid(userid)
 		self.set_session_idle_timeout(session_idle_timeout)
@@ -228,7 +228,7 @@ class C1222ReadRequest(C1222Request):
 	__offset__ = ''
 	__octetcount__ = ''
 
-	def __init__(self, tableid, offset = None, octetcount = None):
+	def __init__(self, tableid, offset=None, octetcount=None):
 		self.set_tableid(tableid)
 		if (offset != None and offset != 0) and (octetcount != None and octetcount != 0):
 			self.read = '\x3f'
@@ -262,7 +262,7 @@ class C1222SecurityRequest(C1222Request):
 	__password__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 	__userid__ = '\x00\x00'
 
-	def __init__(self, password = '', userid = 0):
+	def __init__(self, password='', userid=0):
 		self.set_password(password)
 		self.set_userid(userid)
 
@@ -294,7 +294,7 @@ class C1222WaitRequest(C1222Request):
 	wait = '\x70'
 	time = '\x00'
 
-	def __init__(self, time = 0):
+	def __init__(self, time=0):
 		self.set_time(time)
 
 	def do_build(self):
@@ -310,7 +310,7 @@ class C1222WriteRequest(C1222Request):
 	__datalen__ = '\x00\x00'
 	__data__ = ''
 
-	def __init__(self, tableid, data, offset = None):
+	def __init__(self, tableid, data, offset=None):
 		self.set_tableid(tableid)
 		self.set_data(data)
 		if offset != None and offset != 0:
@@ -349,7 +349,7 @@ class C1222Packet(C1222Request):
 		(called_ap, data) = ber_decoder.decode(data)
 		(called_ap_invocation_id, data) = ber_decoder.decode(data)
 		(calling_ap, data) = ber_decoder.decode(data)
-		(calling_ap_invocation_id , data) = ber_decoder.decode(data)
+		(calling_ap_invocation_id, data) = ber_decoder.decode(data)
 
 		if data[0] == '\xbe':
 			try:
@@ -364,7 +364,7 @@ class C1222Packet(C1222Request):
 		frame = C1222Packet(called_ap, calling_ap, calling_ap_invocation_id, data)
 		return frame
 
-	def __init__(self, called_ap, calling_ap, calling_ap_invocation_id, data = None, length = None):
+	def __init__(self, called_ap, calling_ap, calling_ap_invocation_id, data=None, length=None):
 		if not isinstance(called_ap, C1222CalledAPTitle):
 			called_ap = C1222CalledAPTitle(called_ap)
 		self.called_ap = called_ap
@@ -400,7 +400,7 @@ class C1222Packet(C1222Request):
 
 	def set_data(self, value):
 		self.__data__ = value
-		length  = len(self.called_ap.encode())
+		length = len(self.called_ap.encode())
 		length += len(self.calling_ap.encode())
 		length += len(self.calling_ap_invocation_id.encode())
 		length += len(str(self.__data__))
@@ -410,7 +410,7 @@ class C1222Packet(C1222Request):
 		self.__length__ = chr(length)
 
 	def do_build(self):
-		packet  = self.start
+		packet = self.start
 		packet += self.__length__
 		packet += self.called_ap.encode()
 		packet += self.calling_ap.encode()

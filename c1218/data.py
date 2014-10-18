@@ -19,7 +19,7 @@
 
 import struct
 
-from c1218.utils import crc, crc_str, data_chksum, data_chksum_str
+from c1218.utilities import crc, crc_str, data_chksum, data_chksum_str
 
 ACK = '\x06'
 NACK = '\x15'
@@ -78,7 +78,7 @@ class C1218LogonRequest(C1218Request):
 	__userid__ = '\x00\x00'
 	__username__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 
-	def __init__(self, username = '', userid = 0):
+	def __init__(self, username='', userid=0):
 		self.set_username(username)
 		self.set_userid(userid)
 
@@ -121,7 +121,7 @@ class C1218SecurityRequest(C1218Request):
 	security = '\x51'
 	__password__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 
-	def __init__(self, password = ''):
+	def __init__(self, password=''):
 		self.set_password(password)
 
 	def do_build(self):
@@ -165,7 +165,7 @@ class C1218NegotiateRequest(C1218Request):
 	__nbrpkt__ = 1
 	__baudrate__ = ''
 
-	def __init__(self, pktsize, nbrpkt, baudrate = None):
+	def __init__(self, pktsize, nbrpkt, baudrate=None):
 		self.set_pktsize(pktsize)
 		self.set_nbrpkt(nbrpkt)
 		if baudrate:
@@ -204,7 +204,7 @@ class C1218NegotiateRequest(C1218Request):
 		self.__nbrpkt__ = chr(nbrpkt)
 
 	def set_baudrate(self, baudrate):
-		c1218_baudrate_codes = {300:1, 600:2, 1200:3, 2400:4, 4800:5, 9600:6, 14400:7, 19200:8, 28800:9, 57600:10}
+		c1218_baudrate_codes = {300: 1, 600: 2, 1200: 3, 2400: 4, 4800: 5, 9600: 6, 14400: 7, 19200: 8, 28800: 9, 57600: 10}
 		if baudrate in c1218_baudrate_codes:
 			self.__baudrate__ = chr(c1218_baudrate_codes[baudrate])
 		elif baudrate > 0 and baudrate < 11:
@@ -217,7 +217,7 @@ class C1218WaitRequest(C1218Request):
 	wait = '\x70'
 	__time__ = '\x01'
 
-	def __init__(self, time = 1):
+	def __init__(self, time=1):
 		self.set_time(time)
 
 	def do_build(self):
@@ -268,7 +268,7 @@ class C1218ReadRequest(C1218Request):
 	__offset__ = ''
 	__octetcount__ = ''
 
-	def __init__(self, tableid, offset = None, octetcount = None):
+	def __init__(self, tableid, offset=None, octetcount=None):
 		self.set_tableid(tableid)
 		if (offset != None) or (octetcount != None):
 			self.read = '\x3f'
@@ -332,7 +332,7 @@ class C1218WriteRequest(C1218Request):
 	__data__ = ''
 	__crc8__ = ''
 
-	def __init__(self, tableid, data, offset = None):
+	def __init__(self, tableid, data, offset=None):
 		self.set_tableid(tableid)
 		self.set_data(data)
 		if offset != None and offset != 0:
@@ -364,7 +364,7 @@ class C1218WriteRequest(C1218Request):
 			offset = struct.unpack('>I', '\x00' + data[3:6])[0]
 		if data_chksum_str(table_data) != chksum:
 			raise Exception('invalid check sum')
-		request = C1218WriteRequest(tableid, table_data, offset = offset)
+		request = C1218WriteRequest(tableid, table_data, offset=offset)
 		request.write = data[0]
 		return request
 
@@ -421,7 +421,7 @@ class C1218Packet(C1218Request):
 		frame.sequence = sequence
 		return frame
 
-	def __init__(self, data = None, control = None, length = None):
+	def __init__(self, data=None, control=None, length=None):
 		if data:
 			self.set_data(data)
 		if length:
