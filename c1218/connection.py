@@ -337,14 +337,14 @@ class Connection(ConnectionRaw):
 		self.send(C1218LogonRequest(username, userid))
 		data = self.recv()
 		if data != '\x00':
-			self.logger.error('login failed, user name and user id rejected')
+			self.logger.warning('login failed, user name and user id rejected')
 			return False
 
 		if password != None:
 			self.send(C1218SecurityRequest(password))
 			data = self.recv()
 			if data != '\x00':
-				self.logger.error('login failed, password rejected')
+				self.logger.warning('login failed, password rejected')
 				return False
 
 		self.logged_in = True

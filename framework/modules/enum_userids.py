@@ -39,8 +39,14 @@ class Module(TermineterModuleOptical):
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
-		lower_boundary = max(self.options['LOWER'], 0)
-		upper_boundary = min(self.options['UPPER'], 0xffff)
+		lower_boundary = self.options['LOWER']
+		upper_boundary = self.options['UPPER']
+		if lower_boundary > 0xffff:
+			self.frmwk.print_error('LOWER option set to high (exceeds 0xffff)')
+			return
+		if upper_boundary > 0xffff:
+			self.frmwk.print_error('UPPER option set to high (exceeds 0xffff)')
+			return
 		time_delay = self.advanced_options['DELAY']
 
 		self.frmwk.print_status('Enumerating user IDs, please wait...')
