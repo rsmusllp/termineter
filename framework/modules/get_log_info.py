@@ -26,7 +26,7 @@ class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Get Information About The Meter\'s Logs'
 		self.detailed_description = 'This module reads various C1219 tables from decade 70 to gather log information from the smart meter. If successful the parsed contents of the logs will be displayed.'
 
@@ -37,18 +37,18 @@ class Module(TermineterModuleOptical):
 			logger.warning('meter login failed')
 
 		try:
-			logCtl = C1219LogAccess(conn)
+			log_ctl = C1219LogAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read necessary tables, logging may not be enabled')
 			return
 		conn.stop()
 
-		if len(logCtl.logs) == 0:
+		if len(log_ctl.logs) == 0:
 			self.frmwk.print_status('Log History Table Contains No Entries')
 			return
 		else:
-			self.frmwk.print_status('Log History Table Contains ' + str(logCtl.nbr_history_entries) + ' Entries')
-		log_entry = logCtl.logs[0]
+			self.frmwk.print_status('Log History Table Contains ' + str(log_ctl.nbr_history_entries) + ' Entries')
+		log_entry = log_ctl.logs[0]
 		topline = ''
 		line = ''
 		if 'Time' in log_entry:
@@ -61,7 +61,7 @@ class Module(TermineterModuleOptical):
 		line += "{0:<6} {1:<58} {2}".format('---', '----------------', '---------')
 		self.frmwk.print_line(topline)
 		self.frmwk.print_line(line)
-		for log_entry in logCtl.logs:
+		for log_entry in log_ctl.logs:
 			line = ''
 			if 'Time' in log_entry:
 				topline += "{0:<19} ".format('Time Stamp')

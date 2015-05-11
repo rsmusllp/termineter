@@ -25,15 +25,14 @@ class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Initiate A Reset Procedure'
 		self.detailed_description = 'Initiate a remote reset procedure. Despite the name, this module is used locally through the optical interface.'
-		self.options.add_boolean('DEMAND', 'perform a demand reset', default = False)
-		self.options.add_boolean('SELFREAD', 'perform a self read', default = False)
+		self.options.add_boolean('DEMAND', 'perform a demand reset', default=False)
+		self.options.add_boolean('SELFREAD', 'perform a self read', default=False)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
 		if not self.frmwk.serial_login():
 			self.logger.warning('meter login failed')
 			self.frmwk.print_error('Meter login failed, procedure may fail')
@@ -46,10 +45,8 @@ class Module(TermineterModuleOptical):
 
 		self.frmwk.print_status('Initiating Reset Procedure')
 
-		conn = self.frmwk.serial_connection
-		errCode, data = None, ''
 		try:
-			errCode, data = conn.run_procedure(9, False, chr(params))
+			conn.run_procedure(9, False, chr(params))
 			self.frmwk.print_good('Sucessfully Reset The Meter')
 		except (C1218ReadTableError, C1218WriteTableError, C1219ProcedureError) as error:
 			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))

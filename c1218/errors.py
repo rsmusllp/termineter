@@ -21,9 +21,9 @@ class C1218Error(Exception):
 	"""
 	This is a generic C1218 Error.
 	"""
-	def __init__(self, msg, errcode = None):
+	def __init__(self, msg, code=None):
 		self.message = msg
-		self.errCode = errcode
+		self.code = code
 
 	def __str__(self):
 		return repr(self.message)

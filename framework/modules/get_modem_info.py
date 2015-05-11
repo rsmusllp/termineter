@@ -26,7 +26,7 @@ class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Get Information About The Integrated Modem'
 		self.detailed_description = 'This module reads various C1219 tables from decade 90 to gather information about the integrated modem. If successfully parsed, useful information will be displayed.'
 
@@ -37,25 +37,25 @@ class Module(TermineterModuleOptical):
 			logger.warning('meter login failed')
 
 		try:
-			telephoneCtl = C1219TelephoneAccess(conn)
+			telephone_ctl = C1219TelephoneAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read necessary tables, a modem is not likely present')
 			return
 		conn.stop()
 
 		info = {}
-		info['Can Answer'] = telephoneCtl.can_answer
-		info['Extended Status Available'] = telephoneCtl.use_extended_status
-		info['Number of Originating Phone Numbers'] = telephoneCtl.nbr_originate_numbers
-		info['PSEM Identity'] = telephoneCtl.psem_identity
-		if telephoneCtl.global_bit_rate:
-			info['Global Bit Rate'] = telephoneCtl.global_bit_rate
+		info['Can Answer'] = telephone_ctl.can_answer
+		info['Extended Status Available'] = telephone_ctl.use_extended_status
+		info['Number of Originating Phone Numbers'] = telephone_ctl.nbr_originate_numbers
+		info['PSEM Identity'] = telephone_ctl.psem_identity
+		if telephone_ctl.global_bit_rate:
+			info['Global Bit Rate'] = telephone_ctl.global_bit_rate
 		else:
-			info['Originate Bit Rate'] = telephoneCtl.originate_bit_rate
-			info['Answer Bit Rate'] = telephoneCtl.answer_bit_rate
-		info['Dial Delay'] = telephoneCtl.dial_delay
-		if len(telephoneCtl.prefix_number):
-			info['Prefix Number'] = telephoneCtl.prefix_number
+			info['Originate Bit Rate'] = telephone_ctl.originate_bit_rate
+			info['Answer Bit Rate'] = telephone_ctl.answer_bit_rate
+		info['Dial Delay'] = telephone_ctl.dial_delay
+		if len(telephone_ctl.prefix_number):
+			info['Prefix Number'] = telephone_ctl.prefix_number
 
 		keys = info.keys()
 		keys.sort()
@@ -68,5 +68,5 @@ class Module(TermineterModuleOptical):
 		fmt_string = "    {0:<6} {1:<16} {2:<32}"
 		self.frmwk.print_status(fmt_string.format('Index', 'Number', 'Last Status'))
 		self.frmwk.print_status(fmt_string.format('-----', '------', '-----------'))
-		for idx, entry in telephoneCtl.originating_numbers.items():
+		for idx, entry in telephone_ctl.originating_numbers.items():
 			self.frmwk.print_status(fmt_string.format(entry['idx'], entry['number'].strip(), C1219_CALL_STATUS_FLAGS[entry['status']]))

@@ -28,11 +28,11 @@ class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 4
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
-		self.options.add_integer('LOWER', 'table id to start reading from', default = 0)
-		self.options.add_integer('UPPER', 'table id to stop reading from', default = 256)
+		self.options.add_integer('LOWER', 'table id to start reading from', default=0)
+		self.options.add_integer('UPPER', 'table id to stop reading from', default=256)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
@@ -49,7 +49,7 @@ class Module(TermineterModuleOptical):
 				data = conn.get_table_data(tableid)
 			except C1218ReadTableError as error:
 				data = None
-				if error.errCode == 10: # ISSS
+				if error.code == 10: # ISSS
 					conn.stop()
 					logger.warning('received ISSS error, connection stopped, will sleep before retrying')
 					sleep(0.5)
@@ -59,7 +59,7 @@ class Module(TermineterModuleOptical):
 						data = conn.get_table_data(tableid)
 					except C1218ReadTableError as error:
 						data = None
-						if error.errCode == 10:
+						if error.code == 10:
 							raise error # tried to re-sync communications but failed, you should reconnect and rerun the module
 			if data:
 				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))

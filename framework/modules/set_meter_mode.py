@@ -26,7 +26,7 @@ class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Change the Meter\'s Operating Mode'
 		self.detailed_description = 'Change the operating mode of the meter. Accepted values for MODE are METERING, TEST, METERSHOP, and FACTORY.'
 		self.options.add_string('MODE', 'the mode to set the meter to', True)
@@ -49,15 +49,15 @@ class Module(TermineterModuleOptical):
 		self.frmwk.print_status('Setting Mode To: ' + mode)
 
 		mode = mode_dict[mode]
-		errCode, data = None, ''
+		error_code, data = None, ''
 		try:
-			errCode, data = conn.run_procedure(6, False, chr(mode))
+			error_code, data = conn.run_procedure(6, False, chr(mode))
 			self.frmwk.print_good('Sucessfully Changed The Mode')
 		except C1218ReadTableError as error:
 			logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 		except C1218WriteTableError as error:
-			if error.errCode == 4:	# onp/operation not possible
+			if error.code == 4:	# onp/operation not possible
 				self.frmwk.print_error('Meter responded that it can not set the mode to the desired type')
 			else:
 				logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))

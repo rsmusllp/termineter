@@ -39,7 +39,7 @@ class OverrideCmd(cmd.Cmd, object):
 		cmd.Cmd.__init__(self, *args, **kwargs)
 
 		self.__hidden_commands__ = ['EOF']
-		self.__disabled_commands__ = [ ]
+		self.__disabled_commands__ = []
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 
 	def cmdloop(self):
@@ -69,16 +69,16 @@ class OverrideCmd(cmd.Cmd, object):
 		self.do_help('')
 
 	def precmd(self, line):					# use this to allow using '?' after the command for help
-		tmpLine = line.split()
-		if len(tmpLine) == 0:
+		tmp_line = line.split()
+		if len(tmp_line) == 0:
 			return line
-		if tmpLine[0] in self.__disabled_commands__:
-			self.default(tmpLine[0])
+		if tmp_line[0] in self.__disabled_commands__:
+			self.default(tmp_line[0])
 			return ''
-		if len(tmpLine) == 1:
+		if len(tmp_line) == 1:
 			return line
-		if tmpLine[1] == '?':
-			self.do_help(tmpLine[0])
+		if tmp_line[1] == '?':
+			self.do_help(tmp_line[0])
 			return ''
 		return line
 
@@ -125,8 +125,8 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		else:
 			return self.__name__ + ' > '
 
-	def __init__(self, check_rc_file = True, stdin = None, stdout = None, log_handler = None):
-		OverrideCmd.__init__(self, stdin = stdin, stdout = stdout)
+	def __init__(self, check_rc_file=True, stdin=None, stdout=None, log_handler=None):
+		OverrideCmd.__init__(self, stdin=stdin, stdout=stdout)
 		if stdin != None:
 			self.use_rawinput = False
 			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
@@ -138,7 +138,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		if self.log_handler == None:
 			self.__disabled_commands__.append('logging')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
-		self.frmwk = Framework(stdout = stdout)
+		self.frmwk = Framework(stdout=stdout)
 		self.print_error = self.frmwk.print_error
 		self.print_good = self.frmwk.print_good
 		self.print_line = self.frmwk.print_line
@@ -180,7 +180,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		return True
 
 	@staticmethod
-	def serve(addr, run_once = False, log_level = None, use_ssl = False, ssl_cert = None):
+	def serve(addr, run_once=False, log_level=None, use_ssl=False, ssl_cert=None):
 		if use_ssl:
 			import ssl
 		__package__ = '.'.join(InteractiveInterpreter.__module__.split('.')[:-1])
@@ -199,7 +199,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			logger.info('received connection from: ' + clt_addr[0] + ':' + str(clt_addr[1]))
 
 			if use_ssl:
-				ssl_sock = ssl.wrap_socket(clt_sock, server_side = True, certfile = ssl_cert)
+				ssl_sock = ssl.wrap_socket(clt_sock, server_side=True, certfile=ssl_cert)
 				ins = ssl_sock.makefile('r', 1)
 				outs = ssl_sock.makefile('w', 1)
 			else:
@@ -212,7 +212,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			log_stream.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
 			logging.getLogger('').addHandler(log_stream)
 
-			interpreter = InteractiveInterpreter(check_rc_file = False, stdin = ins, stdout = outs)
+			interpreter = InteractiveInterpreter(check_rc_file=False, stdin=ins, stdout=outs)
 			try:
 				interpreter.cmdloop()
 			except socket.error:
@@ -346,7 +346,7 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			return
 		if args[0] == 'show':
 			loglvl = self.log_handler.level
-			self.print_status('Effective logging level is: ' + ({10:'DEBUG', 20:'INFO', 30:'WARNING', 40:'ERROR', 50:'CRITICAL'}.get(loglvl) or 'UNKNOWN'))
+			self.print_status('Effective logging level is: ' + ({10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR', 50: 'CRITICAL'}.get(loglvl) or 'UNKNOWN'))
 		elif args[0] == 'set':
 			if len(args) == 1:
 				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
@@ -425,13 +425,13 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		from c1219.access.log import C1219LogAccess
 		from c1219.access.telephone import C1219TelephoneAccess
 		vars = {
-			'__version__':__version__,
-			'frmwk':self.frmwk,
-			'C1218Packet':C1218Packet,
-			'C1219GeneralAccess':C1219GeneralAccess,
-			'C1219SecurityAccess':C1219SecurityAccess,
-			'C1219LogAccess':C1219LogAccess,
-			'C1219TelephoneAccess':C1219TelephoneAccess
+			'__version__': __version__,
+			'frmwk': self.frmwk,
+			'C1218Packet': C1218Packet,
+			'C1219GeneralAccess': C1219GeneralAccess,
+			'C1219SecurityAccess': C1219SecurityAccess,
+			'C1219LogAccess': C1219LogAccess,
+			'C1219TelephoneAccess': C1219TelephoneAccess
 		}
 		banner = 'The Framework Instance Is In The Variable \'frmwk\'' + os.linesep
 		if self.frmwk.is_serial_connected():
@@ -523,7 +523,8 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		except KeyboardInterrupt:
 			self.print_line('')
 		except Exception as error:
-			for x in traceback.format_exc().split(os.linesep): self.print_line(x)
+			for x in traceback.format_exc().split(os.linesep):
+				self.print_line(x)
 			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 			old_module = None
