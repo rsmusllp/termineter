@@ -21,15 +21,17 @@ import cmd
 import code
 import logging
 import os
+import platform
 from random import randint
+import subprocess
 import socket
 import sys
 import traceback
 
-from framework.core import Framework, FrameworkConfigurationError
-from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
-from framework.options import Options
-from framework.templates import TermineterModuleOptical, TermineterModule
+from framework import its
+from framework.core import Framework
+from framework.errors import FrameworkRuntimeError
+from framework.templates import TermineterModuleOptical
 
 __version__ = '0.1.0'
 
@@ -90,41 +92,13 @@ class OverrideCmd(cmd.Cmd, object):
 		self.print_line('')
 		return self.do_exit('')
 
-class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the console
+# the core interpreter for the console
+class InteractiveInterpreter(OverrideCmd):
 	__doc__ = 'The core interpreter for the program'
 	__name__ = 'termineter'
 	prompt = __name__ + ' > '
 	ruler = '+'
 	doc_header = 'Type help <command> For Information\nList Of Available Commands:'
-
-	@property
-	def intro(self):
-		intro = os.linesep
-		intro += '   ______              _          __         ' + os.linesep
-		intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
-		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
-		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
-		intro += os.linesep
-		fmt_string = "  <[ {0:<18} {1:>18}"
-		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
-		intro += fmt_string.format('model:', 'T-800') + os.linesep
-		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
-		#if self.frmwk.rfcat_available:
-		#	intro += fmt_string.format('rfcat:', 'enabled') + os.linesep
-		#else:
-		#	intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
-		return intro
-
-	@property
-	def prompt(self):
-		if self.frmwk.current_module:
-			if self.frmwk.use_colors:
-				return self.__name__ + ' (\033[1;33m' + self.frmwk.current_module.name + '\033[1;m) > '
-			else:
-				return self.__name__ + ' (' + self.frmwk.current_module.name + ') > '
-		else:
-			return self.__name__ + ' > '
-
 	def __init__(self, check_rc_file=True, stdin=None, stdout=None, log_handler=None):
 		OverrideCmd.__init__(self, stdin=stdin, stdout=stdout)
 		if stdin != None:
@@ -132,6 +106,8 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
 			self.__disabled_commands__.append('ipy')
 
+		if not its.on_linux:
+			self.__hidden_commands__.append('prep_driver')
 		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
 		self.log_handler = log_handler
@@ -163,6 +139,34 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			readline.set_completer_delims(readline.get_completer_delims().replace('/', ''))
 		except (ImportError, IOError):
 			pass
+
+	@property
+	def intro(self):
+		intro = os.linesep
+		intro += '   ______              _          __         ' + os.linesep
+		intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
+		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
+		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
+		intro += os.linesep
+		fmt_string = "  <[ {0:<18} {1:>18}"
+		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
+		intro += fmt_string.format('model:', 'T-800') + os.linesep
+		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
+		#if self.frmwk.rfcat_available:
+		#	intro += fmt_string.format('rfcat:', 'enabled') + os.linesep
+		#else:
+		#	intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
+		return intro
+
+	@property
+	def prompt(self):
+		if self.frmwk.current_module:
+			if self.frmwk.use_colors:
+				return self.__name__ + ' (\033[1;33m' + self.frmwk.current_module.name + '\033[1;m) > '
+			else:
+				return self.__name__ + ' (' + self.frmwk.current_module.name + ') > '
+		else:
+			return self.__name__ + ' > '
 
 	def run_rc_file(self, rc_file):
 		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
@@ -449,6 +453,38 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 			sys.stdout = os.fdopen(savestdout, 'w', 0)
 			sys.stderr = os.fdopen(savestderr, 'w', 0)
 
+	def do_prep_driver(self, args):
+		"""Prep the optical probe driver"""
+		args = args.split()
+		if len(args) != 2:
+			self.print_line('Usage:')
+			self.print_line('  prep_driver VVVV PPPP')
+			self.print_line('')
+			self.print_line('Where VVVV and PPPP are the 4 hex digits of the vendor and product IDs respectively')
+			return
+		if os.getuid():
+			self.print_error('Must be running as root to prep the driver')
+			return
+		vendor, product = args
+		if vendor.startswith('0x'):
+			vendor = vendor[2:]
+		if product.startswith('0x'):
+			product = product[2:]
+		linux_kernel_version = platform.uname()[2].split('.')[:2]
+		linux_kernel_version = tuple(int(part) for part in linux_kernel_version)
+		if linux_kernel_version < (3, 12):
+			proc_args = ['modprobe', 'ftdi-sio', "vendor=0x{0}".format(vendor), "product=0x{0}".format(product)]
+		else:
+			proc_args = ['modprobe', 'ftdi-sio']
+		proc_h = subprocess.Popen(proc_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True, shell=False)
+		if proc_h.wait():
+			self.print_error('modprobe exited with a non-zero status code')
+			return
+		if linux_kernel_version >= (3, 12) and os.path.isfile('/sys/bus/usb-serial/drivers/ftdi_sio/new_id'):
+			with open('/sys/bus/usb-serial/drivers/ftdi_sio/new_id', 'w') as file_h:
+				file_h.write("{0} {1}".format(vendor, product))
+		self.print_status('Finished driver preparation')
+
 	def do_reload(self, args):
 		"""Reload a module in to the framework"""
 		args = args.split(' ')
@@ -477,15 +513,14 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		"""Run a resource file"""
 		args = args.split(' ')
 		for rc_file in args:
-			if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
-				self.print_status('Running commands from resource file: ' + rc_file)
-				self.run_rc_file(rc_file)
-			else:
-				if not os.path.isfile(rc_file):
-					self.print_error('Invalid resource file: ' + rc_file + ' (not found)')
-				if not os.access(rc_file, os.R_OK):
-					self.print_error('Invalid resource file: ' + rc_file + ' (no read permissions)')
-				return
+			if not os.path.isfile(rc_file):
+				self.print_error('Invalid resource file: ' + rc_file + ' (not found)')
+				continue
+			if not os.access(rc_file, os.R_OK):
+				self.print_error('Invalid resource file: ' + rc_file + ' (no read permissions)')
+				continue
+			self.print_status('Running commands from resource file: ' + rc_file)
+			self.run_rc_file(rc_file)
 
 	def do_run(self, args):
 		"""Run the currently selected module"""
@@ -637,6 +672,10 @@ class InteractiveInterpreter(OverrideCmd):	# The core interpreter for the consol
 		"""Select a module to use"""
 		args = args.split(' ')
 		mod_name = args[0]
+		if not mod_name:
+			self.print_line('Usage:')
+			self.print_line('  use [module name]')
+			return
 		if mod_name in self.frmwk.modules.keys():
 			self.frmwk.current_module = self.frmwk.modules[mod_name]
 		else:
