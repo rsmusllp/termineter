@@ -31,11 +31,10 @@ class C1219ParseError(Exception):
 	"""
 	Raised when there is an error parsing data
 
-	@type tableid: Integer
-	@param tableid: If the data originated from a table, the faulty table
+	:param int tableid: If the data originated from a table, the faulty table
 	can be specified here
 	"""
-	def __init__(self, msg, tableid = None):
+	def __init__(self, msg, tableid=None):
 		self.message = msg
 		self.tableid = tableid
 
