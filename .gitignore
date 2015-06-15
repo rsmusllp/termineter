@@ -36,3 +36,6 @@ nosetests.xml
 
 # Geany
 *.geany
+
+# Sphinx Documentation
+docs/html

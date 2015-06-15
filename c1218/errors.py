@@ -45,8 +45,7 @@ class C1218ReadTableError(C1218Error):
 	"""
 	Raised when a table is not successfully read.
 
-	@type errcode: Integer
-	@param errcode: The error that was returned while reading the table.
+	:param int errcode: The error that was returned while reading the table.
 	"""
 	pass
 
@@ -54,7 +53,6 @@ class C1218WriteTableError(C1218Error):
 	"""
 	Raised when a table is not successfully written to.
 
-	@type errcode: Integer
-	@param errcode: The error that was returned while writing to the table.
+	:param int errcode: The error that was returned while writing to the table.
 	"""
 	pass
