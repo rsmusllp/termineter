@@ -1,0 +1,2 @@
+pyasn1>=0.1.7
+pyserial>=2.6
