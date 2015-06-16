@@ -40,25 +40,18 @@ class ConnectionRaw:
 	def __init__(self, device, c1218_settings={}, serial_settings=None, toggle_control=True, **kwargs):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
-		to communicate with an ANSI Type-2 Optical probe to communciate
+		to communicate with an ANSI Type-2 Optical probe to communicate
 		with a device (presumably a smart meter).
 
-		@type device: String
-		@param device: A connection string to be passed to the PySerial
+		:param str device: A connection string to be passed to the PySerial
 		library.  If PySerial is new enough, the serial_for_url function
 		will be used to allow the user to use a rfc2217 bridge.
-
-		@type c1218_settings: Dictionary
-		@param settings: A settings dictionary to configure the C1218
+		:param dict c1218_settings: A settings dictionary to configure the C1218
 		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
 		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
-
-		@type serial_settings: Dictionary
-		@param settings: A PySerial settings dictionary to be applied to
+		:param dict serial_settings: A PySerial settings dictionary to be applied to
 		the serial connection instance.
-
-		@type toggle_control: Boolean
-		@param toggle_control: Enables or diables automatically settings
+		:param bool toggle_control: Enables or diables automatically settings
 		the toggle bit in C12.18 frames.
 		"""
 		self.logger = logging.getLogger('c1218.connection')
@@ -113,10 +106,8 @@ class ConnectionRaw:
 		In the event that a NACK is received, this function will attempt
 		to resend the frame up to 3 times.
 
-		@type data: either a raw string of bytes which will be placed into
-		a c1218.data.C1218Packet or a c1218.data.C1218Packet instance to
-		be sent
-		@param: the data to be transmitted
+		:param data: the data to be transmitted
+		:type data: str, :py:class:`~c1218.data.C1218Packet`
 		"""
 		if not isinstance(data, C1218Packet):
 			data = C1218Packet(data)
@@ -152,8 +143,7 @@ class ConnectionRaw:
 		"""
 		Receive a C1218Packet, the payload data is returned.
 
-		@type full_frame: Boolean
-		@param full_frame: If set to True, the entire C1218 frame is returned
+		:param bool full_frame: If set to True, the entire C1218 frame is returned
 		instead of just the payload.
 		"""
 		payloadbuffer = ''
@@ -197,8 +187,7 @@ class ConnectionRaw:
 		included at the end. This function is not meant to be called
 		directly.
 
-		@type data: String
-		@param data: The raw data to write to the serial connection.
+		:param str data: The raw data to write to the serial connection.
 		"""
 		return self.serial_h.write(data)
 
@@ -207,8 +196,7 @@ class ConnectionRaw:
 		Read raw data from the serial connection. This function is not
 		meant to be called directly.
 
-		@type size: Integer
-		@param size: The number of bytes to read from the serial connection.
+		:param int size: The number of bytes to read from the serial connection.
 		"""
 		data = self.serial_h.read(size)
 		self.logger.debug('read data, length: ' + str(len(data)) + ' data: ' + data.encode('hex'))
@@ -231,26 +219,17 @@ class Connection(ConnectionRaw):
 		to communicate with an ANSI Type-2 Optical probe to communciate
 		with a device (presumably a smart meter).
 
-		@type device: String
-		@param device: A connection string to be passed to the PySerial
+		:param str device: A connection string to be passed to the PySerial
 		library.  If PySerial is new enough, the serial_for_url function
 		will be used to allow the user to use a rfc2217 bridge.
-
-		@type c1218_settings: Dictionary
-		@param settings: A settings dictionary to configure the C1218
+		:param dict c1218_settings: A settings dictionary to configure the C1218
 		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
 		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
-
-		@type serial_settings: Dictionary
-		@param settings: A PySerial settings dictionary to be applied to
+		:param dict serial_settings: A PySerial settings dictionary to be applied to
 		the serial connection instance.
-
-		@type toggle_control: Boolean
-		@param toggle_control: Enables or diables automatically settings
+		:param bool toggle_control: Enables or diables automatically settings
 		the toggle bit in C12.18 frames.
-
-		@type enable_cache: Boolean
-		@param enable_cache: Cache specific, read only tables in memory,
+		:param bool enable_cache: Cache specific, read only tables in memory,
 		the first time the table is read it will be stored for retreival
 		on subsequent requests.  This is enabled only for specific tables
 		(currently only 0 and 1).
@@ -305,8 +284,7 @@ class Connection(ConnectionRaw):
 		"""
 		Send a terminate request.
 
-		@type force: Boolean
-		@param force: ignore the remote devices response
+		:param bool force: ignore the remote devices response
 		"""
 		if self.__initialized__ == True:
 			self.send(C1218TerminateRequest())
@@ -321,14 +299,10 @@ class Connection(ConnectionRaw):
 		"""
 		Log into the connected device.
 
-		@type username: String (len(username) <= 10)
-		@param username: the username to log in with
-
-		@type userid: Integer (0x0000 <= userid <= 0xffff)
-		@param userid: the userid to log in with
-
-		@type password: String (len(password) <= 20)
-		@param password: password to log in with
+		:param str username: the username to log in with (len(username) <= 10)
+		:param int userid: the userid to log in with (0x0000 <= userid <= 0xffff)
+		:param str password: password to log in with (len(password) <= 20)
+		:rtype: bool
 		"""
 		if password and len(password) > 20:
 			self.logger.error('password longer than 20 characters received')
@@ -353,6 +327,8 @@ class Connection(ConnectionRaw):
 	def logoff(self):
 		"""
 		Send a logoff request.
+
+		:rtype: bool
 		"""
 		self.send(C1218LogoffRequest())
 		data = self.recv()
@@ -366,15 +342,10 @@ class Connection(ConnectionRaw):
 		Read data from a table. If successful, all of the data from the
 		requested table will be returned.
 
-		@type tableid: Integer (0x0000 <= tableid <= 0xffff)
-		@param tableid: The table number to read from
-
-		@type octetcount: Integer (0x0000 <= tableid <= 0xffff)
-		@param octetcount: Limit the amount of data read, only works if
+		:param int tableid: The table number to read from (0x0000 <= tableid <= 0xffff)
+		:param int octetcount: Limit the amount of data read, only works if
 		the meter supports this type of reading.
-
-		@type offset: Integer (0x000000 <= octetcount <= 0xffffff)
-		@param offset: The offset at which to start to read the data from.
+		:param int offset: The offset at which to start to read the data from.
 		"""
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and tableid in self.__tbl_cache__.keys():
 			self.logger.info('returning cached table #' + str(tableid))
@@ -411,14 +382,9 @@ class Connection(ConnectionRaw):
 		"""
 		Write data to a table.
 
-		@type tableid: Integer (0x0000 <= tableid <= 0xffff)
-		@param tableid: The table number to write to
-
-		@type data: String
-		@param data: The data to write into the table.
-
-		@type offset: Integer (0x000000 <= octetcount <= 0xffffff)
-		@param offset: The offset at which to start to write the data.
+		:param int tableid: The table number to write to (0x0000 <= tableid <= 0xffff)
+		:param str data: The data to write into the table.
+		:param int offset: The offset at which to start to write the data (0x000000 <= octetcount <= 0xffffff).
 		"""
 		self.send(C1218WriteRequest(tableid, data, offset))
 		data = self.recv()
@@ -434,15 +400,10 @@ class Connection(ConnectionRaw):
 		Initiate a C1219 procedure, the request is written to table 7 and
 		the response is read from table 8.
 
-		@type process_number: Integer (0 <= process_number <= 2047)
-		@param process_number: The numeric procedure identifier.
-
-		@type std_vs_mfg: Boolean
-		@param std_vs_mfg: Whether the procedure is manufacturer specified
-		or not.  True is manufacturer specified.
-
-		@type params: String
-		@param params: The parameters to pass to the procedure initiation
+		:param int process_number: The numeric procedure identifier (0 <= process_number <= 2047).
+		:param bool std_vs_mfg: Whether the procedure is manufacturer specified
+		or not. True is manufacturer specified.
+		:param str params: The parameters to pass to the procedure initiation
 		request.
 		"""
 		seqnum = random.randint(2, 254)

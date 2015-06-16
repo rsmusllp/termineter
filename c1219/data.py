@@ -26,17 +26,11 @@ def format_ltime(endianess, tm_format, data):
 	"""
 	Return data formatted into a human readable time stamp.
 
-	@type endianess: String ('>' or '<')
-	@param endianess: The endianess to use when packing values
-
-	@type tm_format: Integer (1 <= tm_format <= 4)
-	@param tm_format: The format that the data is packed in, this typically
-	corresponds with the value in the GEN_CONFIG_TBL (table #0)
-
-	@type data: String
-	@param data: The packed and machine-formatted data to parse
-
-	@rtype: String
+	:param str endianess: The endianess to use when packing values ('>' or '<')
+	:param int tm_format: The format that the data is packed in, this typically
+	corresponds with the value in the GEN_CONFIG_TBL (table #0) (1 <= tm_format <= 4)
+	:param str data: The packed and machine-formatted data to parse
+	:rtype: str
 	"""
 	if tm_format == 0:
 		return ''
@@ -74,27 +68,15 @@ def get_history_entry_record(endianess, hist_date_time_flag, tm_format, event_nu
 	"""
 	Return data formatted into a log entry.
 
-	@type endianess: String ('>' or '<')
-	@param endianess: The endianess to use when packing values
-
-	@type hist_date_time_flag: Boolean
-	@param hist_date_time_flag: Whether or not a time stamp is included.
-
-	@type tm_format: Integer (1 <= tm_format <= 4)
-	@param tm_format: The format that the data is packed in, this typically
-	corresponds with the value in the GEN_CONFIG_TBL (table #0)
-
-	@type event_number_flag: Boolean
-	@param event_number_flag: Whether or not an event number is included.
-
-	@type hist_seq_nbr_flag: Boolean
-	@param hist_seq_nbr_flag: Whether or not an history sequence number
+	:param str endianess: The endianess to use when packing values ('>' or '<')
+	:param bool hist_date_time_flag: Whether or not a time stamp is included.
+	:param int tm_format: The format that the data is packed in, this typically
+	corresponds with the value in the GEN_CONFIG_TBL (table #0) (1 <= tm_format <= 4)
+	:param bool event_number_flag: Whether or not an event number is included.
+	:param bool hist_seq_nbr_flag: Whether or not an history sequence number
 	is included.
-
-	@type data: String
-	@param data: The packed and machine-formatted data to parse
-
-	@rtype: Dictionary Variable-Keys
+	:param str data: The packed and machine-formatted data to parse
+	:rtype: dict
 	"""
 	rcd = {}
 	if hist_date_time_flag:
@@ -117,13 +99,10 @@ def get_table_idbb_field(endianess, data):
 	"""
 	Return data from a packed TABLE_IDB_BFLD bit-field.
 
-	@type endianess: String ('>' or '<')
-	@param endianess: The endianess to use when packing values
-
-	@type data: String
-	@param data: The packed and machine-formatted data to parse
-
-	@rtype: Tuple (proc_nbr, std_vs_mfg)
+	:param str endianess: The endianess to use when packing values ('>' or '<')
+	:param str data: The packed and machine-formatted data to parse
+	:rtype: tuple
+	:return: Tuple of (proc_nbr, std_vs_mfg)
 	"""
 	bfld = struct.unpack(endianess + 'H', data[:2])[0]
 	proc_nbr = bfld & 0x7ff
@@ -135,13 +114,10 @@ def get_table_idcb_field(endianess, data):
 	"""
 	Return data from a packed TABLE_IDC_BFLD bit-field.
 
-	@type endianess: String ('>' or '<')
-	@param endianess: The endianess to use when packing values
-
-	@type data: String
-	@param data: The packed and machine-formatted data to parse
-
-	@rtype: Tuple (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
+	:param str endianess: The endianess to use when packing values ('>' or '<')
+	:param str data: The packed and machine-formatted data to parse
+	:rtype: tuple
+	:return: Tuple of (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
 	"""
 	bfld = struct.unpack(endianess + 'H', data[:2])[0]
 	proc_nbr = bfld & 2047
@@ -157,34 +133,23 @@ class C1219ProcedureInit:
 	A C1219 Procedure Request, this data is written to table 7 in order to
 	start a procedure.
 
-	@type endianess: String ('>' or '<')
-	@param endianess: The endianess to use when packing values
-
-	@type table_proc_nbr: Integer (0 <= table_proc_nbr <= 2047)
-	@param table_proc_nbr: The numeric procedure identifier.
-
-	@type std_vs_mfg: Boolean
-	@param std_vs_mfg: Wheter the procedure is manufacturer specified
+	:param str endianess: The endianess to use when packing values ('>' or '<')
+	:param int table_proc_nbr: The numeric procedure identifier (0 <= table_proc_nbr <= 2047).
+	:param bool std_vs_mfg: Whether the procedure is manufacturer specified
 	or not.  True is manufacturer specified.
-
-	@type selector: Integer (0 <= selector <= 15)
-	@param selector: Controls how data is returned.
+	:param int selector: Controls how data is returned (0 <= selector <= 15).
 		0: Post response in PROC_RESPONSE_TBL (#8) on completion.
 		1: Post response in PROC_RESPONSE_TBL (#8) on exception.
 		2: Do not post response in PROC_RESPONSE_TBL (#8).
 		3: Post response in PROC_RESPONSE_TBL (#8) immediately and another
 			response in PROC_RESPONSE_TBL (#8) on completion.
 		4-15: Reserved.
-
-	@type seqnum: Integer (0x00 <= seqnum <= 0xff)
-	@param seqnum: The identifier for this procedure to be used for
-	coordination.
-
-	@type params: String
-	@param params: The parameters to pass to the procedure initiation
+	:param int seqnum: The identifier for this procedure to be used for
+	coordination (0x00 <= seqnum <= 0xff).
+	:param str params: The parameters to pass to the procedure initiation
 	request.
 	"""
-	def __init__(self, endianess, table_proc_nbr, std_vs_mfg, selector, seqnum, params = ''):
+	def __init__(self, endianess, table_proc_nbr, std_vs_mfg, selector, seqnum, params=''):
 		mfg_defined = 0
 		if std_vs_mfg:
 			mfg_defined = 1
