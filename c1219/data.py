@@ -28,7 +28,7 @@ def format_ltime(endianess, tm_format, data):
 
 	:param str endianess: The endianess to use when packing values ('>' or '<')
 	:param int tm_format: The format that the data is packed in, this typically
-	corresponds with the value in the GEN_CONFIG_TBL (table #0) (1 <= tm_format <= 4)
+	  corresponds with the value in the GEN_CONFIG_TBL (table #0) (1 <= tm_format <= 4)
 	:param str data: The packed and machine-formatted data to parse
 	:rtype: str
 	"""
@@ -71,10 +71,10 @@ def get_history_entry_record(endianess, hist_date_time_flag, tm_format, event_nu
 	:param str endianess: The endianess to use when packing values ('>' or '<')
 	:param bool hist_date_time_flag: Whether or not a time stamp is included.
 	:param int tm_format: The format that the data is packed in, this typically
-	corresponds with the value in the GEN_CONFIG_TBL (table #0) (1 <= tm_format <= 4)
+	  corresponds with the value in the GEN_CONFIG_TBL (table #0) (1 <= tm_format <= 4)
 	:param bool event_number_flag: Whether or not an event number is included.
 	:param bool hist_seq_nbr_flag: Whether or not an history sequence number
-	is included.
+	  is included.
 	:param str data: The packed and machine-formatted data to parse
 	:rtype: dict
 	"""
@@ -136,18 +136,17 @@ class C1219ProcedureInit:
 	:param str endianess: The endianess to use when packing values ('>' or '<')
 	:param int table_proc_nbr: The numeric procedure identifier (0 <= table_proc_nbr <= 2047).
 	:param bool std_vs_mfg: Whether the procedure is manufacturer specified
-	or not.  True is manufacturer specified.
+	  or not.  True is manufacturer specified.
 	:param int selector: Controls how data is returned (0 <= selector <= 15).
-		0: Post response in PROC_RESPONSE_TBL (#8) on completion.
-		1: Post response in PROC_RESPONSE_TBL (#8) on exception.
-		2: Do not post response in PROC_RESPONSE_TBL (#8).
-		3: Post response in PROC_RESPONSE_TBL (#8) immediately and another
-			response in PROC_RESPONSE_TBL (#8) on completion.
-		4-15: Reserved.
+	  0: Post response in PROC_RESPONSE_TBL (#8) on completion.
+	  1: Post response in PROC_RESPONSE_TBL (#8) on exception.
+	  2: Do not post response in PROC_RESPONSE_TBL (#8).
+	  3: Post response in PROC_RESPONSE_TBL (#8) immediately and another response in PROC_RESPONSE_TBL (#8) on completion.
+	  4-15: Reserved.
 	:param int seqnum: The identifier for this procedure to be used for
-	coordination (0x00 <= seqnum <= 0xff).
+	  coordination (0x00 <= seqnum <= 0xff).
 	:param str params: The parameters to pass to the procedure initiation
-	request.
+	  request.
 	"""
 	def __init__(self, endianess, table_proc_nbr, std_vs_mfg, selector, seqnum, params=''):
 		mfg_defined = 0

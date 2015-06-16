@@ -16,7 +16,7 @@ Smart Meters via a connection using an ANSI type-2 optical probe with a
 serial interface.
 
 == License ==
-Copyright (C) 2011, Spencer J. McIntyre
+Copyright (C) 2011-2015, Spencer J. McIntyre
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -38,8 +38,7 @@ This license does not apply to the following components:
 
 == Credits ==
 Special Thanks To:
- * Caroline Aronoff (Alpha testing and fixing older PySerial
-	compatibility)
+ * Caroline Aronoff (Alpha testing and fixing older PySerial compatibility)
  * Chris Murrey - f8lerror (Alpha testing)
  * Jake Garlie - jagar (Alpha testing)
  * Scott Turner - fantomgoat (Bug report and fix)
@@ -53,8 +52,6 @@ Termineter Development Team:
 Author: Spencer McIntyre
 Author Home Page: http://www.securestate.com/
 Project Home Page: https://github.com/securestate/termineter
-
-Please Send Bug Reports To: <smcintyre [at] securestate [dot] com>
 
 == Install ==
 For install information please see the INSTALL file.

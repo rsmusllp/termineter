@@ -44,15 +44,15 @@ class ConnectionRaw:
 		with a device (presumably a smart meter).
 
 		:param str device: A connection string to be passed to the PySerial
-		library.  If PySerial is new enough, the serial_for_url function
-		will be used to allow the user to use a rfc2217 bridge.
+		  library.  If PySerial is new enough, the serial_for_url function
+		  will be used to allow the user to use a rfc2217 bridge.
 		:param dict c1218_settings: A settings dictionary to configure the C1218
-		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
-		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
+		  parameters of 'nbrpkts' and 'pktsize'  If not provided the default
+		  settings of 2 (nbrpkts) and 512 (pktsize) will be used.
 		:param dict serial_settings: A PySerial settings dictionary to be applied to
-		the serial connection instance.
+		  the serial connection instance.
 		:param bool toggle_control: Enables or diables automatically settings
-		the toggle bit in C12.18 frames.
+		  the toggle bit in C12.18 frames.
 		"""
 		self.logger = logging.getLogger('c1218.connection')
 		self.loggerio = logging.getLogger('c1218.connection.io')
@@ -143,8 +143,8 @@ class ConnectionRaw:
 		"""
 		Receive a C1218Packet, the payload data is returned.
 
-		:param bool full_frame: If set to True, the entire C1218 frame is returned
-		instead of just the payload.
+		:param bool full_frame: If set to True, the entire C1218 frame is
+		  returned instead of just the payload.
 		"""
 		payloadbuffer = ''
 		tries = 3
@@ -220,19 +220,19 @@ class Connection(ConnectionRaw):
 		with a device (presumably a smart meter).
 
 		:param str device: A connection string to be passed to the PySerial
-		library.  If PySerial is new enough, the serial_for_url function
-		will be used to allow the user to use a rfc2217 bridge.
+		  library.  If PySerial is new enough, the serial_for_url function
+		  will be used to allow the user to use a rfc2217 bridge.
 		:param dict c1218_settings: A settings dictionary to configure the C1218
-		parameters of 'nbrpkts' and 'pktsize'  If not provided the default
-		settings of 2 (nbrpkts) and 512 (pktsize) will be used.
+		  parameters of 'nbrpkts' and 'pktsize'  If not provided the default
+		  settings of 2 (nbrpkts) and 512 (pktsize) will be used.
 		:param dict serial_settings: A PySerial settings dictionary to be applied to
-		the serial connection instance.
+		  the serial connection instance.
 		:param bool toggle_control: Enables or diables automatically settings
-		the toggle bit in C12.18 frames.
+		  the toggle bit in C12.18 frames.
 		:param bool enable_cache: Cache specific, read only tables in memory,
-		the first time the table is read it will be stored for retreival
-		on subsequent requests.  This is enabled only for specific tables
-		(currently only 0 and 1).
+		  the first time the table is read it will be stored for retreival
+		  on subsequent requests.  This is enabled only for specific tables
+		  (currently only 0 and 1).
 		"""
 		enable_cache = True
 		if 'enable_cache' in kwargs:
@@ -344,7 +344,7 @@ class Connection(ConnectionRaw):
 
 		:param int tableid: The table number to read from (0x0000 <= tableid <= 0xffff)
 		:param int octetcount: Limit the amount of data read, only works if
-		the meter supports this type of reading.
+		  the meter supports this type of reading.
 		:param int offset: The offset at which to start to read the data from.
 		"""
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and tableid in self.__tbl_cache__.keys():
@@ -402,9 +402,8 @@ class Connection(ConnectionRaw):
 
 		:param int process_number: The numeric procedure identifier (0 <= process_number <= 2047).
 		:param bool std_vs_mfg: Whether the procedure is manufacturer specified
-		or not. True is manufacturer specified.
-		:param str params: The parameters to pass to the procedure initiation
-		request.
+		  or not. True is manufacturer specified.
+		:param str params: The parameters to pass to the procedure initiation request.
 		"""
 		seqnum = random.randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')

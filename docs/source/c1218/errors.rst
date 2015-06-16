@@ -1,5 +1,5 @@
 :mod:`c1218.errors`
-=============
+===================
 
 .. module:: c1218.errors
    :synopsis:
