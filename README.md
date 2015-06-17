@@ -50,8 +50,11 @@ Termineter Development Team:
 
 # About
 Author: Spencer McIntyre
+
 Author Home Page: http://www.securestate.com/
+
 Project Home Page: https://github.com/securestate/termineter
+
 Project Documentation: http://termineter.readthedocs.org/en/latest
 
 # Install
