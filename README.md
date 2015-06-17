@@ -1,21 +1,21 @@
-##########################################################
-#   ______                    _            __            #
-#  /_  __/__  _________ ___  (_)___  ___  / /____  _____ #
-#   / / / _ \/ ___/ __ `__ \/ / __ \/ _ \/ __/ _ \/ ___/ #
-#  / / /  __/ /  / / / / / / / / / /  __/ /_/  __/ /     #
-# /_/  \___/_/  /_/ /_/ /_/_/_/ /_/\___/\__/\___/_/      #
-#                                                        #
-##########################################################
+```
+   ______                    _            __
+  /_  __/__  _________ ___  (_)___  ___  / /____  _____
+   / / / _ \/ ___/ __ `__ \/ / __ \/ _ \/ __/ _ \/ ___/
+  / / /  __/ /  / / / / / / / / / /  __/ /_/  __/ /
+ /_/  \___/_/  /_/ /_/ /_/_/_/ /_/\___/\__/\___/_/
 
-== Summary ==
+```
+
+# Summary
 Termineter is a framework written in python to provide a platform for
 the security testing of smart meters.  It implements the C1218 and C1219
-protocols for communication.  Currently supportted are Meters using 
-C1219-2007 with 7-bit character sets.  Termineter communicates with 
+protocols for communication.  Currently supportted are Meters using
+C1219-2007 with 7-bit character sets.  Termineter communicates with
 Smart Meters via a connection using an ANSI type-2 optical probe with a
 serial interface.
 
-== License ==
+# License
 Copyright (C) 2011-2015, Spencer J. McIntyre
 
 This program is free software; you can redistribute it and/or modify
@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 This license does not apply to the following components:
  * CrcMoose
 
-== Credits ==
+# Credits
 Special Thanks To:
  * Caroline Aronoff (Alpha testing and fixing older PySerial compatibility)
  * Chris Murrey - f8lerror (Alpha testing)
@@ -46,14 +46,15 @@ Special Thanks To:
  * Don Weber - cutaway (Developer of InGuardians' OptiGuard)
 
 Termineter Development Team:
- * Spencer McIntyre of the SecureState Research and Innovation Team 
+ * Spencer McIntyre of the SecureState Research and Innovation Team
 
-== About ==
+# About
 Author: Spencer McIntyre
 Author Home Page: http://www.securestate.com/
 Project Home Page: https://github.com/securestate/termineter
+Project Documentation: http://termineter.readthedocs.org/en/latest
 
-== Install ==
-For install information please see the INSTALL file.
+# Install
+For install information please see the INSTALL.md file.
 The PySerial library is required and can be found here:
 http://pyserial.sourceforge.net/
