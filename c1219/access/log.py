@@ -29,7 +29,7 @@ from c1219.constants import *
 from c1219.data import get_history_entry_record
 from c1219.errors import C1219ParseError
 
-class C1219LogAccess(object):		# Corresponds To Decade 7x
+class C1219LogAccess(object):  # Corresponds To Decade 7x
 	"""
 	This class provides generic access to the log data tables that are
 	stored in the decade 7x tables.

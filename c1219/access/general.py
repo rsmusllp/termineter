@@ -31,7 +31,7 @@ from c1218.utilities import find_strings
 from c1219.constants import *
 from c1219.errors import C1219ParseError
 
-class C1219GeneralAccess(object):		# Corresponds To Decade 0x
+class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 	"""
 	This class provides generic access to the general configuration tables
 	that are stored in the decade 0x tables.
