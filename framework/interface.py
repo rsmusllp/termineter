@@ -26,6 +26,7 @@ from random import randint
 import subprocess
 import socket
 import sys
+import textwrap
 import traceback
 
 from framework import its
@@ -101,7 +102,7 @@ class InteractiveInterpreter(OverrideCmd):
 	doc_header = 'Type help <command> For Information\nList Of Available Commands:'
 	def __init__(self, check_rc_file=True, stdin=None, stdout=None, log_handler=None):
 		OverrideCmd.__init__(self, stdin=stdin, stdout=stdout)
-		if stdin != None:
+		if stdin is not None:
 			self.use_rawinput = False
 			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
 			self.__disabled_commands__.append('ipy')
@@ -111,7 +112,7 @@ class InteractiveInterpreter(OverrideCmd):
 		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
 		self.log_handler = log_handler
-		if self.log_handler == None:
+		if self.log_handler is None:
 			self.__disabled_commands__.append('logging')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
 		self.frmwk = Framework(stdout=stdout)
@@ -121,7 +122,7 @@ class InteractiveInterpreter(OverrideCmd):
 		self.print_status = self.frmwk.print_status
 
 		if check_rc_file:
-			if check_rc_file == True:
+			if check_rc_file:
 				check_rc_file = self.frmwk.directories.user_data + 'console.rc'
 				if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
 					self.print_status('Running commands from resource file: ' + check_rc_file)
@@ -397,25 +398,17 @@ class InteractiveInterpreter(OverrideCmd):
 			longest_value = max(longest_value, len(str(module.options[option_name])))
 		fmt_string = "  {0:<" + str(longest_name) + "} {1:<" + str(longest_value) + "} {2}"
 		self.print_line(fmt_string.format('Name', 'Value', 'Description'))
-		self.print_line(fmt_string.format('----', '-----', '------------'))
+		self.print_line(fmt_string.format('----', '-----', '-----------'))
 		for option_name in module.options.keys():
 			option_value = module.options[option_name]
-			if option_value == None:
+			if option_value is None:
 				option_value = ''
 			option_desc = module.options.get_option_help(option_name)
 			self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
 		self.print_line('')
 		self.print_line('Description:')
-		description_text = module.detailed_description.split()
-		y, x = 0, 0
-		while y < len(description_text):
-			if len(' '.join(description_text[x:y])) <= 58:
-				y += 1
-			else:
-				self.print_line('  ' + ' '.join(description_text[x:(y - 1)]))
-				x = y - 1
-				y += 1
-		self.print_line('  ' + ' '.join(description_text[x:y]))
+		for line in textwrap.wrap(textwrap.dedent(module.detailed_description), 78):
+			self.print_line('  ' + line)
 		self.print_line('')
 
 	def complete_info(self, text, line, begidx, endidx):
