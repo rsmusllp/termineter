@@ -27,7 +27,6 @@ import struct
 
 from c1218.data import C1218WriteRequest
 from c1218.errors import C1218ReadTableError
-from c1218.utilities import find_strings
 from c1219.constants import *
 from c1219.errors import C1219ParseError
 

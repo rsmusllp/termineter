@@ -26,13 +26,16 @@ class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
-		self.author = [ 'Spencer McIntyre' ]
+		self.author = ['Spencer McIntyre']
 		self.description = 'Write Data To A C12.19 Table'
-		self.detailed_description = 'This will over write the data in a write able table on the smart meter. If USEHEX is set to true then the DATA variable is expected to be represented as a string of hex characters.'
+		self.detailed_description = '''\
+		This will over write the data in a write able table on the smart meter. If USEHEX is set to true then the DATA
+		option is expected to be represented as a string of hex characters.
+		'''
 		self.options.add_integer('TABLEID', 'table to read from', True)
 		self.options.add_string('DATA', 'data to write to the table', True)
-		self.options.add_boolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default = False)
-		self.options.add_integer('OFFSET', 'offset to start writing data at', required = False, default = None)
+		self.options.add_boolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default=True)
+		self.options.add_integer('OFFSET', 'offset to start writing data at', required=False, default=None)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
@@ -41,8 +44,9 @@ class Module(TermineterModuleOptical):
 		data = self.options['DATA']
 		offset = self.options['OFFSET']
 		if self.options['USEHEX']:
+			data = data.replace(' ', '')
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
-			if hex_regex.match(data) == None:
+			if hex_regex.match(data) is None:
 				self.frmwk.print_error('Non-hex characters found in \'DATA\'')
 				return
 			data = data.decode('hex')
