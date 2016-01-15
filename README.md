@@ -49,7 +49,7 @@ Termineter Development Team:
  * Spencer McIntyre of the SecureState Research and Innovation Team
 
 # About
-Author: Spencer McIntyre
+Author: Spencer McIntyre - zeroSteiner ([@zeroSteiner](https://twitter.com/zeroSteiner))
 
 Author Home Page: http://www.securestate.com/
 

@@ -45,6 +45,9 @@ class Module(TermineterModuleOptical):
 			self.frmwk.print_error('unknown mode, please use METERING, TEST, METERSHOP, or FACTORY')
 			return
 
+		if not self.frmwk.serial_login():  # don't alert on failed logins
+			logger.warning('meter login failed')
+
 		logger.info('setting mode to: ' + mode)
 		self.frmwk.print_status('Setting Mode To: ' + mode)
 
@@ -52,12 +55,11 @@ class Module(TermineterModuleOptical):
 		error_code, data = None, ''
 		try:
 			error_code, data = conn.run_procedure(6, False, chr(mode))
-			self.frmwk.print_good('Sucessfully Changed The Mode')
 		except C1218ReadTableError as error:
 			logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 		except C1218WriteTableError as error:
-			if error.code == 4:	# onp/operation not possible
+			if error.code == 4:  # onp/operation not possible
 				self.frmwk.print_error('Meter responded that it can not set the mode to the desired type')
 			else:
 				logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
@@ -65,5 +67,7 @@ class Module(TermineterModuleOptical):
 		except C1219ProcedureError as error:
 			logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+		else:
+			self.frmwk.print_good('Sucessfully Changed The Mode')
 		conn.stop()
 		return
