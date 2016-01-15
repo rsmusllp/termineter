@@ -111,6 +111,7 @@ class InteractiveInterpreter(OverrideCmd):
 			self.__hidden_commands__.append('prep_driver')
 		self.__hidden_commands__.append('cd')
 		self.__hidden_commands__.append('exploit')
+		self.last_module = None
 		self.log_handler = log_handler
 		if self.log_handler is None:
 			self.__disabled_commands__.append('logging')
@@ -238,7 +239,7 @@ class InteractiveInterpreter(OverrideCmd):
 				break
 		srv_sock.shutdown(socket.SHUT_RDWR)
 		srv_sock.close()
-		del(srv_sock)
+		del srv_sock
 
 	def do_back(self, args):
 		"""Stop using a module"""
@@ -478,6 +479,12 @@ class InteractiveInterpreter(OverrideCmd):
 				file_h.write("{0} {1}".format(vendor, product))
 		self.print_status('Finished driver preparation')
 
+	def do_previous(self, args):
+		if self.last_module is None:
+			self.frmwk.print_error('no module has been previously selected')
+			return
+		self.frmwk.current_module, self.last_module = self.last_module, self.frmwk.current_module
+
 	def do_reload(self, args):
 		"""Reload a module in to the framework"""
 		args = args.split(' ')
@@ -670,6 +677,7 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_line('  use [module name]')
 			return
 		if mod_name in self.frmwk.modules.keys():
+			self.last_module = self.frmwk.current_module
 			self.frmwk.current_module = self.frmwk.modules[mod_name]
 		else:
 			self.logger.error('failed to load module: ' + mod_name)

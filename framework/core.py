@@ -43,7 +43,7 @@ class Framework(object):
 		self.modules = {}
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 		package_path = __import__(self.__package__, None, None, ['__path__']).__path__[0]	# that's some python black magic trickery for you
-		if stdout == None:
+		if stdout is None:
 			stdout = sys.stdout
 		self.stdout = stdout
 
@@ -161,7 +161,7 @@ class Framework(object):
 		@type module_path: String
 		@param module_path: The name of the module to reload
 		"""
-		if module_path == None:
+		if module_path is None:
 			if self.current_module != None:
 				module_path = self.current_module.path
 			else:
