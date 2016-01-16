@@ -46,7 +46,7 @@ class Module(TermineterModuleOptical):
 
 		number_of_tables = 0
 		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.get_option_value('FILE'))
-		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
+		for tableid in range(lower_boundary, (upper_boundary + 1)):
 			try:
 				data = conn.get_table_data(tableid)
 			except C1218ReadTableError as error:

@@ -79,29 +79,29 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 
 		self.__std_tbls_used__ = []
 		tmp_data = general_config_table[19:]
-		for p in xrange(self.__dim_std_tbls_used__):
-			for i in xrange(7):
+		for p in range(self.__dim_std_tbls_used__):
+			for i in range(7):
 				if ord(tmp_data[p]) & (2 ** i):
 					self.__std_tbls_used__.append(i + (p * 8))
 
 		self.__mfg_tbls_used__ = []
 		tmp_data = tmp_data[self.__dim_std_tbls_used__:]
-		for p in xrange(self.__dim_mfg_tbls_used__):
-			for i in xrange(7):
+		for p in range(self.__dim_mfg_tbls_used__):
+			for i in range(7):
 				if ord(tmp_data[p]) & (2 ** i):
 					self.__mfg_tbls_used__.append(i + (p * 8))
 
 		self.__std_proc_used__ = []
 		tmp_data = tmp_data[self.__dim_mfg_tbls_used__:]
-		for p in xrange(self.__dim_std_proc_used__):
-			for i in xrange(7):
+		for p in range(self.__dim_std_proc_used__):
+			for i in range(7):
 				if ord(tmp_data[p]) & (2 ** i):
 					self.__std_proc_used__.append(i + (p * 8))
 
 		self.__mfg_proc_used__ = []
 		tmp_data = tmp_data[self.__dim_std_proc_used__:]
-		for p in xrange(self.__dim_mfg_proc_used__):
-			for i in xrange(7):
+		for p in range(self.__dim_mfg_proc_used__):
+			for i in range(7):
 				if ord(tmp_data[p]) & (2 ** i):
 					self.__mfg_proc_used__.append(i + (p * 8))
 

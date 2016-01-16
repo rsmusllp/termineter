@@ -37,7 +37,7 @@ def find_strings(data, minchars=4):
 	rstrings = []
 	myprintables = string.ascii_letters + string.digits + string.punctuation + '\n\t\r '
 	start = None
-	for p in xrange(0, len(data)):
+	for p in range(0, len(data)):
 		if data[p] in myprintables:
 			if start == None:
 				start = p

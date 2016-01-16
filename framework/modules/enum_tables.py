@@ -23,6 +23,12 @@ from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_TABLES
 from framework.templates import TermineterModuleOptical
 
+# 0     - 2039  Standard Tables
+# 2048  - 4087  Manufacturer Tables 0 - 2039
+# 4096  - 6135  Standard Pending Tables 0 - 2039
+# 6144  - 8183  Manufacturer Pending Tables 0 - 2039
+# 8192  - 10231 User Defined Tables 0 - 2039
+# 12288 - 14327 User Defined Pending Tables 0 - 2039
 class Module(TermineterModuleOptical):
 	require_connection = False
 	def __init__(self, *args, **kwargs):
@@ -30,7 +36,10 @@ class Module(TermineterModuleOptical):
 		self.version = 4
 		self.author = ['Spencer McIntyre']
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
-		self.detailed_description = 'This module will enumerate the readable tables on the smart meter by attempting to transfer each one.'
+		self.detailed_description = """\
+		This module will enumerate the readable tables on the smart meter by attempting to transfer each one. Tables are
+		grouped into decades.
+		"""
 		self.options.add_integer('LOWER', 'table id to start reading from', default=0)
 		self.options.add_integer('UPPER', 'table id to stop reading from', default=256)
 
@@ -44,12 +53,12 @@ class Module(TermineterModuleOptical):
 
 		number_of_tables = 0
 		self.frmwk.print_status('Enumerating tables, please wait...')
-		for tableid in xrange(lower_boundary, (upper_boundary + 1)):
+		for tableid in range(lower_boundary, (upper_boundary + 1)):
 			try:
 				data = conn.get_table_data(tableid)
 			except C1218ReadTableError as error:
 				data = None
-				if error.code == 10: # ISSS
+				if error.code == 10:  # ISSS
 					conn.stop()
 					logger.warning('received ISSS error, connection stopped, will sleep before retrying')
 					sleep(0.5)
@@ -60,9 +69,9 @@ class Module(TermineterModuleOptical):
 					except C1218ReadTableError as error:
 						data = None
 						if error.code == 10:
-							raise error # tried to re-sync communications but failed, you should reconnect and rerun the module
+							raise error  # tried to re-sync communications but failed, you should reconnect and rerun the module
 			if data:
 				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				number_of_tables += 1
-		self.frmwk.print_status('Found ' + str(number_of_tables) + ' table(s).')
+		self.frmwk.print_status("Found {0:,} tables in range {1}-{2}.".format(number_of_tables, lower_boundary, upper_boundary))
 		return

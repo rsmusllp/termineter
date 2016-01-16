@@ -50,7 +50,7 @@ class Module(TermineterModuleOptical):
 		time_delay = self.advanced_options['DELAY']
 
 		self.frmwk.print_status('Enumerating user IDs, please wait...')
-		for user_id in xrange(lower_boundary, (upper_boundary + 1)):
+		for user_id in range(lower_boundary, (upper_boundary + 1)):
 			while not conn.start():
 				sleep(time_delay)
 			if conn.login(self.options['USERNAME'], user_id):

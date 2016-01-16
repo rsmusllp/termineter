@@ -123,7 +123,7 @@ class ConnectionRaw:
 			self.loggerio.warning('toggle bit is on but the data is not a C1218Packet instance')
 		data = str(data)
 		self.loggerio.debug("sending frame,  length: {0:<3} data: {1}".format(len(data), data.encode('hex')))
-		for pktcount in xrange(0, 3):
+		for pktcount in range(0, 3):
 			self.write(data)
 			response = self.serial_h.read(1)
 			if response == NACK:
