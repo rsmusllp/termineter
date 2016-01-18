@@ -165,7 +165,7 @@ class C1219ProcedureInit:
 		self.params = params
 
 	def __repr__(self):
-		return '<' + self.__class__.__name__ + ' >'
+		return "<{0} mfg_defined={1} proc_nbr={2} >".format(self.__class__.__name__, self.mfg_defined, self.proc_nbr)
 
 	def __str__(self):
 		return self.do_build()

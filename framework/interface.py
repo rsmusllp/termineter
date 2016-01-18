@@ -417,7 +417,8 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_ipy(self, args):
 		"""Start an interactive Python interpreter"""
-		from c1218.data import C1218Packet
+		import c1218.data
+		import c1219.data
 		from c1219.access.general import C1219GeneralAccess
 		from c1219.access.security import C1219SecurityAccess
 		from c1219.access.log import C1219LogAccess
@@ -425,7 +426,10 @@ class InteractiveInterpreter(OverrideCmd):
 		vars = {
 			'__version__': __version__,
 			'frmwk': self.frmwk,
-			'C1218Packet': C1218Packet,
+			'C1218Packet': c1218.data.C1218Packet,
+			'C1218ReadRequest': c1218.data.C1218ReadRequest,
+			'C1218WriteRequest': c1218.data.C1218WriteRequest,
+			'C1219ProcedureInit': c1219.data.C1219ProcedureInit,
 			'C1219GeneralAccess': C1219GeneralAccess,
 			'C1219SecurityAccess': C1219SecurityAccess,
 			'C1219LogAccess': C1219LogAccess,

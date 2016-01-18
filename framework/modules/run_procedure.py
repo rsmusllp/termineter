@@ -34,7 +34,7 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		if not self.frmwk.serial_login():	# don't alert on failed logins
+		if not self.frmwk.serial_login():  # don't alert on failed logins
 			self.logger.warning('meter login failed')
 			self.frmwk.print_error('Meter login failed, procedure may fail')
 
