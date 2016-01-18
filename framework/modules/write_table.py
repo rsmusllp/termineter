@@ -25,7 +25,7 @@ from framework.templates import TermineterModuleOptical
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
+		self.version = 2
 		self.author = ['Spencer McIntyre']
 		self.description = 'Write Data To A C12.19 Table'
 		self.detailed_description = '''\
@@ -35,7 +35,8 @@ class Module(TermineterModuleOptical):
 		self.options.add_integer('TABLEID', 'table to read from', True)
 		self.options.add_string('DATA', 'data to write to the table', True)
 		self.options.add_boolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default=True)
-		self.options.add_integer('OFFSET', 'offset to start writing data at', required=False, default=None)
+		self.options.add_integer('OFFSET', 'offset to start writing data at', required=False, default=0)
+		self.advanced_options.add_boolean('VERIFY', 'verify that the data was written with a read request', default=True)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
@@ -58,7 +59,18 @@ class Module(TermineterModuleOptical):
 
 		try:
 			conn.set_table_data(tableid, data, offset)
-			self.frmwk.print_status('Successfully Wrote Data')
 		except C1218WriteTableError as error:
 			self.frmwk.print_error('Caught C1218WriteTableError: ' + str(error))
+		else:
+			self.frmwk.print_status('Successfully Wrote Data')
+
+		if self.advanced_options.get_option_value('VERIFY'):
+			table = conn.get_table_data(tableid)
+			if table[offset:offset + len(data)] == data:
+				self.frmwk.print_status('Table Write Verification Passed')
+			else:
+				self.frmwk.print_error('Table Write Verification Failed')
+			self.frmwk.print_hexdump(table)
+
+		conn.logoff()
 		conn.stop()

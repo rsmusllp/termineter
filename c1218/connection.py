@@ -374,7 +374,7 @@ class Connection(ConnectionRaw):
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid check sum')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid checksum')
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and not tableid in self.__tbl_cache__.keys():
-			self.logger.info('cacheing table #' + str(tableid))
+			self.logger.info('caching table #' + str(tableid))
 			self.__tbl_cache__[tableid] = data
 		return data
 
