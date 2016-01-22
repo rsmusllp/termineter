@@ -28,7 +28,10 @@ class Module(TermineterModuleOptical):
 		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Get Information About The Meter\'s Logs'
-		self.detailed_description = 'This module reads various C1219 tables from decade 70 to gather log information from the smart meter. If successful the parsed contents of the logs will be displayed.'
+		self.detailed_description = """\
+		This module reads various C1219 tables from decade 70 to gather log information from the smart meter. If
+		successful the parsed contents of the logs will be displayed.
+		"""
 
 	def run(self):
 		conn = self.frmwk.serial_connection

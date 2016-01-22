@@ -36,7 +36,7 @@ if hasattr(serial, 'protocol_handler_packages') and not 'c1218.urlhandler' in se
 if hasattr(logging, 'NullHandler'):
 	logging.getLogger('c1218').addHandler(logging.NullHandler())
 
-class ConnectionRaw:
+class ConnectionBase(object):
 	def __init__(self, device, c1218_settings={}, serial_settings=None, toggle_control=True, **kwargs):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
@@ -84,14 +84,16 @@ class ConnectionRaw:
 
 		try:
 			self.serial_h.setRTS(True)
-			self.logger.debug('set RTS to True')
 		except IOError:
 			self.logger.warning('could not set RTS to True')
+		else:
+			self.logger.debug('set RTS to True')
 		try:
 			self.serial_h.setDTR(False)
-			self.logger.debug('set DTR to False')
 		except IOError:
 			self.logger.warning('could not set DTR to False')
+		else:
+			self.logger.debug('set DTR to False')
 
 		self.logged_in = False
 		self.__initialized__ = False
@@ -212,11 +214,11 @@ class ConnectionRaw:
 		self.logged_in = False
 		return self.serial_h.close()
 
-class Connection(ConnectionRaw):
+class Connection(ConnectionBase):
 	def __init__(self, *args, **kwargs):
 		"""
 		This is a C12.18 driver for serial connections.  It relies on PySerial
-		to communicate with an ANSI Type-2 Optical probe to communciate
+		to communicate with an ANSI Type-2 Optical probe to communicate
 		with a device (presumably a smart meter).
 
 		:param str device: A connection string to be passed to the PySerial
@@ -227,7 +229,7 @@ class Connection(ConnectionRaw):
 		  settings of 2 (nbrpkts) and 512 (pktsize) will be used.
 		:param dict serial_settings: A PySerial settings dictionary to be applied to
 		  the serial connection instance.
-		:param bool toggle_control: Enables or diables automatically settings
+		:param bool toggle_control: Enables or disables automatically settings
 		  the toggle bit in C12.18 frames.
 		:param bool enable_cache: Cache specific, read only tables in memory,
 		  the first time the table is read it will be stored for retreival
@@ -237,7 +239,7 @@ class Connection(ConnectionRaw):
 		enable_cache = True
 		if 'enable_cache' in kwargs:
 			enable_cache = kwargs['enable_cache']
-		ConnectionRaw.__init__(self, *args, **kwargs)
+		super(Connection, self).__init__(*args, **kwargs)
 		self.caching_enabled = enable_cache
 		self.__cacheable_tbls__ = [0, 1]
 		self.__tbl_cache__ = {}

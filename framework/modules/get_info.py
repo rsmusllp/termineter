@@ -55,7 +55,7 @@ class Module(TermineterModuleOptical):
 		meter_info['Firmware Version'] = str(general_ctl.fw_version_no) + '.' + str(general_ctl.fw_revision_no)
 		meter_info['Serial Number'] = general_ctl.mfg_serial_no
 
-		if general_ctl.ed_mode != None:
+		if general_ctl.ed_mode is not None:
 			modes = []
 			flags = ['Metering', 'Test Mode', 'Meter Shop Mode', 'Factory']
 			for i in range(len(flags)):
@@ -64,7 +64,7 @@ class Module(TermineterModuleOptical):
 			if len(modes):
 				meter_info['Mode Flags'] = ', '.join(modes)
 
-		if general_ctl.std_status != None:
+		if general_ctl.std_status is not None:
 			status = []
 			flags = ['Unprogrammed', 'Configuration Error', 'Self Check Error', 'RAM Failure', 'ROM Failure', 'Non Volatile Memory Failure', 'Clock Error', 'Measurement Error', 'Low Battery', 'Low Loss Potential', 'Demand Overload', 'Power Failure', 'Tamper Detect', 'Reverse Rotation']
 			for i in range(len(flags)):
@@ -72,7 +72,7 @@ class Module(TermineterModuleOptical):
 					status.append(flags[i])
 			if len(status):
 				meter_info['Status Flags'] = ', '.join(status)
-		if general_ctl.device_id != None:
+		if general_ctl.device_id is not None:
 			meter_info['Device ID'] = general_ctl.device_id
 
 		self.frmwk.print_status('General Information:')

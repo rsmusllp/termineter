@@ -18,7 +18,6 @@
 #  MA 02110-1301, USA.
 
 from c1218.errors import C1218ReadTableError
-from c1218.utilities import find_strings
 from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):

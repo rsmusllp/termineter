@@ -19,8 +19,6 @@
 
 from time import sleep
 
-from c1218.errors import C1218ReadTableError
-from c1219.data import C1219_TABLES
 from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
