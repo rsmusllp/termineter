@@ -48,8 +48,6 @@ class Module(TermineterModuleOptical):
 		logger = self.logger
 		lower_boundary = self.options['LOWER']
 		upper_boundary = self.options['UPPER']
-		if not self.frmwk.serial_login():
-			logger.warning('meter login failed')
 
 		number_of_tables = 0
 		self.frmwk.print_status('Enumerating tables, please wait...')
@@ -74,4 +72,3 @@ class Module(TermineterModuleOptical):
 				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				number_of_tables += 1
 		self.frmwk.print_status("Found {0:,} tables in range {1}-{2}.".format(number_of_tables, lower_boundary, upper_boundary))
-		return

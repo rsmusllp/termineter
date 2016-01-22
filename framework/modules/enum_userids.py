@@ -23,6 +23,7 @@ from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	require_connection = False
+	attempt_login = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
@@ -36,7 +37,6 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
 		lower_boundary = self.options['LOWER']
 		upper_boundary = self.options['UPPER']
 		if lower_boundary > 0xffff:

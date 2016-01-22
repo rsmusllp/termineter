@@ -32,16 +32,12 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
-		if not self.frmwk.serial_login():  # don't alert on failed logins
-			logger.warning('meter login failed')
 
 		try:
 			telephone_ctl = C1219TelephoneAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read necessary tables, a modem is not likely present')
 			return
-		conn.stop()
 
 		info = {}
 		info['Can Answer'] = telephone_ctl.can_answer

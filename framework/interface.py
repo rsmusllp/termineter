@@ -27,6 +27,7 @@ import subprocess
 import socket
 import sys
 import textwrap
+import time
 import traceback
 
 from framework import its
@@ -174,10 +175,15 @@ class InteractiveInterpreter(OverrideCmd):
 		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
 			self.logger.info('processing "' + rc_file + '" for commands')
 			for line in open(rc_file, 'r'):
-				if not len(line):
+				line = line.strip()
+				if not len(line) or line[0] == '#':
 					continue
-				if line[0] == '#':
-					continue
+				if line.startswith('print_'):
+					line = line[6:]
+					print_type, message = line.split(' ', 1)
+					if print_type in ('error', 'good', 'line', 'status'):
+						getattr(self, 'print_' + print_type)(message)
+						continue
 				self.print_line(self.prompt + line.strip())
 				self.onecmd(line.strip())
 		else:
@@ -543,20 +549,6 @@ class InteractiveInterpreter(OverrideCmd):
 			return
 		del missing_options
 
-		if isinstance(module, TermineterModuleOptical):
-			if module.require_connection and not self.frmwk.is_serial_connected():
-				try:
-					result = self.frmwk.serial_connect()
-				except Exception as error:
-					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
-					return
-				self.print_good('Successfully connected and the device is responding')
-			else:
-				try:
-					self.frmwk.serial_get()
-				except Exception as error:
-					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
-					return
 		try:
 			self.frmwk.run()
 		except KeyboardInterrupt:

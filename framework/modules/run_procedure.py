@@ -34,9 +34,6 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		if not self.frmwk.serial_login():  # don't alert on failed logins
-			self.logger.warning('meter login failed')
-			self.frmwk.print_error('Meter login failed, procedure may fail')
 
 		data = self.options['PARAMS']
 		if self.options['USEHEX']:
@@ -45,11 +42,9 @@ class Module(TermineterModuleOptical):
 		self.frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
 
 		error_code, data = conn.run_procedure(self.options['PROCNBR'], self.advanced_options['STDVSMFG'], data)
-		conn.stop()
 
 		self.frmwk.print_status('Finished running procedure #' + str(self.options['PROCNBR']))
 		self.frmwk.print_status('Received respose from procedure: ' + (C1219_PROC_RESULT_CODES.get(error_code) or 'UNKNOWN'))
 		if len(data):
 			self.frmwk.print_status('Received data output from procedure: ')
 			self.frmwk.print_hexdump(data)
-		return

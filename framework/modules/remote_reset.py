@@ -33,9 +33,6 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		if not self.frmwk.serial_login():
-			self.logger.warning('meter login failed')
-			self.frmwk.print_error('Meter login failed, procedure may fail')
 
 		params = 0
 		if self.options['DEMAND']:
@@ -51,5 +48,3 @@ class Module(TermineterModuleOptical):
 		except (C1218ReadTableError, C1218WriteTableError, C1219ProcedureError) as error:
 			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
 			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
-		conn.stop()
-		return

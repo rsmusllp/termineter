@@ -32,16 +32,12 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
-		if not self.frmwk.serial_login():  # don't alert on failed logins
-			logger.warning('meter login failed')
 
 		try:
 			security_ctl = C1219SecurityAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read necessary tables')
 			return
-		conn.stop()
 
 		security_info = {}
 		security_info['Number of Passwords'] = security_ctl.nbr_passwords

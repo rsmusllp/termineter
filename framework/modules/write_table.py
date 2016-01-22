@@ -40,7 +40,6 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
 		tableid = self.options['TABLEID']
 		data = self.options['DATA']
 		offset = self.options['OFFSET']
@@ -51,11 +50,6 @@ class Module(TermineterModuleOptical):
 				self.frmwk.print_error('Non-hex characters found in \'DATA\'')
 				return
 			data = data.decode('hex')
-
-		if not self.frmwk.serial_login():
-			logger.warning('meter login failed')
-			self.frmwk.print_error('Meter login failed')
-			return
 
 		try:
 			conn.set_table_data(tableid, data, offset)
@@ -71,6 +65,3 @@ class Module(TermineterModuleOptical):
 			else:
 				self.frmwk.print_error('Table Write Verification Failed')
 			self.frmwk.print_hexdump(table)
-
-		conn.logoff()
-		conn.stop()

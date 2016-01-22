@@ -41,8 +41,6 @@ class Module(TermineterModuleOptical):
 		lower_boundary = self.options['LOWER']
 		upper_boundary = self.options['UPPER']
 		out_file = open(self.options['FILE'], 'w', 1)
-		if not self.frmwk.serial_login():
-			logger.warning('meter login failed, some tables may not be accessible')
 
 		number_of_tables = 0
 		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.get_option_value('FILE'))
@@ -51,7 +49,7 @@ class Module(TermineterModuleOptical):
 				data = conn.get_table_data(tableid)
 			except C1218ReadTableError as error:
 				data = None
-				if error.code == 10:	# ISSS
+				if error.code == 10:  # ISSS
 					conn.stop()
 					logger.warning('received ISSS error, connection stopped, will sleep before retrying')
 					sleep(0.5)
@@ -62,7 +60,7 @@ class Module(TermineterModuleOptical):
 					except C1218ReadTableError as error:
 						data = None
 						if error.code == 10:
-							raise error	# tried to re-sync communications but failed, you should reconnect and rerun the module
+							raise error  # tried to re-sync communications but failed, you should reconnect and rerun the module
 			if data:
 				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
 				# format is: table id, table name, table data length, table data
@@ -71,4 +69,3 @@ class Module(TermineterModuleOptical):
 
 		out_file.close()
 		self.frmwk.print_status('Successfully copied ' + str(number_of_tables) + ' tables to disk.')
-		return

@@ -35,16 +35,12 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
-		if not self.frmwk.serial_login():  # don't alert on failed logins
-			logger.warning('meter login failed')
 
 		try:
 			log_ctl = C1219LogAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read necessary tables, logging may not be enabled')
 			return
-		conn.stop()
 
 		if len(log_ctl.logs) == 0:
 			self.frmwk.print_status('Log History Table Contains No Entries')

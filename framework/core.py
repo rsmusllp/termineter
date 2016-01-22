@@ -193,26 +193,39 @@ class Framework(object):
 	def run(self, module=None):
 		if not isinstance(module, TermineterModule) and not isinstance(self.current_module, TermineterModule):
 			raise FrameworkRuntimeError('either the module or the current_module must be sent')
-		if module == None:
+		if module is None:
 			module = self.current_module
 		if isinstance(module, TermineterModuleOptical):
 			if not self.is_serial_connected:
 				raise FrameworkRuntimeError('the serial interface is disconnected')
+
+			if module.require_connection and not self.frmwk.is_serial_connected():
+				try:
+					self.serial_connect()
+				except Exception as error:
+					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+					return
+				self.print_good('Successfully connected and the device is responding')
+			else:
+				try:
+					self.serial_get()
+				except Exception as error:
+					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+					return
+			if module.require_connection and module.attempt_login:
+				if not self.frmwk.serial_login():
+					self.logger.warning('meter login failed, some tables may not be accessible')
 		# if isinstance(module, TermineterModuleRfcat):
 		# 	self.rfcat_connect()
 
-		result = None
 		self.logger.info('running module: ' + module.path)
 		try:
 			result = module.run()
-		except KeyboardInterrupt as error:
+		finally:
 			if isinstance(module, TermineterModuleOptical):
 				self.serial_connection.stop()
 			# if isinstance(module, TermineterModuleRfcat):
 			# 	self.rfcat_disconnect()
-			raise error
-		# if isinstance(module, TermineterModuleRfcat):
-		# 	self.rfcat_disconnect()
 		return result
 
 	@property
@@ -375,10 +388,10 @@ class Framework(object):
 			raise error
 
 		if (ord(general_config_table[0]) & 1):
-			self.logger.info('setting the connection to use big-endian for C1219 data')
+			self.logger.info('setting the connection to use big-endian for C12.19 data')
 			self.serial_connection.c1219_endian = '>'
 		else:
-			self.logger.info('setting the connection to use little-endian for C1219 data')
+			self.logger.info('setting the connection to use little-endian for C12.19 data')
 			self.serial_connection.c1219_endian = '<'
 
 		try:
@@ -393,17 +406,15 @@ class Framework(object):
 
 	def serial_login(self):
 		"""
-		Attempt to log into the meter over the C12.18 protocol.  Returns
-		True on success, False on a failure.  This can be called by modules
-		in order to login with a username and password configured within
-		the framework instance.
+		Attempt to log into the meter over the C12.18 protocol. Returns True on success, False on a failure. This can be
+		called by modules in order to login with a username and password configured within the framework instance.
 		"""
 		username = self.options['USERNAME']
 		userid = self.options['USERID']
 		password = self.options['PASSWORD']
 		if self.options['PASSWORDHEX']:
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
-			if hex_regex.match(password) == None:
+			if hex_regex.match(password) is None:
 				self.print_error('Invalid characters in password')
 				raise FrameworkConfigurationError('invalid characters in password')
 			password = password.decode('hex')

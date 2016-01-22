@@ -31,17 +31,12 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
 		tableid = self.options['TABLEID']
-		if not self.frmwk.serial_login():
-			logger.warning('meter login failed')
+
 		try:
 			data = conn.get_table_data(tableid)
 		except C1218ReadTableError as error:
 			self.frmwk.print_error('Caught C1218ReadTableError: ' + str(error))
-			conn.stop()
-			return
-		conn.stop()
 
 		self.frmwk.print_status('Read ' + str(len(data)) + ' bytes')
 		self.frmwk.print_hexdump(data)

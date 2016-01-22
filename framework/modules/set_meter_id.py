@@ -33,8 +33,7 @@ class Module(TermineterModuleOptical):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
 		meter_id = self.options['METERID']
-		if not self.frmwk.serial_login():
-			logger.warning('meter login failed')
+
 		gen_ctl = C1219GeneralAccess(conn)
 		if gen_ctl.id_form == 0:
 			logger.info('device id stored in 20 byte string')
@@ -50,5 +49,3 @@ class Module(TermineterModuleOptical):
 			self.frmwk.print_error('Could not set the Meter\'s ID')
 		else:
 			self.frmwk.print_status('Successfully updated the Meter\'s ID to: ' + meter_id)
-		conn.stop()
-		return

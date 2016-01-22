@@ -22,7 +22,6 @@ from c1219.access.general import C1219GeneralAccess
 from framework.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
-	require_connection = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
@@ -32,18 +31,12 @@ class Module(TermineterModuleOptical):
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		logger = self.logger
-		if not self.frmwk.serial_login():	# don't alert on failed logins
-			logger.warning('meter login failed, not all information may be available')
-			self.frmwk.print_error('Meter login failed, not all information may be available')
-		conn = self.frmwk.serial_connection
 
 		try:
 			general_ctl = C1219GeneralAccess(conn)
 		except C1218ReadTableError:
 			self.frmwk.print_error('Could not read the necessary tables')
 			return
-		conn.stop()
 
 		meter_info = {}
 		meter_info['Character Encoding'] = general_ctl.char_format
@@ -81,4 +74,3 @@ class Module(TermineterModuleOptical):
 		keys.sort()
 		for key in keys:
 			self.frmwk.print_status(fmt_string.format(key, meter_info[key]))
-		return
