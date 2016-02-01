@@ -22,9 +22,10 @@ import code
 import logging
 import os
 import platform
-from random import randint
-import subprocess
+import random
+import shlex
 import socket
+import subprocess
 import sys
 import textwrap
 import traceback
@@ -280,7 +281,7 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_connect(self, args):
 		"""Connect the serial interface"""
-		args = args.split(' ')
+		args = shlex.split(args)
 		if self.frmwk.is_serial_connected():
 			self.print_status('Already connected')
 			return
@@ -294,7 +295,7 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 			return
 		self.print_good('Successfully connected and the device is responding')
-		if args[0] == '-l':
+		if len(args) and args[0] == '-l':
 			if self.frmwk.serial_login():
 				self.print_good('Successfully authenticated to the device')
 			else:
@@ -302,7 +303,7 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_disconnect(self, args):
 		"""Disconnect the serial interface"""
-		args = args.split(' ')
+		args = shlex.split(args)
 		if not self.frmwk.is_serial_connected():
 			self.print_error('Not connected')
 			return
@@ -311,7 +312,7 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_good('Successfully disconnected')
 		else:
 			self.print_error('An error occured while closing the serial interface')
-		if args[0] == '-r':
+		if len(args) and args[0] == '-r':
 			missing_options = self.frmwk.options.get_missing_options()
 			if missing_options:
 				self.print_error('The following options must be set: ' + ', '.join(missing_options))
@@ -325,13 +326,14 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_exit(self, args):
 		"""Exit The Interpreter"""
-		QUOTES = [	'I\'ll be back.',
-					'Hasta la vista, baby.',
-					'Come with me if you want to live.',
-					'Where\'s John Connor?'
-					]
+		quotes = (
+			'I\'ll be back.',
+			'Hasta la vista, baby.',
+			'Come with me if you want to live.',
+			'Where\'s John Connor?'
+		)
 		self.logger.info('received exit command, now exiting')
-		self.print_status(QUOTES[randint(0, (len(QUOTES) - 1))])
+		self.print_status(random.choice(quotes))
 		try:
 			import readline
 			readline.write_history_file(self.frmwk.directories.user_data + 'history.txt')
@@ -349,16 +351,16 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_logging(self, args):
 		"""Set and show logging options"""
-		args = args.split(' ')
-		if args[0] == '':
-			args[0] = 'show'
+		args = shlex.split(args)
+		if len(args) == 0:
+			args.append('show')
 		elif not args[0] in ['show', 'set', '-h']:
 			self.print_error('Invalid parameter "' + args[0] + '", use "logging -h" for more information')
 			return
 		if args[0] == '-h':
 			self.print_status('Valid parameters for the "logging" command are: show, set')
 			return
-		elif self.log_handler == None:
+		elif self.log_handler is None:
 			self.print_error('No log handler is defined')
 			return
 		if args[0] == 'show':
@@ -380,11 +382,11 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_info(self, args):
 		"""Show module information"""
-		args = args.split(' ')
-		if args[0] == '' and self.frmwk.current_module == None:
+		args = shlex.split(args)
+		if len(args) == 0 and self.frmwk.current_module is None:
 			self.print_error('Must select module to show information')
 			return
-		if args[0]:
+		if len(args) and args[0]:
 			if args[0] in self.frmwk.modules.keys():
 				module = self.frmwk.modules[args[0]]
 			else:
@@ -464,7 +466,7 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_prep_driver(self, args):
 		"""Prep the optical probe driver"""
-		args = args.split()
+		args = shlex.split(args)
 		if len(args) != 2:
 			self.print_line('Usage:')
 			self.print_line('  prep_driver VVVV PPPP')
@@ -502,8 +504,8 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_reload(self, args):
 		"""Reload a module in to the framework"""
-		args = args.split(' ')
-		if args[0] == '':
+		args = shlex.split(args)
+		if len(args) == 0:
 			if self.frmwk.current_module:
 				module_path = self.frmwk.current_module.path
 			else:
@@ -526,7 +528,7 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_resource(self, args):
 		"""Run a resource file"""
-		args = args.split(' ')
+		args = shlex.split(args)
 		for rc_file in args:
 			if not os.path.isfile(rc_file):
 				self.print_error('Invalid resource file: ' + rc_file + ' (not found)')
@@ -539,9 +541,9 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_run(self, args):
 		"""Run the currently selected module"""
-		args = args.split(' ')
+		args = shlex.split(args)
 		old_module = None
-		if args[0] in self.frmwk.modules.keys():
+		if len(args) and args[0] in self.frmwk.modules.keys():
 			old_module = self.frmwk.current_module
 			self.frmwk.current_module = self.frmwk.modules[args[0]]
 		if self.frmwk.current_module is None:
@@ -572,7 +574,7 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_set(self, args):
 		"""Set an option, usage: set [option] [value]"""
-		args = args.split(' ')
+		args = shlex.split(args)
 		if len(args) < 2:
 			self.print_error('set: [option] [value]')
 			return
@@ -609,9 +611,9 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_show(self, args):
 		"""Valid parameters for the "show" command are: modules, options"""
-		args = args.split(' ')
-		if args[0] == '':
-			args[0] = 'options'
+		args = shlex.split(args)
+		if len(args) == 0:
+			args.append('options')
 		elif not args[0] in ['advanced', 'modules', 'options', '-h']:
 			self.print_error('Invalid parameter "' + args[0] + '", use "show -h" for more information')
 			return
@@ -640,10 +642,10 @@ class InteractiveInterpreter(OverrideCmd):
 			if self.frmwk.current_module and args[0] == 'advanced':
 				options = self.frmwk.current_module.advanced_options
 				self.print_line('Advanced Module Options' + os.linesep + '=======================')
-			elif self.frmwk.current_module == None and args[0] == 'options':
+			elif self.frmwk.current_module is None and args[0] == 'options':
 				options = self.frmwk.options
 				self.print_line('Framework Options' + os.linesep + '=================')
-			elif self.frmwk.current_module == None and args[0] == 'advanced':
+			elif self.frmwk.current_module is None and args[0] == 'advanced':
 				options = self.frmwk.advanced_options
 				self.print_line('Advanced Framework Options' + os.linesep + '==========================')
 			self.print_line('')
@@ -658,7 +660,7 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_line(fmt_string.format('----', '-----', '-----------'))
 			for option_name in options.keys():
 				option_value = options[option_name]
-				if option_value == None:
+				if option_value is None:
 					option_value = ''
 				option_desc = options.get_option_help(option_name)
 				self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
@@ -671,12 +673,12 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_use(self, args):
 		"""Select a module to use"""
-		args = args.split(' ')
-		mod_name = args[0]
-		if not mod_name:
+		args = shlex.split(args)
+		if len(args) != 1:
 			self.print_line('Usage:')
 			self.print_line('  use [module name]')
 			return
+		mod_name = args[0]
 		if mod_name in self.frmwk.modules.keys():
 			self.last_module = self.frmwk.current_module
 			self.frmwk.current_module = self.frmwk.modules[mod_name]
