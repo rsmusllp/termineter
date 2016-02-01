@@ -618,9 +618,10 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def complete_set(self, text, line, begidx, endidx):
 		if self.frmwk.current_module:
-			return [i for i in self.frmwk.current_module.options.keys() if i.startswith(text.upper())]
+			options = self.frmwk.current_module.options
 		else:
-			return [i for i in self.frmwk.options.keys() if i.startswith(text.upper())]
+			options = self.frmwk.options
+		return [i + ' ' for i in options.keys() if i.startswith(text.upper())]
 
 	def do_show(self, args):
 		"""Valid parameters for the "show" command are: modules, options"""
@@ -682,7 +683,7 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_status('Valid parameters for the "show" command are: modules, options')
 
 	def complete_show(self, text, line, begidx, endidx):
-		return [i for i in ['advanced', 'modules', 'options'] if i.startswith(text)]
+		return [i for i in ['advanced', 'modules', 'options'] if i.startswith(text.lower())]
 
 	def do_use(self, args):
 		"""Select a module to use"""
