@@ -36,6 +36,26 @@ from framework.errors import FrameworkRuntimeError
 
 __version__ = '0.1.0'
 
+def complete_all_paths(path):
+	if not path:
+		return [(p + os.sep if os.path.isdir(p) else p) for p in os.listdir('.')]
+	if path[-1] == os.sep and not os.path.isdir(path):
+		return []
+	if os.path.isdir(path):
+		file_prefix = ''
+	else:
+		path, file_prefix = os.path.split(path)
+		path = path or '.' + os.sep
+	if not path[-1] == os.sep:
+		path += os.sep
+	return [path + (p + os.sep if os.path.isdir(os.path.join(path, p)) else p) for p in os.listdir(path) if p.startswith(file_prefix)]
+
+def complete_path(path, allow_files=False):
+	paths = complete_all_paths(path)
+	if not allow_files:
+		paths = [p for p in paths if not os.path.isfile(p)]
+	return paths
+
 class OverrideCmd(cmd.Cmd, object):
 	__doc__ = 'OverrideCmd class is meant to override methods from cmd.Cmd so they can\nbe imported into the base interpreter class.'
 	def __init__(self, *args, **kwargs):
@@ -267,17 +287,7 @@ class InteractiveInterpreter(OverrideCmd):
 		os.chdir(path)
 
 	def complete_cd(self, text, line, begidx, endidx):
-		path = line.split(' ')[-1]
-		if path[-1] != os.sep:
-			text = path.split(os.sep)[-1]
-			path = os.sep.join(path.split(os.sep)[:-1])
-		else:
-			text = ''
-		if len(path):
-			path = os.path.realpath(path)
-		else:
-			path = os.getcwd() + os.sep
-		return [i for i in os.listdir(path) if i.startswith(text)]
+		return complete_path(text, allow_files=False)
 
 	def do_connect(self, args):
 		"""Connect the serial interface"""
@@ -538,6 +548,9 @@ class InteractiveInterpreter(OverrideCmd):
 				continue
 			self.print_status('Running commands from resource file: ' + rc_file)
 			self.run_rc_file(rc_file)
+
+	def complete_resource(self, text, line, begidx, endidx):
+		return complete_path(text, allow_files=True)
 
 	def do_run(self, args):
 		"""Run the currently selected module"""
