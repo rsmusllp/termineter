@@ -27,13 +27,11 @@ import subprocess
 import socket
 import sys
 import textwrap
-import time
 import traceback
 
 from framework import its
 from framework.core import Framework
 from framework.errors import FrameworkRuntimeError
-from framework.templates import TermineterModuleOptical
 
 __version__ = '0.1.0'
 
@@ -66,13 +64,14 @@ class OverrideCmd(cmd.Cmd, object):
 				commands.remove('do_' + name)
 		return commands
 
-	def emptyline(self): 					# Don't do anything on a blank line being passed
-		pass								# stupid repeats are annoying
+	def emptyline(self):
+		# don't do anything on a blank line being passed
+		pass
 
 	def help_help(self): 					# Get help out of the undocumented section, stupid python
 		self.do_help('')
 
-	def precmd(self, line):					# use this to allow using '?' after the command for help
+	def precmd(self, line):  # use this to allow using '?' after the command for help
 		tmp_line = line.split()
 		if len(tmp_line) == 0:
 			return line
@@ -281,6 +280,7 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_connect(self, args):
 		"""Connect the serial interface"""
+		args = args.split(' ')
 		if self.frmwk.is_serial_connected():
 			self.print_status('Already connected')
 			return
@@ -289,11 +289,16 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
 			return
 		try:
-			result = self.frmwk.serial_connect()
+			self.frmwk.serial_connect()
 		except Exception as error:
 			self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 			return
 		self.print_good('Successfully connected and the device is responding')
+		if args[0] == '-l':
+			if self.frmwk.serial_login():
+				self.print_good('Successfully authenticated to the device')
+			else:
+				self.print_error('Failed to authenticate to the device')
 
 	def do_disconnect(self, args):
 		"""Disconnect the serial interface"""
@@ -312,7 +317,7 @@ class InteractiveInterpreter(OverrideCmd):
 				self.print_error('The following options must be set: ' + ', '.join(missing_options))
 				return
 			try:
-				result = self.frmwk.serial_connect()
+				self.frmwk.serial_connect()
 			except Exception as error:
 				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 				return
@@ -539,7 +544,7 @@ class InteractiveInterpreter(OverrideCmd):
 		if args[0] in self.frmwk.modules.keys():
 			old_module = self.frmwk.current_module
 			self.frmwk.current_module = self.frmwk.modules[args[0]]
-		if self.frmwk.current_module == None:
+		if self.frmwk.current_module is None:
 			self.print_error('Must \'use\' module first')
 			return
 		module = self.frmwk.current_module

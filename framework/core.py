@@ -79,6 +79,7 @@ class Framework(object):
 		self.options.add_string('PASSWORD', 'serial c12.18 password', default='00000000000000000000')
 		self.options.add_boolean('PASSWORDHEX', 'if the password is in hex', default=True)
 		self.advanced_options = AdvancedOptions(self.directories)
+		self.advanced_options.add_boolean('AUTOCONNECT', 'automatically handle connections for modules', default=True)
 		self.advanced_options.add_integer('BAUDRATE', 'serial connection baud rate', default=9600)
 		self.advanced_options.add_integer('BYTESIZE', 'serial connection byte size', default=serial.EIGHTBITS)
 		self.advanced_options.add_boolean('CACHETBLS', 'cache certain read-only tables', default=True)
@@ -199,33 +200,29 @@ class Framework(object):
 			if not self.is_serial_connected:
 				raise FrameworkRuntimeError('the serial interface is disconnected')
 
-			if module.require_connection and not self.frmwk.is_serial_connected():
-				try:
-					self.serial_connect()
-				except Exception as error:
-					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
-					return
-				self.print_good('Successfully connected and the device is responding')
-			else:
-				try:
-					self.serial_get()
-				except Exception as error:
-					self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
-					return
-			if module.require_connection and module.attempt_login:
-				if not self.frmwk.serial_login():
-					self.logger.warning('meter login failed, some tables may not be accessible')
-		# if isinstance(module, TermineterModuleRfcat):
-		# 	self.rfcat_connect()
+			try:
+				self.serial_get()
+			except Exception as error:
+				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+				return
+			if module.require_connection:
+				if self.advanced_options['AUTOCONNECT']:
+					if not self.is_serial_connected():
+						try:
+							self.serial_connect()
+						except Exception as error:
+							self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+							return
+						self.print_good('Successfully connected and the device is responding')
+					if module.attempt_login and not self.serial_login():
+						self.logger.warning('meter login failed, some tables may not be accessible')
 
 		self.logger.info('running module: ' + module.path)
 		try:
 			result = module.run()
 		finally:
-			if isinstance(module, TermineterModuleOptical):
+			if isinstance(module, TermineterModuleOptical) and self.serial_connection and self.advanced_options['AUTOCONNECT']:
 				self.serial_connection.stop()
-			# if isinstance(module, TermineterModuleRfcat):
-			# 	self.rfcat_disconnect()
 		return result
 
 	@property
