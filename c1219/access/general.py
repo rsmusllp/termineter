@@ -23,6 +23,8 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
+from __future__ import unicode_literals
+
 import struct
 
 from c1218.data import C1218WriteRequest
@@ -67,51 +69,51 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 			raise C1219ParseError('expected to read more data from ED_MODE_STATUS_TBL', ED_MODE_STATUS_TBL)
 
 		### Parse GEN_CONFIG_TBL ###
-		self.__char_format__ = {1: 'ISO/IEC 646 (7-bit)', 2: 'ISO 8859/1 (Latin 1)', 3: 'UTF-8', 4: 'UTF-16', 5: 'UTF-32'}.get((ord(general_config_table[0]) & 14) >> 1) or 'Unknown'
-		self.__nameplate_type__ = {0: 'Gas', 1: 'Water', 2: 'Electric'}.get(ord(general_config_table[7])) or 'Unknown'
-		self.__id_form__ = ord(general_config_table[1]) & 32
-		self.__std_version_no__ = ord(general_config_table[11])
-		self.__std_revision_no__ = ord(general_config_table[12])
-		self.__dim_std_tbls_used__ = ord(general_config_table[13])
-		self.__dim_mfg_tbls_used__ = ord(general_config_table[14])
-		self.__dim_std_proc_used__ = ord(general_config_table[15])
-		self.__dim_mfg_proc_used__ = ord(general_config_table[16])
+		self.__char_format__ = {1: 'ISO/IEC 646 (7-bit)', 2: 'ISO 8859/1 (Latin 1)', 3: 'UTF-8', 4: 'UTF-16', 5: 'UTF-32'}.get((general_config_table[0] & 14) >> 1) or 'Unknown'
+		self.__nameplate_type__ = {0: 'Gas', 1: 'Water', 2: 'Electric'}.get(general_config_table[7]) or 'Unknown'
+		self.__id_form__ = general_config_table[1] & 32
+		self.__std_version_no__ = general_config_table[11]
+		self.__std_revision_no__ = general_config_table[12]
+		self.__dim_std_tbls_used__ = general_config_table[13]
+		self.__dim_mfg_tbls_used__ = general_config_table[14]
+		self.__dim_std_proc_used__ = general_config_table[15]
+		self.__dim_mfg_proc_used__ = general_config_table[16]
 
 		self.__std_tbls_used__ = []
 		tmp_data = general_config_table[19:]
 		for p in range(self.__dim_std_tbls_used__):
 			for i in range(7):
-				if ord(tmp_data[p]) & (2 ** i):
+				if tmp_data[p] & (2 ** i):
 					self.__std_tbls_used__.append(i + (p * 8))
 
 		self.__mfg_tbls_used__ = []
 		tmp_data = tmp_data[self.__dim_std_tbls_used__:]
 		for p in range(self.__dim_mfg_tbls_used__):
 			for i in range(7):
-				if ord(tmp_data[p]) & (2 ** i):
+				if tmp_data[p] & (2 ** i):
 					self.__mfg_tbls_used__.append(i + (p * 8))
 
 		self.__std_proc_used__ = []
 		tmp_data = tmp_data[self.__dim_mfg_tbls_used__:]
 		for p in range(self.__dim_std_proc_used__):
 			for i in range(7):
-				if ord(tmp_data[p]) & (2 ** i):
+				if tmp_data[p] & (2 ** i):
 					self.__std_proc_used__.append(i + (p * 8))
 
 		self.__mfg_proc_used__ = []
 		tmp_data = tmp_data[self.__dim_std_proc_used__:]
 		for p in range(self.__dim_mfg_proc_used__):
 			for i in range(7):
-				if ord(tmp_data[p]) & (2 ** i):
+				if tmp_data[p] & (2 ** i):
 					self.__mfg_proc_used__.append(i + (p * 8))
 
 		### Parse GENERAL_MFG_ID_TBL ###
 		self.__manufacturer__ = general_mfg_table[0:4].rstrip()
 		self.__ed_model__ = general_mfg_table[4:12].rstrip()
-		self.__hw_version_no__ = ord(general_mfg_table[12])
-		self.__hw_revision_no__ = ord(general_mfg_table[13])
-		self.__fw_version_no__ = ord(general_mfg_table[14])
-		self.__fw_revision_no__ = ord(general_mfg_table[15])
+		self.__hw_version_no__ = general_mfg_table[12]
+		self.__hw_revision_no__ = general_mfg_table[13]
+		self.__fw_version_no__ = general_mfg_table[14]
+		self.__fw_revision_no__ = general_mfg_table[15]
 		if self.__id_form__ == 0:
 			self.__mfg_serial_no__ = general_mfg_table[16:32].strip()
 		else:
@@ -119,7 +121,7 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 
 		### Parse ED_MODE_STATUS_TBL ###
 		if mode_status_table:
-			self.__ed_mode__ = ord(mode_status_table[0])
+			self.__ed_mode__ = mode_status_table[0]
 			self.__std_status__ = struct.unpack(conn.c1219_endian + 'H', mode_status_table[1:3])[0]
 
 		### Parse DEVICE_IDENT_TBL ###
@@ -136,9 +138,9 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 		else:
 			self.conn.set_table_data(DEVICE_IDENT_TBL, (newid + (' ' * (10 - len(newid)))))
 
-		self.conn.send(C1218WriteRequest(PROC_INITIATE_TBL, '\x46\x08\x1c\x03\x0b\x0c\x09\x0f\x12'))
+		self.conn.send(C1218WriteRequest(PROC_INITIATE_TBL, b'\x46\x08\x1c\x03\x0b\x0c\x09\x0f\x12'))
 		data = self.conn.recv()
-		if data != '\x00':
+		if data != b'\x00':
 			pass
 
 		try:

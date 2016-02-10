@@ -21,6 +21,23 @@ from c1218.errors import C1218ReadTableError
 from c1219.access.general import C1219GeneralAccess
 from framework.templates import TermineterModuleOptical
 
+STATUS_FLAGS = flags = (
+	'Unprogrammed',
+	'Configuration Error',
+	'Self Check Error',
+	'RAM Failure',
+	'ROM Failure',
+	'Non Volatile Memory Failure',
+	'Clock Error',
+	'Measurement Error',
+	'Low Battery',
+	'Low Loss Potential',
+	'Demand Overload',
+	'Power Failure',
+	'Tamper Detect',
+	'Reverse Rotation'
+)
+
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
@@ -59,10 +76,9 @@ class Module(TermineterModuleOptical):
 
 		if general_ctl.std_status is not None:
 			status = []
-			flags = ['Unprogrammed', 'Configuration Error', 'Self Check Error', 'RAM Failure', 'ROM Failure', 'Non Volatile Memory Failure', 'Clock Error', 'Measurement Error', 'Low Battery', 'Low Loss Potential', 'Demand Overload', 'Power Failure', 'Tamper Detect', 'Reverse Rotation']
-			for i in range(len(flags)):
+			for i, flag in enumerate(STATUS_FLAGS):
 				if general_ctl.std_status & (2 ** i):
-					status.append(flags[i])
+					status.append(flag)
 			if len(status):
 				meter_info['Status Flags'] = ', '.join(status)
 		if general_ctl.device_id is not None:

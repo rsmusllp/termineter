@@ -23,6 +23,8 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
+from __future__ import unicode_literals
+
 import struct
 
 from c1218.errors import C1218ReadTableError
@@ -57,10 +59,10 @@ class C1219SecurityAccess(object):  # Corresponds To Decade 4x
 			raise C1219ParseError('expected to read more data from ACT_SECURITY_LIMITING_TBL', ACT_SECURITY_LIMITING_TBL)
 
 		### Parse ACT_SECURITY_LIMITING_TBL ###
-		self.__nbr_passwords__ = ord(act_security_table[0])
-		self.__password_len__ = ord(act_security_table[1])
-		self.__nbr_keys__ = ord(act_security_table[2])
-		self.__key_len__ = ord(act_security_table[3])
+		self.__nbr_passwords__ = act_security_table[0]
+		self.__password_len__ = act_security_table[1]
+		self.__nbr_keys__ = act_security_table[2]
+		self.__key_len__ = act_security_table[3]
 		self.__nbr_perm_used__ = struct.unpack(self.conn.c1219_endian + 'H', act_security_table[4:6])[0]
 
 		### Parse SECURITY_TBL ###
@@ -69,7 +71,7 @@ class C1219SecurityAccess(object):  # Corresponds To Decade 4x
 		self.__passwords__ = {}
 		tmp = 0
 		while tmp < self.nbr_passwords:
-			self.__passwords__[tmp] = {'idx': tmp, 'password': security_table[:self.password_len], 'groups': ord(security_table[self.password_len])}
+			self.__passwords__[tmp] = {'idx': tmp, 'password': security_table[:self.password_len], 'groups': security_table[self.password_len]}
 			security_table = security_table[self.password_len + 1:]
 			tmp += 1
 
@@ -82,15 +84,15 @@ class C1219SecurityAccess(object):  # Corresponds To Decade 4x
 		while tmp < self.nbr_perm_used:
 			(proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3) = get_table_idcb_field(self.conn.c1219_endian, access_ctl_table)
 			if proc_flag:
-				self.__procedure_permissions__[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': ord(access_ctl_table[2]), 'write': ord(access_ctl_table[3])}
+				self.__procedure_permissions__[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': access_ctl_table[2], 'write': access_ctl_table[3]}
 			else:
-				self.__table_permissions__[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': ord(access_ctl_table[2]), 'write': ord(access_ctl_table[3])}
+				self.__table_permissions__[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': access_ctl_table[2], 'write': access_ctl_table[3]}
 			access_ctl_table = access_ctl_table[4:]
 			tmp += 1
 
 		### Parse KEY_TBL ###
 		self.__keys__ = {}
-		if key_table != None:
+		if key_table is not None:
 			if len(key_table) != (self.nbr_keys * self.key_len):
 				raise C1219ParseError('expected to read more data from KEY_TBL', KEY_TBL)
 			tmp = 0

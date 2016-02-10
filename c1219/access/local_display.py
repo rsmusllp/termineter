@@ -23,6 +23,8 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
+from __future__ import unicode_literals
+
 import collections
 import struct
 
@@ -69,13 +71,13 @@ class C1219LocalDisplayAccess(BaseC1219TableAccess):  # Corresponds To Decade 3x
 		self.pri_disp_list = []
 		pri_disp_list = conn.get_table_data(PRI_DISP_LIST_TBL)
 		for _ in range(self.__nbr_pri_disp_lists__):
-			bfld = ord(pri_disp_list[0])
+			bfld = pri_disp_list[0]
 			on_time = bfld & 0b1111
 			off_time = (bfld >> 4) & 0b1111
-			bfld = ord(pri_disp_list[1])
+			bfld = pri_disp_list[1]
 			hold_time = bfld & 0b1111
 			default_list = (bfld >> 4) & 0b1111
-			nbr_items = ord(pri_disp_list[2])
+			nbr_items = pri_disp_list[2]
 			self.pri_disp_list.append(DispListDescRcd(on_time, off_time, hold_time, default_list, nbr_items))
 			pri_disp_list = pri_disp_list[3:]
 

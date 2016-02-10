@@ -203,6 +203,7 @@ class Framework(object):
 			try:
 				self.serial_get()
 			except Exception as error:
+				self.logger.warning('Caught ' + error.__class__.__name__ + ': ' + str(error), exc_info=True)
 				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 				return
 			if module.require_connection:
@@ -211,6 +212,7 @@ class Framework(object):
 						try:
 							self.serial_connect()
 						except Exception as error:
+							self.logger.warning('Caught ' + error.__class__.__name__ + ': ' + str(error), exc_info=True)
 							self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
 							return
 						self.print_good('Successfully connected and the device is responding')
@@ -384,7 +386,7 @@ class Framework(object):
 			self.logger.error('serial connection as been opened but the general configuration table (table #0) could not be read')
 			raise error
 
-		if (ord(general_config_table[0]) & 1):
+		if general_config_table[0] & 1:
 			self.logger.info('setting the connection to use big-endian for C12.19 data')
 			self.serial_connection.c1219_endian = '>'
 		else:

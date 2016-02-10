@@ -17,6 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
 import struct
 import time
 
@@ -29,13 +31,13 @@ def format_ltime(endianess, tm_format, data):
 	:param str endianess: The endianess to use when packing values ('>' or '<')
 	:param int tm_format: The format that the data is packed in, this typically
 	  corresponds with the value in the GEN_CONFIG_TBL (table #0) (1 <= tm_format <= 4)
-	:param str data: The packed and machine-formatted data to parse
+	:param bytes data: The packed and machine-formatted data to parse
 	:rtype: str
 	"""
 	if tm_format == 0:
 		return ''
-	elif tm_format == 1 or tm_format == 2:	# I can't find solid documentation on the BCD data-type
-		y = ord(data[0])
+	elif tm_format == 1 or tm_format == 2:  # I can't find solid documentation on the BCD data-type
+		y = data[0]
 		year = '????'
 		if 90 <= y <= 99:
 			year = '19' + str(y)
@@ -43,11 +45,11 @@ def format_ltime(endianess, tm_format, data):
 			year = '200' + str(y)
 		elif 10 <= y <= 89:
 			year = '20' + str(y)
-		month = ord(data[1])
-		day = ord(data[2])
-		hour = ord(data[3])
-		minute = ord(data[4])
-		second = ord(data[5])
+		month = data[1]
+		day = data[2]
+		hour = data[3]
+		minute = data[4]
+		second = data[5]
 	elif tm_format == 3 or tm_format == 4:
 		if tm_format == 3:
 			u_time = float(struct.unpack(endianess + 'I', data[0:4])[0])
@@ -155,13 +157,13 @@ class C1219ProcedureInit:
 		self.mfg_defined = bool(mfg_defined)
 		self.selector = selector
 
-		mfg_defined = mfg_defined << 11
-		selector = selector << 12
+		mfg_defined <<= 11
+		selector <<= 12
 
 		self.table_idb_bfld = struct.pack(endianess + 'H', (table_proc_nbr | mfg_defined | selector))
 		self.endianess = endianess
 		self.proc_nbr = table_proc_nbr
-		self.seqnum = ord(chr(seqnum))
+		self.seqnum = seqnum
 		self.params = params
 
 	def __repr__(self):
@@ -178,5 +180,5 @@ class C1219ProcedureInit:
 		if len(data) < 3:
 			raise Exception('invalid data (size)')
 		proc_nbr, std_vs_mfg, selector = get_table_idbb_field(endianess, data[0:2])
-		seqnum = ord(data[2])
+		seqnum = data[2]
 		return C1219ProcedureInit(endianess, proc_nbr, std_vs_mfg, selector, seqnum, data[3:])

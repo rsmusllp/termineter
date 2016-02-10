@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import logging
 import random
+import sys
 import time
 
 from c1218.data import *
@@ -376,6 +377,9 @@ class Connection(ConnectionBase):
 		if data_checksum(data) != chksum:
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid check sum')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid checksum')
+
+		if sys.version_info[0] == 2:
+			data = bytearray(data)
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and not tableid in self.__tbl_cache__.keys():
 			self.logger.info('caching table #' + str(tableid))
 			self.__tbl_cache__[tableid] = data
@@ -410,12 +414,12 @@ class Connection(ConnectionBase):
 		"""
 		seqnum = random.randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
-		procedure_request = str(C1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params))
+		procedure_request = C1219ProcedureInit(self.c1219_endian, process_number, std_vs_mfg, 0, seqnum, params).build()
 		self.set_table_data(7, procedure_request)
 
 		response = self.get_table_data(8)
 		if response[:3] == procedure_request[:3]:
-			return ord(response[3]), response[4:]
+			return response[3], response[4:]
 		else:
 			self.logger.error('invalid response from procedure response table (table #8)')
 			raise C1219ProcedureError('invalid response from procedure response table (table #8)')

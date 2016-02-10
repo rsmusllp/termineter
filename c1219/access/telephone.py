@@ -23,6 +23,8 @@
 #  c1218.connection.Connection instance, but anythin implementing the basic
 #  methods should work.
 
+from __future__ import unicode_literals
+
 import struct
 
 from c1219.constants import *
@@ -61,17 +63,17 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 
 		info = {}
 		### Parse ACT_TELEPHONE_TBL ###
-		use_extended_status = bool(ord(actual_telephone_table[0]) & 128)
-		prefix_length = ord(actual_telephone_table[4])
-		nbr_originate_numbers = ord(actual_telephone_table[5])
-		phone_number_length = ord(actual_telephone_table[6])
-		bit_rate_settings = (ord(actual_telephone_table[1]) >> 3) & 3		# not the actual settings but rather where they are defined
-		self.__can_answer__ = bool(ord(actual_telephone_table[0]) & 1)
+		use_extended_status = bool(actual_telephone_table[0] & 128)
+		prefix_length = actual_telephone_table[4]
+		nbr_originate_numbers = actual_telephone_table[5]
+		phone_number_length = actual_telephone_table[6]
+		bit_rate_settings = (actual_telephone_table[1] >> 3) & 3		# not the actual settings but rather where they are defined
+		self.__can_answer__ = bool(actual_telephone_table[0] & 1)
 		self.__use_extended_status__ = use_extended_status
 		self.__nbr_originate_numbers__ = nbr_originate_numbers
 
 		### Parse GLOBAL_PARAMETERS_TBL ###
-		self.__psem_identity__ = ord(global_parameters_table[0])
+		self.__psem_identity__ = global_parameters_table[0]
 		if bit_rate_settings == 1:
 			if len(global_parameters_table) < 5:
 				raise C1219ParseError('expected to read more data from GLOBAL_PARAMETERS_TBL', GLOBAL_PARAMETERS_TBL)
@@ -81,7 +83,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		if bit_rate_settings == 2:
 			self.__originate_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', originate_parameters_table[0:4])[0]
 			originate_parameters_table = originate_parameters_table[4:]
-		self.__dial_delay__ = ord(originate_parameters_table[0])
+		self.__dial_delay__ = originate_parameters_table[0]
 		originate_parameters_table = originate_parameters_table[1:]
 
 		if prefix_length != 0:
@@ -91,13 +93,13 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		self.__originating_numbers__ = {}
 		tmp = 0
 		while tmp < self.__nbr_originate_numbers__:
-			self.__originating_numbers__[tmp] = {'idx': tmp, 'number':originate_parameters_table[:phone_number_length], 'status':None}
+			self.__originating_numbers__[tmp] = {'idx': tmp, 'number': originate_parameters_table[:phone_number_length], 'status': None}
 			originate_parameters_table = originate_parameters_table[phone_number_length:]
 			tmp += 1
 
 		### Parse ORIGINATE_SHCEDULE_TBL ###
-		primary_phone_number_idx = ord(originate_schedule_table[0]) & 7
-		secondary_phone_number_idx = (ord(originate_schedule_table[0]) >> 4) & 7
+		primary_phone_number_idx = originate_schedule_table[0] & 7
+		secondary_phone_number_idx = (originate_schedule_table[0] >> 4) & 7
 		if primary_phone_number_idx < 7:
 			self.__primary_phone_number_idx__ = primary_phone_number_idx
 		if secondary_phone_number_idx < 7:
@@ -108,13 +110,13 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 			self.__answer_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
 		self.update_last_call_statuses()
 
-	def initiate_call(self, number = None, idx = None):
+	def initiate_call(self, number=None, idx=None):
 		if number:
 			idx = None
 			for tmpidx in self.__originating_numbers__.keys():
 				if self.__originating_numbers__[tmpidx]['number'] == number:
 					idx = tmpidx
-			if idx == None:
+			if idx is None:
 				raise C1219ProcedureError('target phone number not found in originating numbers')
 		if not idx in self.__originating_numbers__.keys():
 			raise C1219ProcedureError('phone number index not within originating numbers range')
@@ -122,7 +124,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 
 	@staticmethod
 	def initiate_call_ex(conn, idx):
-		return conn.run_procedure(20, False, chr(idx))
+		return conn.run_procedure(20, False, struct.pack('B', idx))
 
 	def update_last_call_statuses(self):
 		tmp = 0
@@ -131,7 +133,7 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 			raise C1219ParseError('expected to read more data from CALL_STATUS_TBL', CALL_STATUS_TBL)
 		call_status_rcd_length = (len(call_status_table) / self.nbr_originate_numbers)
 		while tmp < self.nbr_originate_numbers:
-			self.__originating_numbers__[tmp]['status'] = ord(call_status_table[0])
+			self.__originating_numbers__[tmp]['status'] = call_status_table[0]
 			call_status_table = call_status_table[call_status_rcd_length:]
 			tmp += 1
 
