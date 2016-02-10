@@ -17,13 +17,15 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
 class C1222Error(Exception):
 	"""
 	This is a generic C1222 Error.
 	"""
-	def __init__(self, msg, errcode = None):
+	def __init__(self, msg, error_code=None):
 		self.message = msg
-		self.errCode = errcode
+		self.err_code = error_code
 
 	def __str__(self):
 		return repr(self.message)

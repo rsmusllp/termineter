@@ -17,9 +17,12 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import binascii
 import struct
 
-from c1222.utilities import data_chksum, data_chksum_str
+from c1222.utilities import data_checksum
 
 from pyasn1.codec.ber import encoder as ber_encoder
 from pyasn1.codec.ber import decoder as ber_decoder
@@ -56,13 +59,13 @@ class C1222Data(object):
 		return self.build()
 
 	def __len__(self):
-		return len(str(self))
+		return len(self.build())
 
 	def build(self):
-		return ''
+		return b''
 
 class C1222EPSEM(C1222Data):
-	def __init__(self, data, ed_class=''):
+	def __init__(self, data, ed_class=b''):
 		self.data = data
 		# flags
 		self.reserved = False
@@ -73,13 +76,13 @@ class C1222EPSEM(C1222Data):
 		self.response_mode = 0
 
 	def __repr__(self):
-		return '<C1222EPSEM data=0x' + str(self.data).encode('hex') + ' data_len=' + str(len(self.data)) + ' >'
+		return '<C1222EPSEM data=0x' + binascii.b2a_hex(self.data).decode('utf-8') + ' data_len=' + str(len(self.data)) + ' >'
 
 	@staticmethod
 	def parse(data):
 		if len(data) < 2:
 			raise Exception('invalid data (size)')
-		flags = ord(data[0])
+		flags = data[0]
 
 		reserved = bool(flags & (1 << 7))
 		recovery = bool(flags & (1 << 6))
@@ -89,11 +92,11 @@ class C1222EPSEM(C1222Data):
 		response_mode = (flags & 3)
 		if ed_class:
 			ed_class = data[1:5]
-			length = ord(data[5])
+			length = data[5]
 			data = data[6:]
 		else:
-			ed_class = ''
-			length = ord(data[1])
+			ed_class = b''
+			length = data[1]
 			data = data[2:]
 		if length != len(data):
 			raise Exception('invalid data (size)')
@@ -112,9 +115,10 @@ class C1222EPSEM(C1222Data):
 		flags |= (int(self.proxy_service) << 5)
 		flags |= (int(bool(self.ed_class)) << 4)
 		flags |= (self.security_mode << 2)
-		flags |= (self.response_mode)
+		flags |= self.response_mode
+		flags = struct.pack('B', flags)
 		data = str(self.data)
-		return chr(flags) + self.ed_class + chr(len(data)) + data
+		return flags + self.ed_class + struct.pack('B', len(data)) + data
 
 class C1222UserInformation(C1222Data):
 	def __init__(self, data):
@@ -124,27 +128,27 @@ class C1222UserInformation(C1222Data):
 	def parse(data):
 		if len(data) < 6:
 			raise Exception('invalid data (size)')
-		if data[0] != '\xbe':
+		if data[0] != 0xbe:
 			raise Exception('invalid start byte')
-		if ord(data[1]) != len(data[2:]):
+		if data[1] != len(data[2:]):
 			raise Exception('invalid data (size)')
 
-		if data[2] != '\x28':
+		if data[2] != 0x28:
 			raise Exception('invalid start byte')
 		if ord(data[3]) != len(data[4:]):
 			raise Exception('invalid data (size)')
 
-		if data[4] != '\x81':
+		if data[4] != 0x81:
 			raise Exception('invalid start byte')
-		if ord(data[5]) != len(data[6:]):
+		if data[5] != len(data[6:]):
 			raise Exception('invalid data (size)')
 		return C1222UserInformation(data[6:])
 
 	def build(self):
-		data = str(self.data)
-		data = '\x81' + chr(len(data)) + data
-		data = '\x28' + chr(len(data)) + data
-		data = '\xbe' + chr(len(data)) + data
+		data = self.data
+		data = b'\x81' + struct.pack('B', len(data)) + data
+		data = b'\x28' + struct.pack('B', len(data)) + data
+		data = b'\xbe' + struct.pack('B', len(data)) + data
 		return data
 
 class C1222Request(C1222Data):
@@ -170,37 +174,35 @@ class C1222Request(C1222Data):
 	def set_userid(self, userid):
 		if not hasattr(self, '__userid__'):
 			raise Exception(self.__class__.__name__ + ' does not support the userid element')
-		if isinstance(userid, str) and userid.isdigit():
-			userid = int(userid)
-		elif not isinstance(userid, int):
+		if not isinstance(userid, int):
 			ValueError('userid must be between 0x0000 and 0xffff')
 		if not 0x0000 <= userid <= 0xffff:
 			raise ValueError('userid must be between 0x0000 and 0xffff')
 		self.__userid__ = struct.pack('>H', userid)
 
 class C1222DisconnectRequest(C1222Request):
-	disconnect = '\x22'
+	disconnect = b'\x22'
 
 	def build(self):
 		return self.disconnect
 
 class C1222IdentRequest(C1222Request):
-	ident = '\x20'
+	ident = b'\x20'
 
 	def build(self):
 		return self.ident
 
 class C1222LogoffRequest(C1222Request):
-	logoff = '\x52'
+	logoff = b'\x52'
 
 	def build(self):
 		return self.logoff
 
 class C1222LogonRequest(C1222Request):
-	logon = '\x50'
-	__userid__ = '\x00\x00'
-	__username__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
-	__session_idle_timeout__ = '\x00\x00'
+	logon = b'\x50'
+	__userid__ = b'\x00\x00'
+	__username__ = b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
+	__session_idle_timeout__ = b'\x00\x00'
 
 	def __init__(self, username='', userid=0, session_idle_timeout=0):
 		self.set_username(username)
@@ -213,7 +215,7 @@ class C1222LogonRequest(C1222Request):
 	def set_username(self, value):
 		if len(value) > 10:
 			raise ValueError('username must be 10 characters or less')
-		self.__username__ = value + ('\x20' * (10 - len(value)))
+		self.__username__ = value.encode('utf-8') + (b'\x20' * (10 - len(value)))
 
 	def set_session_idle_timeout(self, session_idle_timeout):
 		if not isinstance(session_idle_timeout, int):
@@ -223,15 +225,15 @@ class C1222LogonRequest(C1222Request):
 		self.__session_idle_timeout__ = struct.pack('>H', session_idle_timeout)
 
 class C1222ReadRequest(C1222Request):
-	read = '\x30'
-	__tableid__ = '\x00\x01'
-	__offset__ = ''
-	__octetcount__ = ''
+	read = b'\x30'
+	__tableid__ = b'\x00\x01'
+	__offset__ = b''
+	__octetcount__ = b''
 
 	def __init__(self, tableid, offset=None, octetcount=None):
 		self.set_tableid(tableid)
-		if (offset != None and offset != 0) and (octetcount != None and octetcount != 0):
-			self.read = '\x3f'
+		if (offset is not None and offset != 0) and (octetcount is not None and octetcount != 0):
+			self.read = b'\x3f'
 			self.set_offset(offset)
 			self.set_octetcount(octetcount)
 
@@ -248,8 +250,8 @@ class C1222ReadRequest(C1222Request):
 		self.__octetcount__ = struct.pack('>H', octetcount)
 
 class C1222ResolveRequest(C1222Request):
-	resolve = '\x25'
-	__ap_title__ = ''
+	resolve = b'\x25'
+	__ap_title__ = b''
 
 	def __init__(self, ap_title):
 		self.set_ap_title(ap_title)
@@ -258,9 +260,9 @@ class C1222ResolveRequest(C1222Request):
 		return self.resolve + self.__ap_title__
 
 class C1222SecurityRequest(C1222Request):
-	security = '\x51'
-	__password__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
-	__userid__ = '\x00\x00'
+	security = b'\x51'
+	__password__ = b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
+	__userid__ = b'\x00\x00'
 
 	def __init__(self, password='', userid=0):
 		self.set_password(password)
@@ -272,17 +274,17 @@ class C1222SecurityRequest(C1222Request):
 	def set_password(self, value):
 		if len(value) > 20:
 			raise ValueError('password must be 20 characters or less')
-		self.__password__ = value + ('\x20' * (20 - len(value)))
+		self.__password__ = value.encode('utf-8') + (b'\x20' * (20 - len(value)))
 
 class C1222TerminateRequest(C1222Request):
-	terminate = '\x21'
+	terminate = b'\x21'
 
 	def build(self):
 		return self.terminate
 
 class C1222TraceRequest(C1222Request):
-	trace = '\x26'
-	__ap_title__ = ''
+	trace = b'\x26'
+	__ap_title__ = b''
 
 	def __init__(self, ap_title):
 		self.set_ap_title(ap_title)
@@ -291,8 +293,8 @@ class C1222TraceRequest(C1222Request):
 		return self.trace + self.__ap_title__
 
 class C1222WaitRequest(C1222Request):
-	wait = '\x70'
-	time = '\x00'
+	wait = b'\x70'
+	time = b'\x00'
 
 	def __init__(self, time=0):
 		self.set_time(time)
@@ -301,20 +303,20 @@ class C1222WaitRequest(C1222Request):
 		return self.wait + self.time
 
 	def set_time(self, time):
-		self.time = chr(time)
+		self.time = struct.pack('B', time)
 
 class C1222WriteRequest(C1222Request):
-	write = '\x40'
-	__tableid__ = '\x00\x01'
-	__offset__ = ''
-	__datalen__ = '\x00\x00'
-	__data__ = ''
+	write = b'\x40'
+	__tableid__ = b'\x00\x01'
+	__offset__ = b''
+	__datalen__ = b'\x00\x00'
+	__data__ = b''
 
 	def __init__(self, tableid, data, offset=None):
 		self.set_tableid(tableid)
 		self.set_data(data)
-		if offset != None and offset != 0:
-			self.write = '\x4f'
+		if offset is not None and offset != 0:
+			self.write = b'\x4f'
 			self.set_offset(offset)
 
 	def build(self):
@@ -323,7 +325,7 @@ class C1222WriteRequest(C1222Request):
 		packet += self.__offset__
 		packet += self.__datalen__
 		packet += self.__data__
-		packet += data_chksum_str(self.__data__)
+		packet += data_checksum(self.__data__)
 		return packet
 
 	def set_tableid(self, tableid):
@@ -337,13 +339,13 @@ class C1222WriteRequest(C1222Request):
 		self.__datalen__ = struct.pack('>H', len(data))
 
 class C1222Packet(C1222Request):
-	start = '\x60'
-	__length__ = '\x00'
-	__data__ = ''
+	start = b'\x60'
+	__length__ = b'\x00'
+	__data__ = b''
 
 	@staticmethod
 	def parse(data):
-		if data[0] != '\x60':
+		if data[0] != b'\x60':
 			raise Exception('invalid start byte')
 
 		(called_ap, data) = ber_decoder.decode(data)
@@ -351,11 +353,8 @@ class C1222Packet(C1222Request):
 		(calling_ap, data) = ber_decoder.decode(data)
 		(calling_ap_invocation_id, data) = ber_decoder.decode(data)
 
-		if data[0] == '\xbe':
-			try:
-				data = C1222UserInformation.parse(data)
-			except:
-				pass
+		if data[0] == b'\xbe':
+			data = C1222UserInformation.parse(data)
 
 		called_ap = C1222CalledAPTitle(called_ap)
 		calling_ap = C1222CallingAPTitle(calling_ap)
@@ -380,7 +379,7 @@ class C1222Packet(C1222Request):
 		if data:
 			self.set_data(data)
 		else:
-			self.set_data('')
+			self.set_data(b'')
 		if length:
 			self.set_length(length)
 
@@ -403,11 +402,11 @@ class C1222Packet(C1222Request):
 		length = len(self.called_ap.encode())
 		length += len(self.calling_ap.encode())
 		length += len(self.calling_ap_invocation_id.encode())
-		length += len(str(self.__data__))
+		length += len(self.__data__)
 		self.set_length(length)
 
 	def set_length(self, length):
-		self.__length__ = chr(length)
+		self.__length__ = struct.pack('B', length)
 
 	def build(self):
 		packet = self.start
@@ -415,5 +414,5 @@ class C1222Packet(C1222Request):
 		packet += self.called_ap.encode()
 		packet += self.calling_ap.encode()
 		packet += self.calling_ap_invocation_id.encode()
-		packet += str(self.__data__)
+		packet += self.__data__
 		return packet

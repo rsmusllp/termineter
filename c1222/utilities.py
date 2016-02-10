@@ -17,18 +17,20 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
-import string
+from __future__ import unicode_literals
+
 import struct
 
-import CrcMoose # Get it from: http://www.nightmare.com/~ryb/code/CrcMoose.py
+import crcelk
 
-crc = CrcMoose.CRC_HDLC.calcString
-crc_str = lambda x: struct.pack("<H", crc(x))
-
-def data_chksum(data):
+def data_checksum(data):
 	chksum = 0
 	for i in struct.unpack('B' * len(data), data):
 		chksum += i
-	return (((chksum - 1) & 0xff) ^ 0xff)
+	chksum = ((chksum - 1) & 0xff) ^ 0xff
+	return struct.pack('B', chksum)
 
-data_chksum_str = lambda x: chr(data_chksum(x))
+def packet_checksum(data):
+	chksum = crcelk.CRC_HDLC.calc_bytes(data)
+	return struct.pack('<H', chksum)
+

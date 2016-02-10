@@ -17,6 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
 import logging
 import random
 import select
@@ -33,7 +35,7 @@ def sock_read_ready(socket, timeout):
 	return len(readys[0]) == 1
 
 class Connection:
-	def __init__(self, host, called_ap, calling_ap, enable_cache = True, bind_host = ('', 1153)):
+	def __init__(self, host, called_ap, calling_ap, enable_cache=True, bind_host=('', 1153)):
 		self.logger = logging.getLogger('c1222.connection')
 		self.loggerio = logging.getLogger('c1222.connection.io')
 
@@ -65,7 +67,7 @@ class Connection:
 			self.logger.info('selective table caching has been enabled')
 
 	def start_listener(self):
-		if self.server_sock_h != None:
+		if self.server_sock_h is not None:
 			raise Exception('server socket already created')
 		self.server_sock_h = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server_sock_h.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -73,13 +75,13 @@ class Connection:
 		self.server_sock_h.listen(1)
 
 	def stop_listener(self):
-		if self.server_sock_h == None:
+		if self.server_sock_h is None:
 			return
 		self.server_sock_h.close()
 		self.server_sock_h = None
 
 	def recv(self):
-		if self.read_sock_h == None:
+		if self.read_sock_h is None:
 			readable = select.select([self.sock_h.fileno(), self.server_sock_h.fileno()], [], [], self.read_timeout)
 			readable = readable[0]
 			if len(readable) > 1:
@@ -96,7 +98,7 @@ class Connection:
 				self.stop_listener()
 			else:
 				raise C1222IOError('unknown file handle is available for reading')
-		data = ''
+		data = b''
 		while sock_read_ready(self.read_sock_h, self.read_timeout):
 			tmp_data = self.read_sock_h.recv(8192)
 			data += tmp_data
@@ -108,20 +110,21 @@ class Connection:
 		return C1222EPSEM.parse(pkt.data.data)
 
 	def send(self, data):
-		pkt = C1222Packet(self.called_ap, self.calling_ap, random.randint(0, 999999), data = C1222UserInformation(C1222EPSEM(data)))
-		self.sock_h.send(str(pkt))
+		pkt = C1222Packet(self.called_ap, self.calling_ap, random.randint(0, 999999), data=C1222UserInformation(C1222EPSEM(data)))
+		self.sock_h.send(pkt.build())
 
 	def start(self):
 		self.send(C1222IdentRequest())
 		try:
-			data = self.recv()
+			self.recv()
 		except C1222IOError:
 			self.logger.error('received incorrect response to identification service request')
-			return False
-		return True
+		else:
+			return True
+		return False
 
 	def close(self):
 		self.sock_h.close()
-		if self.read_sock_h != None:
+		if self.read_sock_h is not None:
 			self.read_sock_h.close()
 		self.stop_listener()
