@@ -20,7 +20,7 @@
 import binascii
 import struct
 
-from c1218.utilities import crc_str, data_checksum
+from c1218.utilities import data_checksum, packet_checksum
 
 ACK = b'\x06'
 NACK = b'\x15'
@@ -419,7 +419,7 @@ class C1218Packet(C1218Request):
 		sequence = data[3]
 		length = struct.unpack('>H', data[4:6])[0]
 		chksum = data[-2:]
-		if crc_str(data[:-2]) != chksum:
+		if packet_checksum(data[:-2]) != chksum:
 			raise Exception('invalid check sum')
 		data = data[6:-2]
 		if ord(data[0]) in C1218_REQUEST_IDS:
@@ -446,7 +446,7 @@ class C1218Packet(C1218Request):
 			repr_data = repr(self.__data__)
 		else:
 			repr_data = '0x' + binascii.b2a_hex(self.__data__).decode('utf-8')
-		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + binascii.b2a_hex(crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + self.__data__)).decode('utf-8') + ' >'
+		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + binascii.b2a_hex(packet_checksum(self.start + self.identity + self.control + self.sequence + self.__length__ + self.__data__)).decode('utf-8') + ' >'
 
 	@property
 	def data(self):
@@ -476,7 +476,7 @@ class C1218Packet(C1218Request):
 		packet += self.sequence
 		packet += self.__length__
 		packet += self.__data__
-		packet += crc_str(packet)
+		packet += packet_checksum(packet)
 		return packet
 
 C1218_REQUEST_IDS = {

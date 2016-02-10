@@ -19,10 +19,7 @@
 
 import struct
 
-import CrcMoose  # Get it from: http://www.nightmare.com/~ryb/code/CrcMoose.py
-
-crc = CrcMoose.CRC_HDLC.calcString
-crc_str = lambda x: struct.pack('<H', crc(x))
+import crcelk
 
 def data_checksum(data):
 	chksum = 0
@@ -30,3 +27,7 @@ def data_checksum(data):
 		chksum += i
 	chksum = ((chksum - 1) & 0xff) ^ 0xff
 	return struct.pack('B', chksum)
+
+def packet_checksum(data):
+	chksum = crcelk.CRC_HDLC.calc_bytes(data)
+	return struct.pack('<H', chksum)

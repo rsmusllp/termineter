@@ -23,7 +23,7 @@ import time
 
 from c1218.data import *
 from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError, C1218WriteTableError
-from c1218.utilities import data_checksum
+from c1218.utilities import data_checksum, packet_checksum
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
@@ -164,7 +164,7 @@ class ConnectionBase(object):
 			payload = self.serial_h.read(length)
 			tmpbuffer += payload
 			chksum = self.serial_h.read(2)
-			if chksum == crc_str(tmpbuffer):
+			if chksum == packet_checksum(tmpbuffer):
 				self.serial_h.write(ACK)
 				data = tmpbuffer + chksum
 				self.loggerio.debug("received frame, length: {0:<3} data: {1}".format(len(data), data.encode('hex')))
