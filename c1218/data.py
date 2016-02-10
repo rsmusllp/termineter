@@ -17,12 +17,13 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+import binascii
 import struct
 
-from c1218.utilities import crc, crc_str, data_chksum, data_chksum_str
+from c1218.utilities import crc_str, data_checksum
 
-ACK = '\x06'
-NACK = '\x15'
+ACK = b'\x06'
+NACK = b'\x15'
 
 C1218_RESPONSE_CODES = {
 	0: 'ok (Acknowledge)',
@@ -55,14 +56,17 @@ class C1218Request(object):
 		return '<' + self.__class__.__name__ + ' >'
 
 	def __str__(self):
-		return self.do_build()
+		return self.build()
 
 	def __len__(self):
-		return len(str(self))
+		return len(self.build())
+
+	def build(self):
+		raise NotImplementedError('no build method defined')
 
 	@staticmethod
 	def parse(data):
-		raise Exception('No parse method is defined')
+		raise NotImplementedError('no parse method defined')
 
 	@property
 	def name(self):
@@ -74,24 +78,24 @@ class C1218Request(object):
 		return name[5:-7]
 
 class C1218LogonRequest(C1218Request):
-	logon = '\x50'
-	__userid__ = '\x00\x00'
-	__username__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
+	logon = b'\x50'
+	__userid__ = b'\x00\x00'
+	__username__ = b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 
 	def __init__(self, username='', userid=0):
 		self.set_username(username)
 		self.set_userid(userid)
 
-	def do_build(self):
+	def build(self):
 		return self.logon + self.__userid__ + self.__username__
 
 	@staticmethod
 	def parse(data):
 		if len(data) != 13:
 			raise Exception('invalid data (size)')
-		if data[0] != '\x50':
+		if data[0] != b'\x50':
 			raise Exception('invalid start byte')
-		userid = struct.unpack(">H", data[1:3])[0]
+		userid = struct.unpack('>H', data[1:3])[0]
 		username = data[3:]
 		return C1218LogonRequest(username, userid)
 
@@ -111,59 +115,63 @@ class C1218LogonRequest(C1218Request):
 	def set_username(self, value):
 		if len(value) > 10:
 			raise ValueError('username must be 10 characters or less')
-		self.__username__ = value + ('\x20' * (10 - len(value)))
+		if not isinstance(value, bytes):
+			value = value.encode('utf-8')
+		self.__username__ = value + (b'\x20' * (10 - len(value)))
 
 	@property
 	def username(self):
 		return self.__username__
 
 class C1218SecurityRequest(C1218Request):
-	security = '\x51'
-	__password__ = '\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
+	security = b'\x51'
+	__password__ = b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 
 	def __init__(self, password=''):
 		self.set_password(password)
 
-	def do_build(self):
+	def build(self):
 		return self.security + self.__password__
 
 	@staticmethod
 	def parse(data):
 		if len(data) != 21:
 			raise Exception('invalid data (size)')
-		if data[0] != '\x51':
+		if data[0] != b'\x51':
 			raise Exception('invalid start byte')
 		password = data[1:21]
 		return C1218SecurityRequest(password)
 
 	def set_password(self, value):
 		if len(value) > 20:
-			raise ValueError('password must be 20 characters or less')
-		self.__password__ = value + ('\x20' * (20 - len(value)))
+			raise ValueError('password must be 20 byte or less')
+		if not isinstance(value, bytes):
+			value = value.encode('utf-8')
+		self.__password__ = value + (b'\x20' * (20 - len(value)))
 
 	@property
 	def password(self):
 		return self.__password__
 
 class C1218LogoffRequest(C1218Request):
-	logoff = '\x52'
+	logoff = b'\x52'
 
-	def do_build(self):
+	def build(self):
 		return self.logoff
 
 	@staticmethod
 	def parse(data):
 		if len(data) != 1:
 			raise Exception('invalid data (size)')
-		if data[0] != '\x52':
+		if data[0] != b'\x52':
 			raise Exception('invalid start byte')
 		return C1218LogoffRequest()
 
 class C1218NegotiateRequest(C1218Request):
-	negotiate = '\x60'
-	__pktsize__ = '\x01\x00'
+	negotiate = b'\x60'
+	__pktsize__ = b'\x01\x00'
 	__nbrpkt__ = 1
-	__baudrate__ = ''
+	__baudrate__ = b''
 
 	def __init__(self, pktsize, nbrpkt, baudrate=None):
 		self.set_pktsize(pktsize)
@@ -171,7 +179,7 @@ class C1218NegotiateRequest(C1218Request):
 		if baudrate:
 			self.set_baudrate(baudrate)
 
-	def do_build(self):
+	def build(self):
 		return self.negotiate + self.__pktsize__ + self.__nbrpkt__ + self.__baudrate__
 
 	@staticmethod
@@ -207,27 +215,27 @@ class C1218NegotiateRequest(C1218Request):
 		c1218_baudrate_codes = {300: 1, 600: 2, 1200: 3, 2400: 4, 4800: 5, 9600: 6, 14400: 7, 19200: 8, 28800: 9, 57600: 10}
 		if baudrate in c1218_baudrate_codes:
 			self.__baudrate__ = chr(c1218_baudrate_codes[baudrate])
-		elif baudrate > 0 and baudrate < 11:
+		elif 0 < baudrate < 11:
 			self.__baudrate__ = chr(baudrate)
 		else:
 			raise Exception('invalid data (invalid baudrate)')
-		self.negotiate = '\x61'
+		self.negotiate = b'\x61'
 
 class C1218WaitRequest(C1218Request):
-	wait = '\x70'
-	__time__ = '\x01'
+	wait = b'\x70'
+	__time__ = b'\x01'
 
 	def __init__(self, time=1):
 		self.set_time(time)
 
-	def do_build(self):
+	def build(self):
 		return self.wait + self.__time__
 
 	@staticmethod
 	def parse(data):
 		if len(data) != 2:
 			raise Exception('invalid data (size)')
-		if data[0] != '\x70':
+		if data[0] != b'\x70':
 			raise Exception('invalid start byte')
 		return C1218WaitRequest(ord(data[1]))
 
@@ -235,61 +243,61 @@ class C1218WaitRequest(C1218Request):
 		self.__time__ = chr(time)
 
 class C1218IdentRequest(C1218Request):
-	ident = '\x20'
+	ident = b'\x20'
 
-	def do_build(self):
+	def build(self):
 		return self.ident
 
 	@staticmethod
 	def parse(data):
 		if len(data) != 1:
 			raise Exception('invalid data (size)')
-		if data[0] != '\x20':
+		if data[0] != b'\x20':
 			raise Exception('invalid start byte')
 		return C1218IdentRequest()
 
 class C1218TerminateRequest(C1218Request):
-	terminate = '\x21'
+	terminate = b'\x21'
 
-	def do_build(self):
+	def build(self):
 		return self.terminate
 
 	@staticmethod
 	def parse(data):
 		if len(data) != 1:
 			raise Exception('invalid data (size)')
-		if data[0] != '\x21':
+		if data[0] != b'\x21':
 			raise Exception('invalid start byte')
 		return C1218TerminateRequest()
 
 class C1218ReadRequest(C1218Request):
-	read = '\x30'
-	__tableid__ = '\x00\x01'
-	__offset__ = ''
-	__octetcount__ = ''
+	read = b'\x30'
+	__tableid__ = b'\x00\x01'
+	__offset__ = b''
+	__octetcount__ = b''
 
 	def __init__(self, tableid, offset=None, octetcount=None):
 		self.set_tableid(tableid)
-		if (offset != None) or (octetcount != None):
-			self.read = '\x3f'
+		if offset is not None or octetcount is not None:
+			self.read = b'\x3f'
 			self.set_offset(offset or 0)
 			self.set_octetcount(octetcount or 0)
 
-	def do_build(self):
+	def build(self):
 		return self.read + self.__tableid__ + self.__offset__ + self.__octetcount__
 
 	@staticmethod
 	def parse(data):
-		if (data[0] == '\x30' and len(data) < 3) or (data[0] == '\x3f' and len(data) < 8):
+		if (data[0] == b'\x30' and len(data) < 3) or (data[0] == b'\x3f' and len(data) < 8):
 			raise Exception('invalid data (size)')
-		if data[0] != '\x30' and data[0] != '\x3f':
+		if data[0] != b'\x30' and data[0] != b'\x3f':
 			raise Exception('invalid start byte')
 		tableid = struct.unpack('>H', data[1:3])[0]
-		if data[0] == '\x30':
+		if data[0] == b'\x30':
 			offset = None
 			octetcount = None
-		elif data[0] == '\x3f':
-			offset = struct.unpack('>I', '\x00' + data[3:6])[0]
+		elif data[0] == b'\x3f':
+			offset = struct.unpack('>I', b'\x00' + data[3:6])[0]
 			octetcount = struct.unpack('>H', data[6:8])[0]
 		request = C1218ReadRequest(tableid, offset, octetcount)
 		request.read = data[0]
@@ -304,65 +312,65 @@ class C1218ReadRequest(C1218Request):
 
 	def set_offset(self, offset):
 		if self.__octetcount__ and self.__offset__:
-			self.read = '\x3f'
+			self.read = b'\x3f'
 		self.__offset__ = struct.pack('>I', (offset & 0xffffff))[1:]
 
 	@property
 	def offset(self):
-		if self.__offset__ == '':
+		if self.__offset__ == b'':
 			return None
-		return struct.unpack('>I', '\x00' + self.__offset__)[0]
+		return struct.unpack('>I', b'\x00' + self.__offset__)[0]
 
 	def set_octetcount(self, octetcount):
 		if self.__octetcount__ and self.__offset__:
-			self.read = '\x3f'
+			self.read = b'\x3f'
 		self.__octetcount__ = struct.pack('>H', octetcount)
 
 	@property
 	def octetcount(self):
-		if self.__octetcount__ == '':
+		if self.__octetcount__ == b'':
 			return None
 		return struct.unpack('>H', self.__octetcount__)[0]
 
 class C1218WriteRequest(C1218Request):
-	write = '\x40'
-	__tableid__ = '\x00\x01'
-	__offset__ = ''
-	__datalen__ = '\x00\x00'
-	__data__ = ''
-	__crc8__ = ''
+	write = b'\x40'
+	__tableid__ = b'\x00\x01'
+	__offset__ = b''
+	__datalen__ = b'\x00\x00'
+	__data__ = b''
+	__crc8__ = b''
 
 	def __init__(self, tableid, data, offset=None):
 		self.set_tableid(tableid)
 		self.set_data(data)
-		if offset != None and offset != 0:
-			self.write = '\x4f'
+		if offset is not None and offset != 0:
+			self.write = b'\x4f'
 			self.set_offset(offset)
 
-	def do_build(self):
+	def build(self):
 		packet = self.write
 		packet += self.__tableid__
 		packet += self.__offset__
 		packet += self.__datalen__
 		packet += self.__data__
-		packet += data_chksum_str(self.__data__)
+		packet += data_checksum(self.__data__)
 		return packet
 
 	@staticmethod
 	def parse(data):
 		if len(data) < 3:
 			raise Exception('invalid data (size)')
-		if data[0] != '\x40' and data[0] != '\x4f':
+		if data[0] != b'\x40' and data[0] != b'\x4f':
 			raise Exception('invalid start byte')
 		tableid = struct.unpack('>H', data[1:3])[0]
 		chksum = data[-1]
-		if data[0] == '\x40':
+		if data[0] == b'\x40':
 			table_data = data[5:-1]
 			offset = None
-		elif data[0] == '\x4f':
+		elif data[0] == b'\x4f':
 			table_data = data[8:-1]
-			offset = struct.unpack('>I', '\x00' + data[3:6])[0]
-		if data_chksum_str(table_data) != chksum:
+			offset = struct.unpack('>I', b'\x00' + data[3:6])[0]
+		if data_checksum(table_data) != chksum:
 			raise Exception('invalid check sum')
 		request = C1218WriteRequest(tableid, table_data, offset=offset)
 		request.write = data[0]
@@ -380,9 +388,9 @@ class C1218WriteRequest(C1218Request):
 
 	@property
 	def offset(self):
-		if self.__offset__ == '':
+		if self.__offset__ == b'':
 			return None
-		return struct.unpack('>I', '\x00' + self.__offset__)[0]
+		return struct.unpack('>I', b'\x00' + self.__offset__)[0]
 
 	def set_data(self, data):
 		self.__data__ = data
@@ -393,18 +401,18 @@ class C1218WriteRequest(C1218Request):
 		return self.__data__
 
 class C1218Packet(C1218Request):
-	start = '\xee'
-	identity = '\x00'
-	control = '\x00'
-	sequence = '\x00'
-	__length__ = '\x00\x00' # can never exceed 8183
-	__data__ = ''
+	start = b'\xee'
+	identity = b'\x00'
+	control = b'\x00'
+	sequence = b'\x00'
+	__length__ = b'\x00\x00'  # can never exceed 8183
+	__data__ = b''
 
 	@staticmethod
 	def parse(data):
 		if len(data) < 8:
 			raise Exception('invalid data (size)')
-		if data[0] != '\xee':
+		if data[0] != b'\xee':
 			raise Exception('invalid start byte')
 		identity = data[1]
 		control = ord(data[2])
@@ -437,8 +445,8 @@ class C1218Packet(C1218Request):
 		if isinstance(self.__data__, C1218Request):
 			repr_data = repr(self.__data__)
 		else:
-			repr_data = '0x' + str(self.__data__).encode('hex')
-		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + str(self.__data__)).encode('hex') + ' >'
+			repr_data = '0x' + binascii.b2a_hex(self.__data__).decode('utf-8')
+		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + binascii.b2a_hex(crc_str(self.start + self.identity + self.control + self.sequence + self.__length__ + self.__data__)).decode('utf-8') + ' >'
 
 	@property
 	def data(self):
@@ -449,21 +457,25 @@ class C1218Packet(C1218Request):
 		self.set_data(value)
 
 	def set_data(self, data):
+		if isinstance(data, C1218Request):
+			data = data.build()
+		elif not isinstance(data, bytes):
+			data = data.encode('utf-8')
 		self.__data__ = data
-		self.set_length(len(str(self.__data__)))
+		self.set_length(len(self.__data__))
 
 	def set_length(self, length):
 		if length > 8183:
 			raise ValueError('length can not exceed 8183')
 		self.__length__ = struct.pack('>H', length)
 
-	def do_build(self):
+	def build(self):
 		packet = self.start
 		packet += self.identity
 		packet += self.control
 		packet += self.sequence
 		packet += self.__length__
-		packet += str(self.__data__)
+		packet += self.__data__
 		packet += crc_str(packet)
 		return packet
 

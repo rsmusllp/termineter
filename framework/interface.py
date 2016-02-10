@@ -34,7 +34,8 @@ from framework import its
 from framework.core import Framework
 from framework.errors import FrameworkRuntimeError
 
-__version__ = '0.1.0'
+__codename__ = 'T-900'
+__version__ = '0.2.0'
 
 def complete_all_paths(path):
 	if not path:
@@ -89,7 +90,7 @@ class OverrideCmd(cmd.Cmd, object):
 		# don't do anything on a blank line being passed
 		pass
 
-	def help_help(self): 					# Get help out of the undocumented section, stupid python
+	def help_help(self):  # Get help out of the undocumented section, stupid python
 		self.do_help('')
 
 	def precmd(self, line):  # use this to allow using '?' after the command for help
@@ -173,7 +174,7 @@ class InteractiveInterpreter(OverrideCmd):
 		intro += os.linesep
 		fmt_string = "  <[ {0:<18} {1:>18}"
 		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
-		intro += fmt_string.format('model:', 'T-800') + os.linesep
+		intro += fmt_string.format('model:', __codename__) + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
 		#if self.frmwk.rfcat_available:
 		#	intro += fmt_string.format('rfcat:', 'enabled') + os.linesep

@@ -19,12 +19,11 @@
 
 import logging
 import random
-import struct
 import time
 
 from c1218.data import *
 from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError, C1218WriteTableError
-from c1218.utilities import find_strings, data_chksum_str
+from c1218.utilities import data_checksum
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
@@ -148,11 +147,11 @@ class ConnectionBase(object):
 		:param bool full_frame: If set to True, the entire C1218 frame is
 		  returned instead of just the payload.
 		"""
-		payloadbuffer = ''
+		payloadbuffer = b''
 		tries = 3
 		while tries:
 			tmpbuffer = self.serial_h.read(1)
-			if tmpbuffer != '\xee':
+			if tmpbuffer != b'\xee':
 				self.loggerio.error('did not receive \\xee as the first byte of the frame')
 				self.loggerio.debug('received \\x' + tmpbuffer.encode('hex') + ' instead')
 				tries -= 1
@@ -269,14 +268,14 @@ class Connection(ConnectionBase):
 		self.serial_h.flushInput()
 		self.send(C1218IdentRequest())
 		data = self.recv()
-		if data[0] != '\x00':
+		if data[0] != b'\x00':
 			self.logger.error('received incorrect response to identification service request')
 			return False
 
 		self.__initialized__ = True
 		self.send(C1218NegotiateRequest(self.c1218_pktsize, self.c1218_nbrpkts, baudrate=9600))
 		data = self.recv()
-		if data[0] != '\x00':
+		if data[0] != b'\x00':
 			self.logger.error('received incorrect response to negotiate service request')
 			self.stop()
 			raise C1218NegotiateError('received incorrect response to negotiate service request', ord(data[0]))
@@ -288,10 +287,10 @@ class Connection(ConnectionBase):
 
 		:param bool force: ignore the remote devices response
 		"""
-		if self.__initialized__ == True:
+		if self.__initialized__:
 			self.send(C1218TerminateRequest())
 			data = self.recv()
-			if data == '\x00' or force:
+			if data == b'\x00' or force:
 				self.__initialized__ = False
 				self.__toggle_bit__ = False
 				return True
@@ -312,14 +311,14 @@ class Connection(ConnectionBase):
 
 		self.send(C1218LogonRequest(username, userid))
 		data = self.recv()
-		if data != '\x00':
+		if data != b'\x00':
 			self.logger.warning('login failed, user name and user id rejected')
 			return False
 
-		if password != None:
+		if password is not None:
 			self.send(C1218SecurityRequest(password))
 			data = self.recv()
-			if data != '\x00':
+			if data != b'\x00':
 				self.logger.warning('login failed, password rejected')
 				return False
 
@@ -334,7 +333,7 @@ class Connection(ConnectionBase):
 		"""
 		self.send(C1218LogoffRequest())
 		data = self.recv()
-		if data == '\x00':
+		if data == b'\x00':
 			self.__initialized__ = False
 			return True
 		return False
@@ -355,7 +354,7 @@ class Connection(ConnectionBase):
 		self.send(C1218ReadRequest(tableid, offset, octetcount))
 		data = self.recv()
 		status = data[0]
-		if status != '\x00':
+		if status != b'\x00':
 			status = ord(status)
 			details = (C1218_RESPONSE_CODES.get(status) or 'unknown response code')
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: ' + details)
@@ -372,7 +371,7 @@ class Connection(ConnectionBase):
 		if len(data) != length:
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length')
-		if data_chksum_str(data) != chksum:
+		if data_checksum(data) != chksum:
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid check sum')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid checksum')
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and not tableid in self.__tbl_cache__.keys():
@@ -390,12 +389,12 @@ class Connection(ConnectionBase):
 		"""
 		self.send(C1218WriteRequest(tableid, data, offset))
 		data = self.recv()
-		if data[0] != '\x00':
+		if data[0] != b'\x00':
 			status = ord(data[0])
 			details = (C1218_RESPONSE_CODES.get(status) or 'unknown response code')
 			self.logger.error('could not write data to the table, error: ' + details)
 			raise C1218WriteTableError('could not write data to the table, error: ' + details, status)
-		return None
+		return
 
 	def run_procedure(self, process_number, std_vs_mfg, params=''):
 		"""

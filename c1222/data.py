@@ -53,12 +53,12 @@ class C1222Data(object):
 		return '<' + self.__class__.__name__ + ' >'
 
 	def __str__(self):
-		return self.do_build()
+		return self.build()
 
 	def __len__(self):
 		return len(str(self))
 
-	def do_build(self):
+	def build(self):
 		return ''
 
 class C1222EPSEM(C1222Data):
@@ -105,7 +105,7 @@ class C1222EPSEM(C1222Data):
 		epsem.response_mode = response_mode
 		return epsem
 
-	def do_build(self):
+	def build(self):
 		flags = 0
 		flags |= (int(self.reserved) << 7)
 		flags |= (int(self.recovery) << 6)
@@ -140,7 +140,7 @@ class C1222UserInformation(C1222Data):
 			raise Exception('invalid data (size)')
 		return C1222UserInformation(data[6:])
 
-	def do_build(self):
+	def build(self):
 		data = str(self.data)
 		data = '\x81' + chr(len(data)) + data
 		data = '\x28' + chr(len(data)) + data
@@ -181,19 +181,19 @@ class C1222Request(C1222Data):
 class C1222DisconnectRequest(C1222Request):
 	disconnect = '\x22'
 
-	def do_build(self):
+	def build(self):
 		return self.disconnect
 
 class C1222IdentRequest(C1222Request):
 	ident = '\x20'
 
-	def do_build(self):
+	def build(self):
 		return self.ident
 
 class C1222LogoffRequest(C1222Request):
 	logoff = '\x52'
 
-	def do_build(self):
+	def build(self):
 		return self.logoff
 
 class C1222LogonRequest(C1222Request):
@@ -207,7 +207,7 @@ class C1222LogonRequest(C1222Request):
 		self.set_userid(userid)
 		self.set_session_idle_timeout(session_idle_timeout)
 
-	def do_build(self):
+	def build(self):
 		return self.logon + self.__userid__ + self.__username__ + self.__session_idle_timeout__
 
 	def set_username(self, value):
@@ -235,7 +235,7 @@ class C1222ReadRequest(C1222Request):
 			self.set_offset(offset)
 			self.set_octetcount(octetcount)
 
-	def do_build(self):
+	def build(self):
 		return self.read + self.__tableid__ + self.__offset__ + self.__octetcount__
 
 	def set_tableid(self, tableid):
@@ -254,7 +254,7 @@ class C1222ResolveRequest(C1222Request):
 	def __init__(self, ap_title):
 		self.set_ap_title(ap_title)
 
-	def do_build(self):
+	def build(self):
 		return self.resolve + self.__ap_title__
 
 class C1222SecurityRequest(C1222Request):
@@ -266,7 +266,7 @@ class C1222SecurityRequest(C1222Request):
 		self.set_password(password)
 		self.set_userid(userid)
 
-	def do_build(self):
+	def build(self):
 		return self.security + self.__password__ + self.__userid__
 
 	def set_password(self, value):
@@ -277,7 +277,7 @@ class C1222SecurityRequest(C1222Request):
 class C1222TerminateRequest(C1222Request):
 	terminate = '\x21'
 
-	def do_build(self):
+	def build(self):
 		return self.terminate
 
 class C1222TraceRequest(C1222Request):
@@ -287,7 +287,7 @@ class C1222TraceRequest(C1222Request):
 	def __init__(self, ap_title):
 		self.set_ap_title(ap_title)
 
-	def do_build(self):
+	def build(self):
 		return self.trace + self.__ap_title__
 
 class C1222WaitRequest(C1222Request):
@@ -297,7 +297,7 @@ class C1222WaitRequest(C1222Request):
 	def __init__(self, time=0):
 		self.set_time(time)
 
-	def do_build(self):
+	def build(self):
 		return self.wait + self.time
 
 	def set_time(self, time):
@@ -317,7 +317,7 @@ class C1222WriteRequest(C1222Request):
 			self.write = '\x4f'
 			self.set_offset(offset)
 
-	def do_build(self):
+	def build(self):
 		packet = self.write
 		packet += self.__tableid__
 		packet += self.__offset__
@@ -409,7 +409,7 @@ class C1222Packet(C1222Request):
 	def set_length(self, length):
 		self.__length__ = chr(length)
 
-	def do_build(self):
+	def build(self):
 		packet = self.start
 		packet += self.__length__
 		packet += self.called_ap.encode()

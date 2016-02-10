@@ -168,9 +168,9 @@ class C1219ProcedureInit:
 		return "<{0} mfg_defined={1} proc_nbr={2} >".format(self.__class__.__name__, self.mfg_defined, self.proc_nbr)
 
 	def __str__(self):
-		return self.do_build()
+		return self.build()
 
-	def do_build(self):
+	def build(self):
 		return self.table_idb_bfld + chr(self.seqnum) + self.params
 
 	@staticmethod
