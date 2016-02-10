@@ -17,6 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
 import logging
 import os
 import socket
@@ -38,7 +40,7 @@ class UnixSerial(SocketSerial):
 			raise SerialException('Port is already open.')
 		try:
 			self._socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-			details = self.fromURL(self.portstr)
+			details = self.from_url(self.portstr)
 			socket_path = details['path']
 			if details['mode'] == 'server':
 				if os.path.exists(socket_path):
@@ -76,16 +78,16 @@ class UnixSerial(SocketSerial):
 			os.unlink(socket_file)
 		self._isOpen = False
 
-	def fromURL(self, url):
+	def from_url(self, url):
 		details = {}
 		url = urlparse.urlparse(url)
 		options = urlparse.parse_qs(url.query)
 		options_get = lambda key, default: options.get(key, [default])[0]
 		details['path'] = url.path
 		details['mode'] = options_get('mode', 'client')
-		assert(details['mode'] in ['server', 'client'])
+		assert(details['mode'] in ('server', 'client'))
 		log_level = options_get('logging', 'ERROR').upper()
-		assert(log_level in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'])
+		assert(log_level in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'))
 		self.logger = logging.getLogger('c1218.connection.socket.unix')
 		self.logger.setLevel(getattr(logging, log_level))
 		return details
