@@ -70,7 +70,7 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 
 		### Parse GEN_CONFIG_TBL ###
 		self.__char_format__ = {1: 'ISO/IEC 646 (7-bit)', 2: 'ISO 8859/1 (Latin 1)', 3: 'UTF-8', 4: 'UTF-16', 5: 'UTF-32'}.get((general_config_table[0] & 14) >> 1) or 'Unknown'
-		encoding = {2: 'iso-8859-1', 4: 'utf-16', 5: 'utf-32'}.get(self.__char_format__, 'utf-8')
+		encoding = self.encoding
 		self.__nameplate_type__ = {0: 'Gas', 1: 'Water', 2: 'Electric'}.get(general_config_table[7]) or 'Unknown'
 		self.__id_form__ = general_config_table[1] & 32
 		self.__std_version_no__ = general_config_table[11]
@@ -136,9 +136,11 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 
 	def set_device_id(self, newid):
 		if self.__id_form__ == 0:
-			self.conn.set_table_data(DEVICE_IDENT_TBL, (newid + (' ' * (20 - len(newid)))))
+			newid += ' ' * (20 - len(newid))
 		else:
-			self.conn.set_table_data(DEVICE_IDENT_TBL, (newid + (' ' * (10 - len(newid)))))
+			newid += ' ' * (10 - len(newid))
+		newid = newid.encode(self.encoding)
+		self.conn.set_table_data(DEVICE_IDENT_TBL, newid)
 
 		self.conn.send(C1218WriteRequest(PROC_INITIATE_TBL, b'\x46\x08\x1c\x03\x0b\x0c\x09\x0f\x12'))
 		data = self.conn.recv()
@@ -158,6 +160,10 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 			return 2
 		self.__device_id__ = newid
 		return 0
+
+	@property
+	def encoding(self):
+		return {2: 'iso-8859-1', 4: 'utf-16', 5: 'utf-32'}.get(self.__char_format__, 'utf-8')
 
 	@property
 	def char_format(self):

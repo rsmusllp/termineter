@@ -395,8 +395,8 @@ class Connection(ConnectionBase):
 		"""
 		self.send(C1218WriteRequest(tableid, data, offset))
 		data = self.recv()
-		if data[0] != b'\x00':
-			status = ord(data[0])
+		if data[0] != 0x00:
+			status = data[0]
 			details = (C1218_RESPONSE_CODES.get(status) or 'unknown response code')
 			self.logger.error('could not write data to the table, error: ' + details)
 			raise C1218WriteTableError('could not write data to the table, error: ' + details, status)

@@ -150,7 +150,7 @@ class C1219ProcedureInit:
 	:param str params: The parameters to pass to the procedure initiation
 	  request.
 	"""
-	def __init__(self, endianess, table_proc_nbr, std_vs_mfg, selector, seqnum, params=''):
+	def __init__(self, endianess, table_proc_nbr, std_vs_mfg, selector, seqnum, params=b''):
 		mfg_defined = 0
 		if std_vs_mfg:
 			mfg_defined = 1
@@ -173,7 +173,7 @@ class C1219ProcedureInit:
 		return self.build()
 
 	def build(self):
-		return self.table_idb_bfld + chr(self.seqnum) + self.params
+		return self.table_idb_bfld + struct.pack('B', self.seqnum) + self.params
 
 	@staticmethod
 	def parse(endianess, data):

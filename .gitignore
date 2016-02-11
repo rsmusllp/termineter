@@ -40,3 +40,5 @@ nosetests.xml
 
 # Sphinx Documentation
 docs/html
+
+todo.txt

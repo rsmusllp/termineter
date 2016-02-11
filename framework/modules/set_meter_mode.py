@@ -17,6 +17,10 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import struct
+
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
 from c1219.constants import C1219_METER_MODE_NAMES
 from c1219.errors import C1219ProcedureError
@@ -50,18 +54,15 @@ class Module(TermineterModuleOptical):
 
 		mode = mode_dict[mode]
 		try:
-			conn.run_procedure(6, False, chr(mode))
+			conn.run_procedure(6, False, struct.pack('B', mode))
 		except C1218ReadTableError as error:
-			logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
-			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+			self.frmwk.print_exception(error)
 		except C1218WriteTableError as error:
 			if error.code == 4:  # onp/operation not possible
 				self.frmwk.print_error('Meter responded that it can not set the mode to the desired type')
 			else:
-				logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
-				self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+				self.frmwk.print_exception(error)
 		except C1219ProcedureError as error:
-			logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
-			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+			self.frmwk.print_exception(error)
 		else:
-			self.frmwk.print_good('Sucessfully Changed The Mode')
+			self.frmwk.print_good('Successfully Changed The Mode')

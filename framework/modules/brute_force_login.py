@@ -17,16 +17,19 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import binascii
 import os
 import re
-from time import sleep
+import time
 
 from framework.templates import TermineterModuleOptical
 from framework.utilities import StringGenerator
 
 class BruteForce:
 	def __init__(self, dictionary_path=None):
-		if dictionary_path == None:
+		if dictionary_path is None:
 			self.dictionary = None
 		else:
 			self.dictionary = open(dictionary_path, 'r')
@@ -42,6 +45,12 @@ class BruteForce:
 				password = self.dictionary.readline()
 			self.dictionary.close()
 		raise StopIteration
+
+def from_hex(data):
+	return binascii.a2b_hex(data)
+
+def to_hex(data):
+	return binascii.b2a_hex(data).decode('utf-8')
 
 class Module(TermineterModuleOptical):
 	require_connection = False
@@ -96,25 +105,25 @@ class Module(TermineterModuleOptical):
 			if not pure_brute:
 				if usehex:
 					password = password.strip()
-					if hex_regex.match(password) == None:
+					if hex_regex.match(password) is None:
 						logger.error('invalid characters found while searching for hex')
 						self.frmwk.print_error('Invalid characters found while searching for hex')
 						return
-					password = password.decode('hex')
+					password = from_hex(password)
 				else:
 					password = password.rstrip()
 			if len(password) > 20:
 				if usehex:
-					logger.warning('skipping password: ' + password.encode('hex') + ' due to length (can not be exceed 20 bytes)')
+					logger.warning('skipping password: ' + to_hex(password) + ' due to length (can not be exceed 20 bytes)')
 				else:
 					logger.warning('skipping password: ' + password + ' due to length (can not be exceed 20 bytes)')
 				continue
 			while not conn.start():
-				sleep(time_delay)
-			sleep(time_delay)
+				time.sleep(time_delay)
+			time.sleep(time_delay)
 			if conn.login(username, userid, password):
 				if usehex:
-					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password.encode('hex'))
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + to_hex(password))
 				else:
 					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
 				if self.advanced_options.get_option_value('STOPONSUCCESS'):
@@ -122,10 +131,10 @@ class Module(TermineterModuleOptical):
 					break
 			else:
 				if usehex:
-					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password.encode('hex'))
+					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + to_hex(password))
 				else:
 					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
 			while not conn.stop(force=True):
-				sleep(time_delay)
-			sleep(time_delay)
+				time.sleep(time_delay)
+			time.sleep(time_delay)
 		return
