@@ -17,6 +17,10 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import struct
+
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
 from c1219.errors import C1219ProcedureError
 from framework.templates import TermineterModuleOptical
@@ -36,15 +40,15 @@ class Module(TermineterModuleOptical):
 
 		params = 0
 		if self.options['DEMAND']:
-			params = (params | 0b01)
+			params |= 0b01
 		if self.options['SELFREAD']:
-			params = (params | 0b10)
+			params |= 0b10
 
 		self.frmwk.print_status('Initiating Reset Procedure')
 
 		try:
-			conn.run_procedure(9, False, chr(params))
-			self.frmwk.print_good('Sucessfully Reset The Meter')
+			conn.run_procedure(9, False, struct.pack('B', params))
 		except (C1218ReadTableError, C1218WriteTableError, C1219ProcedureError) as error:
-			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
-			self.frmwk.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+			self.frmwk.print_exception(error)
+		else:
+			self.frmwk.print_good('Successfully Reset The Meter')

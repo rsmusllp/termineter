@@ -1,7 +1,9 @@
 # Termineter Install Guide
 ## Requirements
-The requirements are listed in the requirements.txt file. They can be installed
-with ```pip install -r requirements.txt```.
+Termineter supports Python 2.7 and 3.4+. It is recommended that
+users use Python3.
+The requirements are listed in the requirements.txt file. They can
+be installed with `python3 -m pip install -r requirements.txt`.
 
 ## How To Install Termineter (Windows)
 No installation or modification is necessary.  Start a command

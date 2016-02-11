@@ -17,6 +17,9 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import binascii
 import re
 
 from c1218.errors import C1218WriteTableError
@@ -49,12 +52,14 @@ class Module(TermineterModuleOptical):
 			if hex_regex.match(data) is None:
 				self.frmwk.print_error('Non-hex characters found in \'DATA\'')
 				return
-			data = data.decode('hex')
+			data = binascii.a2b_hex(data)
+		else:
+			data = data.encode('utf-8')
 
 		try:
 			conn.set_table_data(tableid, data, offset)
 		except C1218WriteTableError as error:
-			self.frmwk.print_error('Caught C1218WriteTableError: ' + str(error))
+			self.frmwk.print_exception(error)
 		else:
 			self.frmwk.print_status('Successfully Wrote Data')
 

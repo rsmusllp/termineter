@@ -41,4 +41,5 @@ nosetests.xml
 # Sphinx Documentation
 docs/html
 
+table_diff.html
 todo.txt

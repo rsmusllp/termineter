@@ -304,7 +304,7 @@ class Framework(object):
 					self.stdout.write('   ')
 				if j % 16 == 7:
 					self.stdout.write(' ')
-			self.stdout.write('  ')
+			self.stdout.write('   ')
 			r = ''
 			for j in data[i:i + 16]:
 				if 32 < j < 128:

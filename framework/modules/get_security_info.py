@@ -17,6 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
 from c1218.errors import C1218ReadTableError
 from c1219.access.security import C1219SecurityAccess
 from c1219.constants import C1219_TABLES, C1219_PROCEDURE_NAMES

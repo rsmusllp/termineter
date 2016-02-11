@@ -17,8 +17,11 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import binascii
 import os
-from time import sleep
+import time
 
 from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_TABLES
@@ -52,7 +55,7 @@ class Module(TermineterModuleOptical):
 				if error.code == 10:  # ISSS
 					conn.stop()
 					logger.warning('received ISSS error, connection stopped, will sleep before retrying')
-					sleep(0.5)
+					time.sleep(0.5)
 					if not self.frmwk.serial_login():
 						logger.warning('meter login failed, some tables may not be accessible')
 					try:
@@ -61,11 +64,14 @@ class Module(TermineterModuleOptical):
 						data = None
 						if error.code == 10:
 							raise error  # tried to re-sync communications but failed, you should reconnect and rerun the module
-			if data:
-				self.frmwk.print_status('Found readable table, ID: ' + str(tableid) + ' Name: ' + (C1219_TABLES.get(tableid) or 'UNKNOWN'))
-				# format is: table id, table name, table data length, table data
-				out_file.write(','.join([str(tableid), (C1219_TABLES.get(tableid) or 'UNKNOWN'), str(len(data)), data.encode('hex')]) + os.linesep)
-				number_of_tables += 1
+			if not data:
+				continue
+			tablename = C1219_TABLES.get(tableid, 'UNKNOWN')
+			tableid = str(tableid)
+			self.frmwk.print_status('Found readable table, ID: ' + tableid + ' Name: ' + tablename)
+			# format is: table id, table name, table data length, table data
+			out_file.write(','.join([tableid, tablename, str(len(data)), binascii.b2a_hex(data).decode('utf-8')]) + os.linesep)
+			number_of_tables += 1
 
 		out_file.close()
 		self.frmwk.print_status('Successfully copied ' + str(number_of_tables) + ' tables to disk.')

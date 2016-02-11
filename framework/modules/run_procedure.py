@@ -17,6 +17,11 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import binascii
+import re
+
 from c1219.constants import C1219_PROCEDURE_NAMES, C1219_PROC_RESULT_CODES
 from framework.templates import TermineterModuleOptical
 
@@ -37,14 +42,21 @@ class Module(TermineterModuleOptical):
 
 		data = self.options['PARAMS']
 		if self.options['USEHEX']:
-			data = data.decode('hex')
+			data = data.replace(' ', '')
+			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
+			if hex_regex.match(data) is None:
+				self.frmwk.print_error('Non-hex characters found in \'PARAMS\'')
+				return
+			data = binascii.a2b_hex(data)
+		else:
+			data = data.encode('utf-8')
 
 		self.frmwk.print_status('Initiating procedure ' + (C1219_PROCEDURE_NAMES.get(self.options['PROCNBR']) or '#' + str(self.options['PROCNBR'])))
 
 		error_code, data = conn.run_procedure(self.options['PROCNBR'], self.advanced_options['STDVSMFG'], data)
 
 		self.frmwk.print_status('Finished running procedure #' + str(self.options['PROCNBR']))
-		self.frmwk.print_status('Received respose from procedure: ' + (C1219_PROC_RESULT_CODES.get(error_code) or 'UNKNOWN'))
+		self.frmwk.print_status('Received response from procedure: ' + (C1219_PROC_RESULT_CODES.get(error_code) or 'UNKNOWN'))
 		if len(data):
 			self.frmwk.print_status('Received data output from procedure: ')
 			self.frmwk.print_hexdump(data)
