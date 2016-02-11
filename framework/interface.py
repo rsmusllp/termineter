@@ -139,6 +139,7 @@ class InteractiveInterpreter(OverrideCmd):
 			self.__disabled_commands__.append('logging')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
 		self.frmwk = Framework(stdout=stdout)
+		self.print_exception = self.frmwk.print_exception
 		self.print_error = self.frmwk.print_error
 		self.print_good = self.frmwk.print_good
 		self.print_line = self.frmwk.print_line
@@ -303,7 +304,7 @@ class InteractiveInterpreter(OverrideCmd):
 		try:
 			self.frmwk.serial_connect()
 		except Exception as error:
-			self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+			self.print_exception(error)
 			return
 		self.print_good('Successfully connected and the device is responding')
 		if len(args) and args[0] == '-l':
@@ -331,7 +332,7 @@ class InteractiveInterpreter(OverrideCmd):
 			try:
 				self.frmwk.serial_connect()
 			except Exception as error:
-				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+				self.print_exception(error)
 				return
 			self.print_good('Successfully reconnected and the device is responding')
 
@@ -575,10 +576,7 @@ class InteractiveInterpreter(OverrideCmd):
 		except KeyboardInterrupt:
 			self.print_line('')
 		except Exception as error:
-			for x in traceback.format_exc().split(os.linesep):
-				self.print_line(x)
-			self.logger.error('caught ' + error.__class__.__name__ + ': ' + str(error))
-			self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+			self.print_exception(error)
 			old_module = None
 		if old_module:
 			self.frmwk.current_module = old_module

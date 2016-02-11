@@ -259,6 +259,11 @@ class Framework(object):
 			raise FrameworkRuntimeError(message)
 		return module_instance
 
+	def print_exception(self, error):
+		message = 'Caught ' + error.__class__.__name__ + ': ' + str(error)
+		self.logger.error(message, exc_info=True)
+		self.print_error(message)
+
 	def print_error(self, message):
 		if self.options['USECOLOR']:
 			self.stdout.write('\033[1;31m[-] \033[1;m' + (os.linesep + '\033[1;31m[-] \033[1;m').join(message.split(os.linesep)) + os.linesep)
