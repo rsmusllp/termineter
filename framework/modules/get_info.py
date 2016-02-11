@@ -86,7 +86,6 @@ class Module(TermineterModuleOptical):
 
 		self.frmwk.print_status('General Information:')
 		fmt_string = "    {0:.<38}.{1}"
-		keys = meter_info.keys()
-		keys.sort()
+		keys = sorted(list(meter_info.keys()))
 		for key in keys:
 			self.frmwk.print_status(fmt_string.format(key, meter_info[key]))

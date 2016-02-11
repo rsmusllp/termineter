@@ -17,6 +17,10 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
+import binascii
+import importlib
 import logging
 import logging.handlers
 import os
@@ -29,9 +33,10 @@ from c1218.errors import C1218IOError, C1218ReadTableError
 from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
 from framework.options import AdvancedOptions, Options
 from framework.templates import TermineterModule, TermineterModuleOptical
-from framework.utilities import FileWalker, Namespace, get_default_serial_settings
+from framework.utilities import Namespace, get_default_serial_settings
 
 from serial.serialutil import SerialException
+from smoke_zephyr.utilities import FileWalker
 
 class Framework(object):
 	"""
@@ -42,7 +47,7 @@ class Framework(object):
 	def __init__(self, stdout=None):
 		self.modules = {}
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
-		package_path = __import__(self.__package__, None, None, ['__path__']).__path__[0]	# that's some python black magic trickery for you
+		package_path = importlib.import_module(self.__package__).__path__[0]  # that's some python black magic trickery for you
 		if stdout is None:
 			stdout = sys.stdout
 		self.stdout = stdout
@@ -94,12 +99,11 @@ class Framework(object):
 		self.rfcat_available = False
 		try:
 			import rflib
-			self.logger.info('the rfcat library is available')
-			self.rfcat_available = True
 		except ImportError:
 			self.logger.info('the rfcat library is not available, it can be found at https://code.google.com/p/rfcat/')
-			pass
-		if self.rfcat_available:
+		else:
+			self.logger.info('the rfcat library is available')
+			self.rfcat_available = True
 			# init the values to be used
 			self.rfcat_connection = None
 			self.__rfcat_connected__ = False
@@ -147,7 +151,7 @@ class Framework(object):
 			module_instance.name = module_name
 			module_instance.path = module_path
 			self.modules[module_path] = module_instance
-		self.logger.info('successfully loaded ' + str(len(self.modules)) + ' modules into the framework')
+		self.logger.info("successfully loaded {0:,} modules into the framework".format(len(self.modules)))
 		return
 
 	def __repr__(self):
@@ -163,7 +167,7 @@ class Framework(object):
 		@param module_path: The name of the module to reload
 		"""
 		if module_path is None:
-			if self.current_module != None:
+			if self.current_module is not None:
 				module_path = self.current_module.path
 			else:
 				self.logger.warning('must specify module if not module is currently being used')
@@ -186,7 +190,7 @@ class Framework(object):
 		module_instance.name = module_path.split('/')[-1]
 		module_instance.path = module_path
 		self.modules[module_path] = module_instance
-		if self.current_module != None:
+		if self.current_module is not None:
 			if self.current_module.path == module_instance.path:
 				self.current_module = module_instance
 		return True
@@ -203,8 +207,7 @@ class Framework(object):
 			try:
 				self.serial_get()
 			except Exception as error:
-				self.logger.warning('Caught ' + error.__class__.__name__ + ': ' + str(error), exc_info=True)
-				self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+				self.print_exception(error)
 				return
 			if module.require_connection:
 				if self.advanced_options['AUTOCONNECT']:
@@ -212,8 +215,7 @@ class Framework(object):
 						try:
 							self.serial_connect()
 						except Exception as error:
-							self.logger.warning('Caught ' + error.__class__.__name__ + ': ' + str(error), exc_info=True)
-							self.print_error('Caught ' + error.__class__.__name__ + ': ' + str(error))
+							self.print_exception(error)
 							return
 						self.print_good('Successfully connected and the device is responding')
 					if module.attempt_login and not self.serial_login():
@@ -246,8 +248,9 @@ class Framework(object):
 		return logging.getLogger(self.__package__ + '.modules.' + name)
 
 	def import_module(self, module_path, reload_module=False):
+		module = self.__package__ + '.modules.' + module_path.replace('/', '.')
 		try:
-			module = __import__(self.__package__ + '.modules.' + module_path.replace('/', '.'), None, None, ['Module'])
+			module = importlib.import_module(module)
 			if reload_module:
 				reload(module)
 			module_instance = module.Module(self)
@@ -290,26 +293,24 @@ class Framework(object):
 		self.stdout.flush()
 
 	def print_hexdump(self, data):
-		x = str(data)
-		l = len(x)
+		data_len = len(data)
 		i = 0
-		while i < l:
-			self.stdout.write("%04x   " % i)
+		while i < data_len:
+			self.stdout.write("{0:04x}    ".format(i))
 			for j in range(16):
-				if i + j < l:
-					self.stdout.write("%02X " % ord(x[i + j]))
+				if i + j < data_len:
+					self.stdout.write("{0:02x} ".format(data[i + j]))
 				else:
-					self.stdout.write("   ")
+					self.stdout.write('   ')
 				if j % 16 == 7:
-					self.stdout.write(" ")
-			self.stdout.write("  ")
-			r = ""
-			for j in x[i:i + 16]:
-				j = ord(j)
-				if (j < 32) or (j >= 127):
-					r = r + "."
+					self.stdout.write(' ')
+			self.stdout.write('  ')
+			r = ''
+			for j in data[i:i + 16]:
+				if 32 < j < 128:
+					r += chr(j)
 				else:
-					r = r + chr(j)
+					r += '.'
 			self.stdout.write(r + os.linesep)
 			i += 16
 		self.stdout.flush()
@@ -421,7 +422,7 @@ class Framework(object):
 			if hex_regex.match(password) is None:
 				self.print_error('Invalid characters in password')
 				raise FrameworkConfigurationError('invalid characters in password')
-			password = password.decode('hex')
+			password = binascii.a2b_hex(password)
 		if len(username) > 10:
 			self.print_error('Username cannot be longer than 10 characters')
 			raise FrameworkConfigurationError('username cannot be longer than 10 characters')

@@ -17,6 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
 def string_is_hex(string):
 	if not len(string):
 		return False
@@ -44,7 +46,7 @@ class Options(dict):
 		options_def = dict.__getitem__(self, name)
 		return options_def[3]
 
-	def add_string(self, name, help, required = True, default = None):
+	def add_string(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of String.
 
@@ -64,7 +66,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('str', help, required, default, None))
 
-	def add_integer(self, name, help, required = True, default = None):
+	def add_integer(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of Integer.
 
@@ -84,7 +86,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('int', help, required, default, None))
 
-	def add_float(self, name, help, required = True, default = None):
+	def add_float(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of Float.
 
@@ -104,7 +106,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('flt', help, required, default, None))
 
-	def add_boolean(self, name, help, required = True, default = None):
+	def add_boolean(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of Boolean.
 
@@ -124,7 +126,7 @@ class Options(dict):
 		"""
 		self.__setitem__(name, ('bool', help, required, default, None))
 
-	def add_rfile(self, name, help, required = True, default = None):
+	def add_rfile(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of a readable file. This is the same
 		as the string option with the exception that the default value
@@ -167,7 +169,7 @@ class Options(dict):
 		is being set.  It will be called prior to the value being set and
 		an exception can be thrown to alert the user that the value is invalid.
 		"""
-		if self.__contains__(name) == False:
+		if not self.__contains__(name):
 			raise ValueError('invalid variable\option name')
 		options_def = dict.__getitem__(self, name)
 		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], options_def[3], callback))
@@ -183,10 +185,10 @@ class Options(dict):
 		@param value: The value to set the option to, the type must be the
 		same as it was defined with using the addX function.
 		"""
-		if self.__contains__(name) == False:
+		if not self.__contains__(name):
 			raise ValueError('invalid variable\\option name')
 		options_def = dict.__getitem__(self, name)
-		if options_def[0] in [ 'str', 'rfile' ]:
+		if options_def[0] in ['str', 'rfile']:
 			pass
 		elif options_def[0] == 'int':
 			value = value.lower()
@@ -221,8 +223,8 @@ class Options(dict):
 		of None.
 		"""
 		missing_options = []
-		for option_name, option_def in self.iteritems():
-			if option_def[2] == True and option_def[3] == None:
+		for option_name, option_def in self.items():
+			if option_def[2] and option_def[3] is None:
 				missing_options.append(option_name)
 		return missing_options
 
@@ -233,7 +235,7 @@ class Options(dict):
 		@type name: String
 		@param name: The name of the option who's value is to be returned.
 		"""
-		if self.__contains__(name) == False:
+		if not self.__contains__(name):
 			raise ValueError('invalid variable\option name')
 		options_def = dict.__getitem__(self, name)
 		return options_def[3]
@@ -246,7 +248,7 @@ class Options(dict):
 		@param name: The name of the option who's help string is to be
 		returned.
 		"""
-		if self.__contains__(name) == False:
+		if not self.__contains__(name):
 			raise ValueError('invalid variable\option name')
 		options_def = dict.__getitem__(self, name)
 		return options_def[1]

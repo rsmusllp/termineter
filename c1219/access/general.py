@@ -70,6 +70,7 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 
 		### Parse GEN_CONFIG_TBL ###
 		self.__char_format__ = {1: 'ISO/IEC 646 (7-bit)', 2: 'ISO 8859/1 (Latin 1)', 3: 'UTF-8', 4: 'UTF-16', 5: 'UTF-32'}.get((general_config_table[0] & 14) >> 1) or 'Unknown'
+		encoding = {2: 'iso-8859-1', 4: 'utf-16', 5: 'utf-32'}.get(self.__char_format__, 'utf-8')
 		self.__nameplate_type__ = {0: 'Gas', 1: 'Water', 2: 'Electric'}.get(general_config_table[7]) or 'Unknown'
 		self.__id_form__ = general_config_table[1] & 32
 		self.__std_version_no__ = general_config_table[11]
@@ -108,8 +109,8 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 					self.__mfg_proc_used__.append(i + (p * 8))
 
 		### Parse GENERAL_MFG_ID_TBL ###
-		self.__manufacturer__ = general_mfg_table[0:4].rstrip()
-		self.__ed_model__ = general_mfg_table[4:12].rstrip()
+		self.__manufacturer__ = general_mfg_table[0:4].rstrip().decode(encoding)
+		self.__ed_model__ = general_mfg_table[4:12].rstrip().decode(encoding)
 		self.__hw_version_no__ = general_mfg_table[12]
 		self.__hw_revision_no__ = general_mfg_table[13]
 		self.__fw_version_no__ = general_mfg_table[14]
@@ -118,6 +119,7 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 			self.__mfg_serial_no__ = general_mfg_table[16:32].strip()
 		else:
 			self.__mfg_serial_no__ = general_mfg_table[16:24]
+		self.__mfg_serial_no__ = self.__mfg_serial_no__.decode(encoding)
 
 		### Parse ED_MODE_STATUS_TBL ###
 		if mode_status_table:
@@ -130,7 +132,7 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 				raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
 			elif self.__id_form__ != 0 and len(ident_table) != 10:
 				raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
-			self.__device_id__ = ident_table.strip()
+			self.__device_id__ = ident_table.strip().decode(encoding)
 
 	def set_device_id(self, newid):
 		if self.__id_form__ == 0:

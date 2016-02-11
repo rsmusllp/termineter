@@ -23,6 +23,11 @@ import struct
 
 import crcelk
 
+def check_data_checksum(data, checksum):
+	if isinstance(checksum, int):
+		checksum = struct.pack('B', checksum)
+	return data_checksum(data) == checksum
+
 def data_checksum(data):
 	chksum = 0
 	for i in struct.unpack('B' * len(data), data):

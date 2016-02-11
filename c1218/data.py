@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 import binascii
 import struct
 
-from c1218.utilities import data_checksum, packet_checksum
+from c1218.utilities import check_data_checksum, data_checksum, packet_checksum
 
 ACK = b'\x06'
 NACK = b'\x15'
@@ -182,25 +182,27 @@ class C1218NegotiateRequest(C1218Request):
 			self.set_baudrate(baudrate)
 
 	def build(self):
-		return self.negotiate + self.__pktsize__ + self.__nbrpkt__ + self.__baudrate__
+		pktsize = struct.pack('>H', self.__pktsize__)
+		nbrpkt = struct.pack('B', self.__nbrpkt__)
+		return self.negotiate + pktsize + nbrpkt + self.__baudrate__
 
 	@staticmethod
 	def parse(data):
-		if ord(data[0]) == 0x60:
+		if data[0] == 0x60:
 			baud_included = False
 			if len(data) != 4:
 				raise Exception('invalid data (size)')
-		elif ord(data[0]) < 0x6c and ord(data[0]) > 0x60:
+		elif data[0] < 0x6c and data[0] > 0x60:
 			baud_included = True
 			if len(data) != 5:
 				raise Exception('invalid data (size)')
 		else:
 			raise Exception('invalid start byte')
 		pktsize = struct.unpack('>H', data[1:3])[0]
-		nbrpkt = ord(data[3])
+		nbrpkt = data[3]
 		baudrate = None
 		if baud_included:
-			baudrate = ord(data[4])
+			baudrate = data[4]
 			if baudrate == 0 or baudrate > 10:
 				raise Exception('invalid data (invalid baudrate)')
 		request = C1218NegotiateRequest(pktsize, nbrpkt, baudrate)
@@ -208,17 +210,17 @@ class C1218NegotiateRequest(C1218Request):
 		return request
 
 	def set_pktsize(self, pktsize):
-		self.__pktsize__ = struct.pack('>H', pktsize)
+		self.__pktsize__ = pktsize
 
 	def set_nbrpkt(self, nbrpkt):
-		self.__nbrpkt__ = chr(nbrpkt)
+		self.__nbrpkt__ = nbrpkt
 
 	def set_baudrate(self, baudrate):
 		c1218_baudrate_codes = {300: 1, 600: 2, 1200: 3, 2400: 4, 4800: 5, 9600: 6, 14400: 7, 19200: 8, 28800: 9, 57600: 10}
 		if baudrate in c1218_baudrate_codes:
-			self.__baudrate__ = chr(c1218_baudrate_codes[baudrate])
+			self.__baudrate__ = struct.pack('B', c1218_baudrate_codes[baudrate])
 		elif 0 < baudrate < 11:
-			self.__baudrate__ = chr(baudrate)
+			self.__baudrate__ = struct.pack('B', baudrate)
 		else:
 			raise Exception('invalid data (invalid baudrate)')
 		self.negotiate = b'\x61'
@@ -372,7 +374,7 @@ class C1218WriteRequest(C1218Request):
 		elif data[0] == b'\x4f':
 			table_data = data[8:-1]
 			offset = struct.unpack('>I', b'\x00' + data[3:6])[0]
-		if data_checksum(table_data) != chksum:
+		if check_data_checksum(table_data, chksum):
 			raise Exception('invalid check sum')
 		request = C1218WriteRequest(tableid, table_data, offset=offset)
 		request.write = data[0]
@@ -437,11 +439,7 @@ class C1218Packet(C1218Request):
 		if length:
 			self.set_length(length)
 		if control:
-			if isinstance(control, int):
-				if not (0x00 < control < 0xff):
-					raise ValueError('control must be between 0x00 and 0xff')
-				control = struct.pack('B', control)
-			self.control = control
+			self.set_control(control)
 
 	def __repr__(self):
 		if isinstance(self.__data__, C1218Request):
@@ -457,6 +455,15 @@ class C1218Packet(C1218Request):
 	@data.setter
 	def data(self, value):
 		self.set_data(value)
+
+	def set_control(self, control):
+		if isinstance(control, int):
+			if not (0x00 < control < 0xff):
+				raise ValueError('control must be between 0x00 and 0xff')
+			control = struct.pack('B', control)
+		if not isinstance(control, bytes):
+			raise ValueError('control must be an int or bytes instance')
+		self.control = control
 
 	def set_data(self, data):
 		if isinstance(data, C1218Request):

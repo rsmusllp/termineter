@@ -17,6 +17,8 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import unicode_literals
+
 import cmd
 import code
 import logging
@@ -28,7 +30,6 @@ import socket
 import subprocess
 import sys
 import textwrap
-import traceback
 
 from framework import its
 from framework.core import Framework
@@ -95,7 +96,7 @@ class OverrideCmd(cmd.Cmd, object):
 
 	def precmd(self, line):  # use this to allow using '?' after the command for help
 		tmp_line = line.split()
-		if len(tmp_line) == 0:
+		if not tmp_line:
 			return line
 		if tmp_line[0] in self.__disabled_commands__:
 			self.default(tmp_line[0])
@@ -215,8 +216,7 @@ class InteractiveInterpreter(OverrideCmd):
 
 	@staticmethod
 	def serve(addr, run_once=False, log_level=None, use_ssl=False, ssl_cert=None):
-		if use_ssl:
-			import ssl
+		import ssl
 		__package__ = '.'.join(InteractiveInterpreter.__module__.split('.')[:-1])
 		logger = logging.getLogger(__package__ + '.interpreter.server')
 
@@ -241,7 +241,7 @@ class InteractiveInterpreter(OverrideCmd):
 				outs = clt_sock.makefile('w', 1)
 
 			log_stream = logging.StreamHandler(outs)
-			if log_level != None:
+			if log_level is not None:
 				log_stream.setLevel(log_level)
 			log_stream.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
 			logging.getLogger('').addHandler(log_stream)
@@ -262,12 +262,11 @@ class InteractiveInterpreter(OverrideCmd):
 			ins.close()
 			clt_sock.shutdown(socket.SHUT_RDWR)
 			clt_sock.close()
-			del(clt_sock)
+			del clt_sock
 			if run_once:
 				break
 		srv_sock.shutdown(socket.SHUT_RDWR)
 		srv_sock.close()
-		del srv_sock
 
 	def do_back(self, args):
 		"""Stop using a module"""
@@ -280,7 +279,7 @@ class InteractiveInterpreter(OverrideCmd):
 	def do_cd(self, args):
 		"""Change the current working directory"""
 		path = args.split(' ')[0]
-		if path == '':
+		if not path:
 			self.print_error('must specify a path')
 			return
 		if not os.path.isdir(path):
@@ -323,7 +322,7 @@ class InteractiveInterpreter(OverrideCmd):
 		if result:
 			self.print_good('Successfully disconnected')
 		else:
-			self.print_error('An error occured while closing the serial interface')
+			self.print_error('An error occurred while closing the serial interface')
 		if len(args) and args[0] == '-r':
 			missing_options = self.frmwk.options.get_missing_options()
 			if missing_options:
@@ -364,7 +363,7 @@ class InteractiveInterpreter(OverrideCmd):
 	def do_logging(self, args):
 		"""Set and show logging options"""
 		args = shlex.split(args)
-		if len(args) == 0:
+		if not args:
 			args.append('show')
 		elif not args[0] in ['show', 'set', '-h']:
 			self.print_error('Invalid parameter "' + args[0] + '", use "logging -h" for more information')
@@ -390,12 +389,12 @@ class InteractiveInterpreter(OverrideCmd):
 				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
 
 	def complete_logging(self, text, line, begidx, endidx):
-		return [i for i in ['set', 'show', 'debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text)]
+		return [i for i in ['set', 'show', 'debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text.lower())]
 
 	def do_info(self, args):
 		"""Show module information"""
 		args = shlex.split(args)
-		if len(args) == 0 and self.frmwk.current_module is None:
+		if not args and self.frmwk.current_module is None:
 			self.print_error('Must select module to show information')
 			return
 		if len(args) and args[0]:
@@ -509,6 +508,7 @@ class InteractiveInterpreter(OverrideCmd):
 		self.print_status('Finished driver preparation')
 
 	def do_previous(self, args):
+		"""Use the last specified module."""
 		if self.last_module is None:
 			self.frmwk.print_error('no module has been previously selected')
 			return
@@ -640,7 +640,7 @@ class InteractiveInterpreter(OverrideCmd):
 			fmt_string = "  {0:" + str(longest_name) + "} {1}"
 			self.print_line(fmt_string.format('Name', 'Description'))
 			self.print_line(fmt_string.format('----', '-----------'))
-			module_names = self.frmwk.modules.keys()
+			module_names = sorted(list(self.frmwk.modules.keys()))
 			module_names.sort()
 			for module_name in module_names:
 				module_obj = self.frmwk.modules[module_name]

@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+import binascii
 import logging
 import random
 import sys
@@ -26,7 +27,7 @@ import time
 
 from c1218.data import *
 from c1218.errors import C1218NegotiateError, C1218IOError, C1218ReadTableError, C1218WriteTableError
-from c1218.utilities import data_checksum, packet_checksum
+from c1218.utilities import check_data_checksum, packet_checksum
 from c1219.data import C1219ProcedureInit
 from c1219.errors import C1219ProcedureError
 
@@ -115,25 +116,25 @@ class ConnectionBase(object):
 		"""
 		if not isinstance(data, C1218Packet):
 			data = C1218Packet(data)
-		if self.toggle_control:	# bit wise, fuck yeah
+		if self.toggle_control:  # bit wise, fuck yeah
 			if self.__toggle_bit__:
-				data.control = chr(ord(data.control) | 0x20)
+				data.set_control(ord(data.control) | 0x20)
 				self.__toggle_bit__ = False
 			elif not self.__toggle_bit__:
 				if ord(data.control) & 0x20:
-					data.control = chr(ord(data.control) ^ 0x20)
+					data.set_control(ord(data.control) ^ 0x20)
 				self.__toggle_bit__ = True
 		elif self.toggle_control and not isinstance(data, C1218Packet):
 			self.loggerio.warning('toggle bit is on but the data is not a C1218Packet instance')
-		data = str(data)
-		self.loggerio.debug("sending frame,  length: {0:<3} data: {1}".format(len(data), data.encode('hex')))
+		data = data.build()
+		self.loggerio.debug("sending frame,  length: {0:<3} data: {1}".format(len(data), binascii.b2a_hex(data).decode('utf-8')))
 		for pktcount in range(0, 3):
 			self.write(data)
 			response = self.serial_h.read(1)
 			if response == NACK:
 				self.loggerio.warning('received a NACK after writing data')
 				time.sleep(0.10)
-			elif response == '':
+			elif len(response) == 0:
 				self.loggerio.error('received empty response after writing data')
 				time.sleep(0.10)
 			elif response != ACK:
@@ -156,25 +157,24 @@ class ConnectionBase(object):
 			tmpbuffer = self.serial_h.read(1)
 			if tmpbuffer != b'\xee':
 				self.loggerio.error('did not receive \\xee as the first byte of the frame')
-				self.loggerio.debug('received \\x' + tmpbuffer.encode('hex') + ' instead')
+				self.loggerio.debug('received \\x' + binascii.b2a_hex(tmpbuffer).decode('utf-8') + ' instead')
 				tries -= 1
 				continue
-			tmpbuffer += self.serial_h.read(3)
-			sequence = ord(tmpbuffer[-1])
-			length = self.serial_h.read(2)
-			tmpbuffer += length
-			length = struct.unpack('>H', length)[0]
+			tmpbuffer += self.serial_h.read(5)
+			sequence, length = struct.unpack('>xxxBH', tmpbuffer)
 			payload = self.serial_h.read(length)
 			tmpbuffer += payload
 			chksum = self.serial_h.read(2)
 			if chksum == packet_checksum(tmpbuffer):
 				self.serial_h.write(ACK)
 				data = tmpbuffer + chksum
-				self.loggerio.debug("received frame, length: {0:<3} data: {1}".format(len(data), data.encode('hex')))
+				self.loggerio.debug("received frame, length: {0:<3} data: {1}".format(len(data), binascii.b2a_hex(data).decode('utf-8')))
 				payloadbuffer += payload
 				if sequence == 0:
 					if full_frame:
-						return data
+						payloadbuffer = data
+					if sys.version_info[0] == 2:
+						payloadbuffer = bytearray(payloadbuffer)
 					return payloadbuffer
 				else:
 					tries = 3
@@ -203,8 +203,10 @@ class ConnectionBase(object):
 		:param int size: The number of bytes to read from the serial connection.
 		"""
 		data = self.serial_h.read(size)
-		self.logger.debug('read data, length: ' + str(len(data)) + ' data: ' + data.encode('hex'))
+		self.logger.debug('read data, length: ' + str(len(data)) + ' data: ' + binascii.b2a_hex(data).decode('utf-8'))
 		self.serial_h.write(ACK)
+		if sys.version_info[0] == 2:
+			data = bytearray(data)
 		return data
 
 	def close(self):
@@ -271,17 +273,17 @@ class Connection(ConnectionBase):
 		self.serial_h.flushInput()
 		self.send(C1218IdentRequest())
 		data = self.recv()
-		if data[0] != b'\x00':
+		if data[0] != 0x00:
 			self.logger.error('received incorrect response to identification service request')
 			return False
 
 		self.__initialized__ = True
 		self.send(C1218NegotiateRequest(self.c1218_pktsize, self.c1218_nbrpkts, baudrate=9600))
 		data = self.recv()
-		if data[0] != b'\x00':
+		if data[0] != 0x00:
 			self.logger.error('received incorrect response to negotiate service request')
 			self.stop()
-			raise C1218NegotiateError('received incorrect response to negotiate service request', ord(data[0]))
+			raise C1218NegotiateError('received incorrect response to negotiate service request', data[0])
 		return True
 
 	def stop(self, force=False):
@@ -357,8 +359,8 @@ class Connection(ConnectionBase):
 		self.send(C1218ReadRequest(tableid, offset, octetcount))
 		data = self.recv()
 		status = data[0]
-		if status != b'\x00':
-			status = ord(status)
+		if status != 0x00:
+			status = status
 			details = (C1218_RESPONSE_CODES.get(status) or 'unknown response code')
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: ' + details)
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: ' + details, status)
@@ -374,12 +376,10 @@ class Connection(ConnectionBase):
 		if len(data) != length:
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid length')
-		if data_checksum(data) != chksum:
+		if not check_data_checksum(data, chksum):
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid check sum')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid checksum')
 
-		if sys.version_info[0] == 2:
-			data = bytearray(data)
 		if self.caching_enabled and tableid in self.__cacheable_tbls__ and not tableid in self.__tbl_cache__.keys():
 			self.logger.info('caching table #' + str(tableid))
 			self.__tbl_cache__[tableid] = data
