@@ -1,3 +1,4 @@
+crcelk>=1.0
 pyasn1>=0.1.7
 pyserial>=2.6
 smoke-zephyr==1.0.2
