@@ -1,4 +1,4 @@
-#  framework/modules/get_log_info.py
+#  termineter/modules/get_log_info.py
 #
 #  Copyright 2016 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 from c1219.access.local_display import C1219LocalDisplayAccess
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

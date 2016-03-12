@@ -1,4 +1,4 @@
-#  framework/templates.py
+#  termineter/templates.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from framework.options import AdvancedOptions, Options
+from termineter.options import AdvancedOptions, Options
 
 class TermineterModule(object):
 	frmwk_required_options = ()

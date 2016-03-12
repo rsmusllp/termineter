@@ -1,4 +1,4 @@
-#  framework/modules/get_modem_info.py
+#  termineter/modules/get_modem_info.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from c1218.errors import C1218ReadTableError
 from c1219.access.telephone import C1219TelephoneAccess
 from c1219.data import C1219_CALL_STATUS_FLAGS
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

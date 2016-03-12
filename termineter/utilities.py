@@ -1,4 +1,4 @@
-#  framework/utilities.py
+#  termineter/utilities.py
 #
 #  Copyright 2012 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #

@@ -1,4 +1,4 @@
-#  framework/modules/remote_reset.py
+#  termineter/modules/remote_reset.py
 #
 #  Copyright 2012 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -23,7 +23,7 @@ import struct
 
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
 from c1219.errors import C1219ProcedureError
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

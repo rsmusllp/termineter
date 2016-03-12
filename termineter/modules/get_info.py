@@ -1,4 +1,4 @@
-#  framework/modules/get_info.py
+#  termineter/modules/get_info.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from c1218.errors import C1218ReadTableError
 from c1219.access.general import C1219GeneralAccess
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 STATUS_FLAGS = flags = (
 	'Unprogrammed',

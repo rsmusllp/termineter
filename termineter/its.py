@@ -1,4 +1,4 @@
-#  framework/its.py
+#  termineter/its.py
 #
 #  Copyright 2015 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #

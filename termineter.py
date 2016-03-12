@@ -19,11 +19,13 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import absolute_import
+from __future__ import unicode_literals
+
 import logging
 from argparse import ArgumentParser
-from framework.interface import InteractiveInterpreter
-
-__version__ = '0.1.0'
+from termineter import __version__
+from termineter.interface import InteractiveInterpreter
 
 def main():
 	parser = ArgumentParser(description='Termineter: Python Smart Meter Testing Framework', conflict_handler='resolve')

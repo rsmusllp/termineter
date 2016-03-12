@@ -1,4 +1,4 @@
-#  framework/modules/set_meter_id.py
+#  termineter/modules/set_meter_id.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 from c1219.access.general import C1219GeneralAccess
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

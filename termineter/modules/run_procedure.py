@@ -1,4 +1,4 @@
-#  framework/modules/run_procedure.py
+#  termineter/modules/run_procedure.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -23,7 +23,7 @@ import binascii
 import re
 
 from c1219.constants import C1219_PROCEDURE_NAMES, C1219_PROC_RESULT_CODES
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

@@ -1,4 +1,4 @@
-#  framework/modules/brute_force_login.py
+#  termineter/modules/brute_force_login.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -24,8 +24,8 @@ import os
 import re
 import time
 
-from framework.templates import TermineterModuleOptical
-from framework.utilities import StringGenerator
+from termineter.templates import TermineterModuleOptical
+from termineter.utilities import StringGenerator
 
 class BruteForce:
 	def __init__(self, dictionary_path=None):

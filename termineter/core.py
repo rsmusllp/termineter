@@ -1,4 +1,4 @@
-#  framework/core.py
+#  termineter/core.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -30,10 +30,10 @@ import sys
 
 from c1218.connection import Connection
 from c1218.errors import C1218IOError, C1218ReadTableError
-from framework.errors import FrameworkConfigurationError, FrameworkRuntimeError
-from framework.options import AdvancedOptions, Options
-from framework.templates import TermineterModule, TermineterModuleOptical
-from framework.utilities import Namespace, get_default_serial_settings
+from termineter.errors import FrameworkConfigurationError, FrameworkRuntimeError
+from termineter.options import AdvancedOptions, Options
+from termineter.templates import TermineterModule, TermineterModuleOptical
+from termineter.utilities import Namespace, get_default_serial_settings
 
 from serial.serialutil import SerialException
 from smoke_zephyr.utilities import FileWalker

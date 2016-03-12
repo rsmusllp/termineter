@@ -1,4 +1,4 @@
-#  framework/interface.py
+#  termineter/interface.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -17,6 +17,7 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import cmd
@@ -31,12 +32,12 @@ import subprocess
 import sys
 import textwrap
 
-from framework import its
-from framework.core import Framework
-from framework.errors import FrameworkRuntimeError
+from termineter import __version__
+from termineter import its
+from termineter.core import Framework
+from termineter.errors import FrameworkRuntimeError
 
 __codename__ = 'T-900'
-__version__ = '0.2.0'
 
 def complete_all_paths(path):
 	if not path:

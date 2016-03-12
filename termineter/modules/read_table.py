@@ -1,4 +1,4 @@
-#  framework/modules/read_table.py
+#  termineter/modules/read_table.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 from c1218.errors import C1218ReadTableError
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

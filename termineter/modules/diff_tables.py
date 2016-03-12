@@ -1,4 +1,4 @@
-#  framework/modules/diff_tables.py
+#  termineter/modules/diff_tables.py
 #
 #  Copyright 2013 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -24,7 +24,7 @@ import binascii
 import difflib
 
 import c1219.constants
-from framework.templates import TermineterModule
+from termineter.templates import TermineterModule
 
 HTML_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 

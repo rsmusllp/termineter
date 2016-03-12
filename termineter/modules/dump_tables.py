@@ -1,4 +1,4 @@
-#  framework/modules/dump_tables.py
+#  termineter/modules/dump_tables.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -25,7 +25,7 @@ import time
 
 from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_TABLES
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

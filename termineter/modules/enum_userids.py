@@ -1,4 +1,4 @@
-#  framework/modules/enum_tables.py
+#  termineter/modules/enum_tables.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from time import sleep
 
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	require_connection = False

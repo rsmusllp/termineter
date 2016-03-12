@@ -1,4 +1,4 @@
-#  framework/modules/get_security_info.py
+#  termineter/modules/get_security_info.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from c1218.errors import C1218ReadTableError
 from c1219.access.security import C1219SecurityAccess
 from c1219.constants import C1219_TABLES, C1219_PROCEDURE_NAMES
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

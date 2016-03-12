@@ -1,4 +1,4 @@
-#  framework/errors.py
+#  termineter/errors.py
 #
 #  Copyright 2012 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #

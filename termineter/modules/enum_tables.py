@@ -1,4 +1,4 @@
-#  framework/modules/enum_tables.py
+#  termineter/modules/enum_tables.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
@@ -23,7 +23,7 @@ from time import sleep
 
 from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_TABLES
-from framework.templates import TermineterModuleOptical
+from termineter.templates import TermineterModuleOptical
 
 # 0     - 2039  Standard Tables
 # 2048  - 4087  Manufacturer Tables 0 - 2039
