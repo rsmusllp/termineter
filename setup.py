@@ -41,7 +41,7 @@ if os.path.isdir(os.path.join(lib_directory, 'termineter')):
 from termineter import __version__
 
 DESCRIPTION = """\
-Termineter is a framework written in python to provide a platform for\
+Termineter is a framework written in Python to provide a platform for \
 the security testing of smart meters.\
 """
 
@@ -49,6 +49,7 @@ setup(
 	name='termineter',
 	version=__version__,
 	author='Spencer McIntyre',
+	author_email='smcintyre@securestate.com',
 	maintainer='Spencer McIntyre',
 	description=DESCRIPTION,
 	url='https://github.com/securestate/termineter',
@@ -62,7 +63,7 @@ setup(
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
 	package_data={
-		'': ['lib/termineter/data/*', ],
+		'': ['lib/termineter/data/*'],
 	},
 	classifiers=(
 		'Development Status :: 5 - Production/Stable',
@@ -73,5 +74,6 @@ setup(
 		'Programming Language :: Python :: 3.4',
 		'Programming Language :: Python :: 3.5',
 		'Topic :: Security'
-	)
+	),
+	scripts=['termineter']
 )

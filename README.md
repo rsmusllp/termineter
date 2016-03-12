@@ -8,7 +8,7 @@
 ```
 
 # Summary
-Termineter is a framework written in python to provide a platform for
+Termineter is a framework written in Python to provide a platform for
 the security testing of smart meters.  It implements the C1218 and C1219
 protocols for communication.  Currently supportted are Meters using
 C1219-2007 with 7-bit character sets.  Termineter communicates with

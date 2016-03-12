@@ -51,9 +51,9 @@ class UnixSerial(SocketSerial):
 				self._socket = self._server_socket.accept()[0]
 			else:
 				self._socket.connect(socket_path)
-		except Exception, msg:
+		except Exception as error:
 			self._socket = None
-			raise SerialException("Could not open port {0}: {1}".format(self.portstr, msg))
+			raise SerialException("Could not open port {0}: {1}".format(self.portstr, repr(error)))
 		self._socket.settimeout(2)
 		self._isOpen = True
 
@@ -105,8 +105,8 @@ class UnixSerial(SocketSerial):
 				data = self._socket.recv(size - len(data))
 			except socket.timeout:
 				continue
-			except socket.error, e:
-				raise SerialException('connection failed (' + str(e) + ')')
+			except socket.error as error:
+				raise SerialException('connection failed (' + str(error) + ')')
 		return bytes(data)
 
 # assemble Serial class with the platform specific implementation and the base
