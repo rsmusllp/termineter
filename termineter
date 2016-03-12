@@ -22,13 +22,20 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
+import argparse
 import logging
-from argparse import ArgumentParser
+import os
+import sys
+
+lib_directory = os.path.join(os.path.dirname(__file__), 'lib')
+if os.path.isdir(os.path.join(lib_directory, 'termineter')):
+	sys.path.insert(0, lib_directory)
+
 from termineter import __version__
 from termineter.interface import InteractiveInterpreter
 
 def main():
-	parser = ArgumentParser(description='Termineter: Python Smart Meter Testing Framework', conflict_handler='resolve')
+	parser = argparse.ArgumentParser(description='Termineter: Python Smart Meter Testing Framework', conflict_handler='resolve')
 	parser.add_argument('-v', '--version', action='version', version=parser.prog + ' Version: ' + __version__)
 	parser.add_argument('-L', '--log', dest='loglvl', action='store', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='CRITICAL', help='set the logging level')
 	parser.add_argument('-r', '--rc-file', dest='resource_file', action='store', default=True, help='execute a resource file')

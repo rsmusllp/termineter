@@ -5,16 +5,10 @@ users use Python3.
 The requirements are listed in the requirements.txt file. They can
 be installed with `python3 -m pip install -r requirements.txt`.
 
-## How To Install Termineter (Windows)
+## How To Install Termineter
 No installation or modification is necessary.  Start a command
 prompt, navigate to the termineter directory and use python to run
-termineter.py
-
-## How To Install Termineter (Linux)
-Installation is recommended, but not required. Run the included
-install.sh script.  It takes a single optional argument as the path
-to install the framework to.  If this option  is omitted, the
-framework and all necessary files are installed to /opt.
+termineter.
 
 If using a USB optical probe with an FTDI chip, you may need to load
 and configure the appropriate serial to USB driver in order to use
