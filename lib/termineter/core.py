@@ -51,6 +51,7 @@ class Framework(object):
 		if stdout is None:
 			stdout = sys.stdout
 		self.stdout = stdout
+		self.logger = logging.getLogger(self.__package__ + '.' + self.__class__.__name__.lower())
 
 		self.directories = Namespace()
 		self.directories.user_data = os.path.expanduser('~') + os.sep + '.termineter' + os.sep
@@ -66,7 +67,6 @@ class Framework(object):
 		self.__serial_connected__ = False
 
 		# setup logging stuff
-		self.logger = logging.getLogger(self.__package__ + '.' + self.__class__.__name__.lower())
 		main_file_handler = logging.handlers.RotatingFileHandler(self.directories.user_data + self.__package__ + '.log', maxBytes=262144, backupCount=5)
 		main_file_handler.setLevel(logging.DEBUG)
 		main_file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)-50s %(levelname)-10s %(message)s"))

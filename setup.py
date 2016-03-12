@@ -63,17 +63,17 @@ setup(
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
 	package_data={
-		'': ['lib/termineter/data/*'],
+		'': ['data/*'],
 	},
 	classifiers=(
-		'Development Status :: 5 - Production/Stable',
-		'Environment :: Console',
-		'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-		'Operating System :: OS Independent',
-		'Programming Language :: Python :: 2.7',
-		'Programming Language :: Python :: 3.4',
-		'Programming Language :: Python :: 3.5',
-		'Topic :: Security'
+		b'Development Status :: 5 - Production/Stable',
+		b'Environment :: Console',
+		b'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+		b'Operating System :: OS Independent',
+		b'Programming Language :: Python :: 2.7',
+		b'Programming Language :: Python :: 3.4',
+		b'Programming Language :: Python :: 3.5',
+		b'Topic :: Security'
 	),
 	scripts=['termineter']
 )
