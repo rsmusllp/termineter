@@ -16,7 +16,7 @@ Smart Meters via a connection using an ANSI type-2 optical probe with a
 serial interface.
 
 # License
-Copyright (C) 2011-2015, Spencer J. McIntyre
+Copyright (C) 2011-2016, Spencer J. McIntyre
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -58,6 +58,7 @@ Project Home Page: https://github.com/securestate/termineter
 Project Documentation: http://termineter.readthedocs.org/en/latest
 
 # Install
-For install information please see the INSTALL.md file.
-The PySerial library is required and can be found here:
-http://pyserial.sourceforge.net/
+Termineter can be installed from the Python Package Index using
+pip. Simply run `sudo pip install termineter`.
+
+For additional install information please see the INSTALL.md file.
