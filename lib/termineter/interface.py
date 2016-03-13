@@ -450,7 +450,6 @@ class InteractiveInterpreter(OverrideCmd):
 		from c1219.access.telephone import C1219TelephoneAccess
 		vars = {
 			'__version__': __version__,
-			'frmwk': self.frmwk,
 			'C1218Packet': c1218.data.C1218Packet,
 			'C1218ReadRequest': c1218.data.C1218ReadRequest,
 			'C1218WriteRequest': c1218.data.C1218WriteRequest,
@@ -458,12 +457,18 @@ class InteractiveInterpreter(OverrideCmd):
 			'C1219GeneralAccess': C1219GeneralAccess,
 			'C1219SecurityAccess': C1219SecurityAccess,
 			'C1219LogAccess': C1219LogAccess,
-			'C1219TelephoneAccess': C1219TelephoneAccess
+			'C1219TelephoneAccess': C1219TelephoneAccess,
+			'frmwk': self.frmwk,
+			'os': os,
+			'sys': sys
 		}
-		banner = 'The Framework Instance Is In The Variable \'frmwk\'' + os.linesep
+		banner = 'Python ' + sys.version + ' on ' + sys.platform + os.linesep
+		banner += os.linesep
+		banner += 'The framework instance is in the \'frmwk\' variable.'
 		if self.frmwk.is_serial_connected():
 			vars['conn'] = self.frmwk.serial_connection
-			banner = banner + 'The Connection Instance Is In The Variable \'conn\'' + os.linesep
+			banner += os.linesep
+			banner += 'The connection instance is in the \'conn\' variable.'
 		pyconsole = code.InteractiveConsole(vars)
 
 		savestdin = os.dup(sys.stdin.fileno())
