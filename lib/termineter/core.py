@@ -54,9 +54,9 @@ class Framework(object):
 		self.logger = logging.getLogger(self.__package__ + '.' + self.__class__.__name__.lower())
 
 		self.directories = Namespace()
-		self.directories.user_data = os.path.expanduser('~') + os.sep + '.termineter' + os.sep
-		self.directories.modules_path = package_path + os.sep + 'modules' + os.sep
-		self.directories.data_path = package_path + os.sep + 'data' + os.sep
+		self.directories.user_data = os.path.abspath(os.path.join(os.path.expanduser('~'), '.termineter'))
+		self.directories.modules_path = os.path.abspath(os.path.join(package_path, 'modules'))
+		self.directories.data_path = os.path.abspath(os.path.join(package_path, 'data'))
 		if not os.path.isdir(self.directories.data_path):
 			self.logger.critical('path to data not found')
 			raise FrameworkConfigurationError('path to data not found')
@@ -67,7 +67,7 @@ class Framework(object):
 		self.__serial_connected__ = False
 
 		# setup logging stuff
-		main_file_handler = logging.handlers.RotatingFileHandler(self.directories.user_data + self.__package__ + '.log', maxBytes=262144, backupCount=5)
+		main_file_handler = logging.handlers.RotatingFileHandler(os.path.join(self.directories.user_data, self.__package__ + '.log'), maxBytes=262144, backupCount=5)
 		main_file_handler.setLevel(logging.DEBUG)
 		main_file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)-50s %(levelname)-10s %(message)s"))
 		logging.getLogger('').addHandler(main_file_handler)
@@ -111,7 +111,7 @@ class Framework(object):
 			# self.options.add_integer('RFCATIDX', 'the rfcat device to use', default = 0)
 
 		# start loading modules
-		modules_path = self.directories.modules_path
+		modules_path = os.path.abspath(self.directories.modules_path)
 		self.logger.debug('searching for modules in: ' + modules_path)
 		self.current_module = None
 		if not os.path.isdir(modules_path):
@@ -121,7 +121,7 @@ class Framework(object):
 			module_path = module_path.replace(os.path.sep, '/')
 			if not module_path.endswith('.py'):
 				continue
-			module_path = module_path[len(modules_path):-3]
+			module_path = module_path[len(modules_path) + 1:-3]
 			module_name = module_path.split(os.path.sep)[-1]
 			if module_name.startswith('__'):
 				continue
