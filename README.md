@@ -8,12 +8,12 @@
 ```
 
 # Summary
-Termineter is a framework written in Python to provide a platform for
-the security testing of smart meters.  It implements the C1218 and C1219
-protocols for communication.  Currently supportted are Meters using
-C1219-2007 with 7-bit character sets.  Termineter communicates with
-Smart Meters via a connection using an ANSI type-2 optical probe with a
-serial interface.
+Termineter is a Python framework which provides a platform for the security
+testing of smart meters.  It implements the C1218 and C1219 protocols for
+communication over an optical interface.  Currently supportted are Meters using
+C1219-2007 with 7-bit character sets.  This is the most common configuration
+found in North America.  Termineter communicates with Smart Meters via a
+connection using an ANSI type-2 optical probe with a serial interface.
 
 # License
 Copyright (C) 2011-2016, Spencer J. McIntyre
@@ -34,22 +34,25 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
 This license does not apply to the following components:
- * CrcMoose
+
+* CrcMoose
 
 # Credits
 Special Thanks To:
- * Caroline Aronoff (Alpha testing and fixing older PySerial compatibility)
- * Chris Murrey - f8lerror (Alpha testing)
- * Jake Garlie - jagar (Alpha testing)
- * Scott Turner - fantomgoat (Bug report and fix)
- * Kevin Underwood (Bug report and fix)
- * Don Weber - cutaway (Developer of InGuardians' OptiGuard)
+
+* Caroline Aronoff (Alpha testing and fixing older PySerial compatibility)
+* Chris Murrey - f8lerror (Alpha testing)
+* Jake Garlie - jagar (Alpha testing)
+* Scott Turner - fantomgoat (Bug report and fix)
+* Kevin Underwood (Bug report and fix)
+* Don Weber - cutaway (Developer of InGuardians' OptiGuard)
 
 Termineter Development Team:
- * Spencer McIntyre of the SecureState Research and Innovation Team
+
+* Spencer McIntyre of the SecureState Research and Innovation Team
 
 # About
-Author: Spencer McIntyre - zeroSteiner ([@zeroSteiner](https://twitter.com/zeroSteiner))
+Author: Spencer McIntyre - [zeroSteiner](https://twitter.com/zeroSteiner)
 
 Author Home Page: http://www.securestate.com/
 

@@ -26,6 +26,13 @@ from __future__ import unicode_literals
 import os
 import sys
 
+base_directory = os.path.dirname(__file__)
+lib_directory = os.path.join(base_directory, 'lib')
+if os.path.isdir(os.path.join(lib_directory, 'termineter')):
+	sys.path.insert(0, lib_directory)
+
+from termineter import __version__
+
 try:
 	from setuptools import setup, find_packages
 except ImportError:
@@ -34,15 +41,15 @@ except ImportError:
 	print('install setuptools).')
 	sys.exit(1)
 
-lib_directory = os.path.join(os.path.dirname(__file__), 'lib')
-if os.path.isdir(os.path.join(lib_directory, 'termineter')):
-	sys.path.insert(0, lib_directory)
-
-from termineter import __version__
+try:
+	import pypandoc
+	long_description = pypandoc.convert(os.path.join(base_directory, 'README.md'), 'rst')
+except (ImportError, OSError):
+	long_description = None
 
 DESCRIPTION = """\
-Termineter is a framework written in Python to provide a platform for \
-the security testing of smart meters.\
+Termineter is a Python framework which provides a platform for the security \
+testing of smart meters.\
 """
 
 setup(
@@ -52,6 +59,7 @@ setup(
 	author_email='smcintyre@securestate.com',
 	maintainer='Spencer McIntyre',
 	description=DESCRIPTION,
+	long_description=long_description,
 	url='https://github.com/securestate/termineter',
 	license='GPLv3',
 	install_requires=(
