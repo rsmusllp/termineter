@@ -19,6 +19,8 @@
 
 from __future__ import unicode_literals
 
+import os
+
 def string_is_hex(string):
 	if not len(string):
 		return False
@@ -151,9 +153,9 @@ class Options(dict):
 		True and the user must specify it, set to anything but None.
 		"""
 		if isinstance(default, str):
-			default = default.replace('$USER_DATA ', self.directories.user_data)
-			default = default.replace('$MODULES_PATH ', self.directories.modules_path)
-			default = default.replace('$DATA_PATH ', self.directories.data_path)
+			default = default.replace('$USER_DATA ', self.directories.user_data + os.path.sep)
+			default = default.replace('$MODULES_PATH ', self.directories.modules_path + os.path.sep)
+			default = default.replace('$DATA_PATH ', self.directories.data_path + os.path.sep)
 		self.__setitem__(name, ('rfile', help, required, default, None))
 
 	def set_callback(self, name, callback):
