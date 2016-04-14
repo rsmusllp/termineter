@@ -255,10 +255,7 @@ class Framework(object):
 				reload(module)
 			module_instance = module.Module(self)
 		except Exception as err:
-			message = 'failed to load module: ' + module_path
-			if isinstance(err, SyntaxError):
-				message += ', ' + err.msg + ' line number: ' + str(err.lineno)
-			self.logger.error(message)
+			self.logger.error('failed to load module: ' + module_path, exc_info=True)
 			raise FrameworkRuntimeError(message)
 		return module_instance
 
