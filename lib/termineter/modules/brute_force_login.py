@@ -62,7 +62,7 @@ class Module(TermineterModuleOptical):
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'
 		self.options.add_boolean('USEHEX', 'values in word list are in hex', default=True)
-		self.options.add_rfile('DICTIONARY', 'dictionary of passwords to try', required=False, default='$DATA_PATH smeter_passwords.txt')
+		self.options.add_rfile('DICTIONARY', 'dictionary of passwords to try', required=False, default='$DATA_PATH /smeter_passwords.txt')
 		self.options.add_string('USERNAME', 'user name to attempt to log in as', default='0000')
 		self.options.add_integer('USERID', 'user id to attempt to log in as', default=1)
 
