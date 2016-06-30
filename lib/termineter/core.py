@@ -160,7 +160,7 @@ class Framework(object):
 	def reload_module(self, module_path=None):
 		"""
 		Reloads a module into the framework.  If module_path is not
-		specified, then the curent_module variable is used.  Returns True
+		specified, then the current_module variable is used.  Returns True
 		on success, False on error.
 
 		@type module_path: String

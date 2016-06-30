@@ -410,7 +410,7 @@ class Connection(ConnectionBase):
 		:param int process_number: The numeric procedure identifier (0 <= process_number <= 2047).
 		:param bool std_vs_mfg: Whether the procedure is manufacturer specified
 		  or not. True is manufacturer specified.
-		:param str params: The parameters to pass to the procedure initiation request.
+		:param bytes params: The parameters to pass to the procedure initiation request.
 		"""
 		seqnum = random.randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')

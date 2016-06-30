@@ -148,18 +148,17 @@ class InteractiveInterpreter(OverrideCmd):
 		self.print_status = self.frmwk.print_status
 
 		if check_rc_file:
-			if check_rc_file:
-				check_rc_file = self.frmwk.directories.user_data + 'console.rc'
-				if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
-					self.print_status('Running commands from resource file: ' + check_rc_file)
-					self.run_rc_file(check_rc_file)
-			elif isinstance(check_rc_file, str):
-				if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
-					self.print_status('Running commands from resource file: ' + check_rc_file)
-					self.run_rc_file(check_rc_file)
-				else:
-					self.logger.error('could not access resource file: ' + check_rc_file)
-					self.print_error('Could not access resource file: ' + check_rc_file)
+			check_rc_file = os.path.join(self.frmwk.directories.user_data, 'console.rc')
+			if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
+				self.print_status('Running commands from resource file: ' + check_rc_file)
+				self.run_rc_file(check_rc_file)
+		elif isinstance(check_rc_file, str):
+			if os.path.isfile(check_rc_file) and os.access(check_rc_file, os.R_OK):
+				self.print_status('Running commands from resource file: ' + check_rc_file)
+				self.run_rc_file(check_rc_file)
+			else:
+				self.logger.error('could not access resource file: ' + check_rc_file)
+				self.print_error('Could not access resource file: ' + check_rc_file)
 		try:
 			import readline
 			readline.read_history_file(self.frmwk.directories.user_data + 'history.txt')
