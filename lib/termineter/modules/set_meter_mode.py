@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 import struct
 
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
-from c1219.constants import C1219_METER_MODE_NAMES
+from c1219.constants import C1219_METER_MODE_NAMES, C1219_PROC_RESULT_CODES
 from c1219.errors import C1219ProcedureError
 from termineter.templates import TermineterModuleOptical
 
@@ -54,15 +54,21 @@ class Module(TermineterModuleOptical):
 
 		mode = mode_dict[mode]
 		try:
-			conn.run_procedure(6, False, struct.pack('B', mode))
+			result_code, response_data = conn.run_procedure(6, False, struct.pack('B', mode))
 		except C1218ReadTableError as error:
 			self.frmwk.print_exception(error)
+			return
 		except C1218WriteTableError as error:
 			if error.code == 4:  # onp/operation not possible
 				self.frmwk.print_error('Meter responded that it can not set the mode to the desired type')
 			else:
 				self.frmwk.print_exception(error)
+			return
 		except C1219ProcedureError as error:
 			self.frmwk.print_exception(error)
+			return
+
+		if result_code < 2:
+			self.frmwk.print_good(C1219_PROC_RESULT_CODES[result_code])
 		else:
-			self.frmwk.print_good('Successfully Changed The Mode')
+			self.frmwk.print_error(C1219_PROC_RESULT_CODES.get(result_code, "Unknown status code: {0}".format(result_code)))

@@ -411,6 +411,8 @@ class Connection(ConnectionBase):
 		:param bool std_vs_mfg: Whether the procedure is manufacturer specified
 		  or not. True is manufacturer specified.
 		:param bytes params: The parameters to pass to the procedure initiation request.
+		:return: A tuple of the result code and the response data.
+		:rtype: tuple
 		"""
 		seqnum = random.randint(2, 254)
 		self.logger.info('starting procedure: ' + str(process_number) + ' (' + hex(process_number) + ') sequence number: ' + str(seqnum) + ' (' + hex(seqnum) + ')')
