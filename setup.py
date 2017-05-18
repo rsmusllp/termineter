@@ -71,7 +71,7 @@ setup(
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
 	package_data={
-		'': ['data/*'],
+		(b'' if sys.version_info < (3,) else ''): ['data/*'],
 	},
 	classifiers=(
 		b'Development Status :: 5 - Production/Stable',
