@@ -62,26 +62,27 @@ setup(
 	long_description=long_description,
 	url='https://github.com/securestate/termineter',
 	license='GPLv3',
-	install_requires=(
+	install_requires=[
 		'crcelk>=1.0',
 		'pyasn1>=0.1.7',
 		'pyserial>=2.6',
 		'smoke-zephyr==1.0.2'
-	),
+	],
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
 	package_data={
 		(b'' if sys.version_info < (3,) else ''): ['data/*'],
 	},
-	classifiers=(
-		b'Development Status :: 5 - Production/Stable',
-		b'Environment :: Console',
-		b'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-		b'Operating System :: OS Independent',
-		b'Programming Language :: Python :: 2.7',
-		b'Programming Language :: Python :: 3.4',
-		b'Programming Language :: Python :: 3.5',
-		b'Topic :: Security'
-	),
+	classifiers=[
+		'Development Status :: 5 - Production/Stable',
+		'Environment :: Console',
+		'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+		'Operating System :: OS Independent',
+		'Programming Language :: Python :: 2.7',
+		'Programming Language :: Python :: 3.4',
+		'Programming Language :: Python :: 3.5',
+		'Programming Language :: Python :: 3.6',
+		'Topic :: Security'
+	],
 	scripts=['termineter']
 )
