@@ -256,7 +256,7 @@ class Framework(object):
 			module_instance = module.Module(self)
 		except Exception as err:
 			self.logger.error('failed to load module: ' + module_path, exc_info=True)
-			raise FrameworkRuntimeError(message)
+			raise FrameworkRuntimeError('failed to load module: ' + module_path)
 		return module_instance
 
 	def print_exception(self, error):
