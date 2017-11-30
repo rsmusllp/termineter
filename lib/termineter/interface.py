@@ -292,7 +292,6 @@ class InteractiveInterpreter(OverrideCmd):
 
 	def do_connect(self, args):
 		"""Connect the serial interface"""
-		args = shlex.split(args)
 		if self.frmwk.is_serial_connected():
 			self.print_status('Already connected')
 			return
@@ -301,16 +300,11 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
 			return
 		try:
-			self.frmwk.serial_connect()
+			self.frmwk.test_serial_connection()
 		except Exception as error:
 			self.print_exception(error)
 			return
 		self.print_good('Successfully connected and the device is responding')
-		if len(args) and args[0] == '-l':
-			if self.frmwk.serial_login():
-				self.print_good('Successfully authenticated to the device')
-			else:
-				self.print_error('Failed to authenticate to the device')
 
 	def do_disconnect(self, args):
 		"""Disconnect the serial interface"""
@@ -329,7 +323,7 @@ class InteractiveInterpreter(OverrideCmd):
 				self.print_error('The following options must be set: ' + ', '.join(missing_options))
 				return
 			try:
-				self.frmwk.serial_connect()
+				self.frmwk.test_serial_connection()
 			except Exception as error:
 				self.print_exception(error)
 				return

@@ -64,7 +64,7 @@ class Framework(object):
 			os.mkdir(self.directories.user_data)
 
 		self.serial_connection = None
-		self.__serial_connected__ = False
+		self._serial_connected = False
 
 		# setup logging stuff
 		main_file_handler = logging.handlers.RotatingFileHandler(os.path.join(self.directories.user_data, self.__package__ + '.log'), maxBytes=262144, backupCount=5)
@@ -88,7 +88,7 @@ class Framework(object):
 		self.advanced_options.add_integer('BAUDRATE', 'serial connection baud rate', default=9600)
 		self.advanced_options.add_integer('BYTESIZE', 'serial connection byte size', default=serial.EIGHTBITS)
 		self.advanced_options.add_boolean('CACHETBLS', 'cache certain read-only tables', default=True)
-		self.advanced_options.set_callback('CACHETBLS', self.__opt_callback_set_table_cache_policy)
+		self.advanced_options.set_callback('CACHETBLS', self._opt_callback_set_table_cache_policy)
 		self.advanced_options.add_integer('STOPBITS', 'serial connection stop bits', default=serial.STOPBITS_ONE)
 		self.advanced_options.add_integer('NBRPKTS', 'c12.18 maximum packets for reassembly', default=2)
 		self.advanced_options.add_integer('PKTSIZE', 'c12.18 maximum packet size', default=512)
@@ -157,6 +157,11 @@ class Framework(object):
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Loaded Modules: ' + str(len(self.modules)) + ', Serial Connected: ' + str(self.is_serial_connected()) + ' >'
 
+	def _opt_callback_set_table_cache_policy(self, policy):
+		if self.is_serial_connected():
+			self.serial_connection.set_table_cache_policy(policy)
+		return True
+
 	def reload_module(self, module_path=None):
 		"""
 		Reloads a module into the framework.  If module_path is not
@@ -201,7 +206,7 @@ class Framework(object):
 		if module is None:
 			module = self.current_module
 		if isinstance(module, TermineterModuleOptical):
-			if not self.is_serial_connected:
+			if not self._serial_connected:
 				raise FrameworkRuntimeError('the serial interface is disconnected')
 
 			try:
@@ -209,17 +214,15 @@ class Framework(object):
 			except Exception as error:
 				self.print_exception(error)
 				return
-			if module.require_connection:
-				if self.advanced_options['AUTOCONNECT']:
-					if not self.is_serial_connected():
-						try:
-							self.serial_connect()
-						except Exception as error:
-							self.print_exception(error)
-							return
-						self.print_good('Successfully connected and the device is responding')
-					if module.attempt_login and not self.serial_login():
-						self.logger.warning('meter login failed, some tables may not be accessible')
+			if module.require_connection and self.advanced_options['AUTOCONNECT']:
+				try:
+					self.serial_connect()
+				except Exception as error:
+					self.print_exception(error)
+					return
+				self.print_good('Successfully connected and the device is responding')
+				if module.attempt_login and not self.serial_login():
+					self.logger.warning('meter login failed, some tables may not be accessible')
 
 		self.logger.info('running module: ' + module.path)
 		try:
@@ -252,9 +255,9 @@ class Framework(object):
 		try:
 			module = importlib.import_module(module)
 			if reload_module:
-				reload(module)
+				importlib.reload(module)
 			module_instance = module.Module(self)
-		except Exception as err:
+		except Exception:
 			self.logger.error('failed to load module: ' + module_path, exc_info=True)
 			raise FrameworkRuntimeError('failed to load module: ' + module_path)
 		return module_instance
@@ -316,21 +319,21 @@ class Framework(object):
 		"""
 		Returns True if the serial interface is connected.
 		"""
-		return self.__serial_connected__
+		return self._serial_connected
 
 	def serial_disconnect(self):
 		"""
 		Closes the serial connection to the meter and disconnects from the
 		device.
 		"""
-		if self.__serial_connected__:
+		if self._serial_connected:
 			try:
 				self.serial_connection.close()
 			except C1218IOError as error:
 				self.logger.error('caught C1218IOError: ' + str(error))
 			except SerialException as error:
 				self.logger.error('caught SerialException: ' + str(error))
-			self.__serial_connected__ = False
+			self._serial_connected = False
 			self.logger.warning('the serial interface has been disconnected')
 		return True
 
@@ -359,11 +362,57 @@ class Framework(object):
 
 	def serial_connect(self):
 		"""
+		Connect to the serial device.
+		"""
+		self.serial_get()
+		try:
+			self.serial_connection.start()
+		except C1218IOError as error:
+			self.logger.error('serial connection has been opened but the meter is unresponsive')
+			raise error
+		self._serial_connected = True
+		return True
+
+	def serial_login(self):
+		"""
+		Attempt to log into the meter over the C12.18 protocol. Returns True on success, False on a failure. This can be
+		called by modules in order to login with a username and password configured within the framework instance.
+		"""
+		if not self._serial_connected:
+			raise FrameworkRuntimeError('the serial interface is disconnected')
+
+		username = self.options['USERNAME']
+		userid = self.options['USERID']
+		password = self.options['PASSWORD']
+		if self.options['PASSWORDHEX']:
+			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
+			if hex_regex.match(password) is None:
+				self.print_error('Invalid characters in password')
+				raise FrameworkConfigurationError('invalid characters in password')
+			password = binascii.a2b_hex(password)
+		if len(username) > 10:
+			self.print_error('Username cannot be longer than 10 characters')
+			raise FrameworkConfigurationError('username cannot be longer than 10 characters')
+		if not (0 <= userid <= 0xffff):
+			self.print_error('User id must be between 0 and 0xffff')
+			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
+		if len(password) > 20:
+			self.print_error('Password cannot be longer than 20 characters')
+			raise FrameworkConfigurationError('password cannot be longer than 20 characters')
+
+		if not self.serial_connection.login(username, userid, password):
+			return False
+		return True
+
+	def test_serial_connection(self):
+		"""
 		Connect to the serial device and then verifies that the meter is
-		responding.  Once the serial device is opened, this function attempts
-		to retreive the contents of table #0 (GEN_CONFIG_TBL) to configure
+		responding.  Once the serial device is open, this function attempts
+		to retrieve the contents of table #0 (GEN_CONFIG_TBL) to configure
 		the endianess it will use.  Returns True on success.
 		"""
+		self.serial_connect()
+
 		username = self.options['USERNAME']
 		userid = self.options['USERID']
 		if len(username) > 10:
@@ -373,9 +422,7 @@ class Framework(object):
 			self.logger.error('user id must be between 0 and 0xffff')
 			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
 
-		self.serial_get()
 		try:
-			self.serial_connection.start()
 			if not self.serial_connection.login(username, userid):
 				self.logger.error('the meter has rejected the username and userid')
 				raise FrameworkConfigurationError('the meter has rejected the username and userid')
@@ -402,41 +449,5 @@ class Framework(object):
 			self.logger.error('serial connection has been opened but the meter is unresponsive')
 			raise error
 
-		self.__serial_connected__ = True
 		self.logger.warning('the serial interface has been connected')
-		return True
-
-	def serial_login(self):
-		"""
-		Attempt to log into the meter over the C12.18 protocol. Returns True on success, False on a failure. This can be
-		called by modules in order to login with a username and password configured within the framework instance.
-		"""
-		username = self.options['USERNAME']
-		userid = self.options['USERID']
-		password = self.options['PASSWORD']
-		if self.options['PASSWORDHEX']:
-			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
-			if hex_regex.match(password) is None:
-				self.print_error('Invalid characters in password')
-				raise FrameworkConfigurationError('invalid characters in password')
-			password = binascii.a2b_hex(password)
-		if len(username) > 10:
-			self.print_error('Username cannot be longer than 10 characters')
-			raise FrameworkConfigurationError('username cannot be longer than 10 characters')
-		if not (0 <= userid <= 0xffff):
-			self.print_error('User id must be between 0 and 0xffff')
-			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
-		if len(password) > 20:
-			self.print_error('Password cannot be longer than 20 characters')
-			raise FrameworkConfigurationError('password cannot be longer than 20 characters')
-
-		if not self.serial_connection.start():
-			return False
-		if not self.serial_connection.login(username, userid, password):
-			return False
-		return True
-
-	def __opt_callback_set_table_cache_policy(self, policy):
-		if self.is_serial_connected():
-			self.serial_connection.set_table_cache_policy(policy)
 		return True
