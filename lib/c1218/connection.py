@@ -240,9 +240,7 @@ class Connection(ConnectionBase):
 		  on subsequent requests.  This is enabled only for specific tables
 		  (currently only 0 and 1).
 		"""
-		enable_cache = True
-		if 'enable_cache' in kwargs:
-			enable_cache = kwargs['enable_cache']
+		enable_cache = kwargs.pop('enable_cache', True)
 		super(Connection, self).__init__(*args, **kwargs)
 		self.caching_enabled = enable_cache
 		self.__cacheable_tbls__ = [0, 1]
