@@ -468,17 +468,23 @@ class InteractiveInterpreter(OverrideCmd):
 			vars['conn'] = self.frmwk.serial_connection
 			banner += os.linesep
 			banner += 'The connection instance is in the \'conn\' variable.'
-		pyconsole = code.InteractiveConsole(vars)
-
-		savestdin = os.dup(sys.stdin.fileno())
-		savestdout = os.dup(sys.stdout.fileno())
-		savestderr = os.dup(sys.stderr.fileno())
 		try:
-			pyconsole.interact(banner)
-		except SystemExit:
-			sys.stdin = os.fdopen(savestdin, 'r', 0)
-			sys.stdout = os.fdopen(savestdout, 'w', 0)
-			sys.stderr = os.fdopen(savestderr, 'w', 0)
+			import IPython.terminal.embed
+		except ImportError:
+			pyconsole = code.InteractiveConsole(vars)
+			savestdin = os.dup(sys.stdin.fileno())
+			savestdout = os.dup(sys.stdout.fileno())
+			savestderr = os.dup(sys.stderr.fileno())
+			try:
+				pyconsole.interact(banner)
+			except SystemExit:
+				sys.stdin = os.fdopen(savestdin, 'r', 0)
+				sys.stdout = os.fdopen(savestdout, 'w', 0)
+				sys.stderr = os.fdopen(savestderr, 'w', 0)
+		else:
+			self.print_line(banner)
+			pyconsole = IPython.terminal.embed.InteractiveShellEmbed()
+			pyconsole.mainloop(vars)
 
 	def do_prep_driver(self, args):
 		"""Prep the optical probe driver"""
