@@ -127,13 +127,13 @@ class C1218LogonRequest(C1218Request):
 
 class C1218SecurityRequest(C1218Request):
 	security = b'\x51'
-	__password__ = b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
+	_password = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 	def __init__(self, password=''):
 		self.set_password(password)
 
 	def build(self):
-		return self.security + self.__password__
+		return self.security + self._password
 
 	@staticmethod
 	def parse(data):
@@ -149,11 +149,11 @@ class C1218SecurityRequest(C1218Request):
 			raise ValueError('password must be 20 byte or less')
 		if not isinstance(value, bytes):
 			value = value.encode('utf-8')
-		self.__password__ = value + (b'\x20' * (20 - len(value)))
+		self._password = value + (b'\x00' * (20 - len(value)))
 
 	@property
 	def password(self):
-		return self.__password__
+		return self._password
 
 class C1218LogoffRequest(C1218Request):
 	logoff = b'\x52'

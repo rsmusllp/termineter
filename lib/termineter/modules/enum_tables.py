@@ -32,10 +32,9 @@ from termineter.templates import TermineterModuleOptical
 # 8192  - 10231 User Defined Tables 0 - 2039
 # 12288 - 14327 User Defined Pending Tables 0 - 2039
 class Module(TermineterModuleOptical):
-	require_connection = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 4
+		self.version = 5
 		self.author = ['Spencer McIntyre']
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = """\
