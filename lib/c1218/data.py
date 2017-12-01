@@ -81,15 +81,14 @@ class C1218Request(object):
 
 class C1218LogonRequest(C1218Request):
 	logon = b'\x50'
-	__userid__ = b'\x00\x00'
-	__username__ = b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
-
 	def __init__(self, username='', userid=0):
+		self._userid = b'\x00\x00'
+		self._username = b'\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20'
 		self.set_username(username)
 		self.set_userid(userid)
 
 	def build(self):
-		return self.logon + self.__userid__ + self.__username__
+		return self.logon + self._userid + self._username
 
 	@staticmethod
 	def parse(data):
@@ -108,28 +107,27 @@ class C1218LogonRequest(C1218Request):
 			ValueError('userid must be between 0x0000 and 0xffff')
 		if not 0x0000 <= userid <= 0xffff:
 			raise ValueError('userid must be between 0x0000 and 0xffff')
-		self.__userid__ = struct.pack('>H', userid)
+		self._userid = struct.pack('>H', userid)
 
 	@property
 	def userid(self):
-		return struct.unpack('>H', self.__userid__)[0]
+		return struct.unpack('>H', self._userid)[0]
 
 	def set_username(self, value):
 		if len(value) > 10:
 			raise ValueError('username must be 10 characters or less')
 		if not isinstance(value, bytes):
 			value = value.encode('utf-8')
-		self.__username__ = value + (b'\x20' * (10 - len(value)))
+		self._username = value + (b'\x20' * (10 - len(value)))
 
 	@property
 	def username(self):
-		return self.__username__
+		return self._username
 
 class C1218SecurityRequest(C1218Request):
 	security = b'\x51'
-	_password = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-
 	def __init__(self, password=''):
+		self._password = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 		self.set_password(password)
 
 	def build(self):
@@ -157,7 +155,6 @@ class C1218SecurityRequest(C1218Request):
 
 class C1218LogoffRequest(C1218Request):
 	logoff = b'\x52'
-
 	def build(self):
 		return self.logoff
 
@@ -171,20 +168,19 @@ class C1218LogoffRequest(C1218Request):
 
 class C1218NegotiateRequest(C1218Request):
 	negotiate = b'\x60'
-	__pktsize__ = b'\x01\x00'
-	__nbrpkt__ = 1
-	__baudrate__ = b''
-
 	def __init__(self, pktsize, nbrpkt, baudrate=None):
+		self._pktsize = b'\x01\x00'
+		self._nbrpkt = 1
+		self._baudrate = b''
 		self.set_pktsize(pktsize)
 		self.set_nbrpkt(nbrpkt)
 		if baudrate:
 			self.set_baudrate(baudrate)
 
 	def build(self):
-		pktsize = struct.pack('>H', self.__pktsize__)
-		nbrpkt = struct.pack('B', self.__nbrpkt__)
-		return self.negotiate + pktsize + nbrpkt + self.__baudrate__
+		pktsize = struct.pack('>H', self._pktsize)
+		nbrpkt = struct.pack('B', self._nbrpkt)
+		return self.negotiate + pktsize + nbrpkt + self._baudrate
 
 	@staticmethod
 	def parse(data):
@@ -210,30 +206,29 @@ class C1218NegotiateRequest(C1218Request):
 		return request
 
 	def set_pktsize(self, pktsize):
-		self.__pktsize__ = pktsize
+		self._pktsize = pktsize
 
 	def set_nbrpkt(self, nbrpkt):
-		self.__nbrpkt__ = nbrpkt
+		self._nbrpkt = nbrpkt
 
 	def set_baudrate(self, baudrate):
 		c1218_baudrate_codes = {300: 1, 600: 2, 1200: 3, 2400: 4, 4800: 5, 9600: 6, 14400: 7, 19200: 8, 28800: 9, 57600: 10}
 		if baudrate in c1218_baudrate_codes:
-			self.__baudrate__ = struct.pack('B', c1218_baudrate_codes[baudrate])
+			self._baudrate = struct.pack('B', c1218_baudrate_codes[baudrate])
 		elif 0 < baudrate < 11:
-			self.__baudrate__ = struct.pack('B', baudrate)
+			self._baudrate = struct.pack('B', baudrate)
 		else:
 			raise Exception('invalid data (invalid baudrate)')
 		self.negotiate = b'\x61'
 
 class C1218WaitRequest(C1218Request):
 	wait = b'\x70'
-	__time__ = b'\x01'
-
 	def __init__(self, time=1):
+		self._time = b'\x01'
 		self.set_time(time)
 
 	def build(self):
-		return self.wait + self.__time__
+		return self.wait + self._time
 
 	@staticmethod
 	def parse(data):
@@ -244,11 +239,10 @@ class C1218WaitRequest(C1218Request):
 		return C1218WaitRequest(ord(data[1]))
 
 	def set_time(self, time):
-		self.__time__ = chr(time)
+		self._time = chr(time)
 
 class C1218IdentRequest(C1218Request):
 	ident = b'\x20'
-
 	def build(self):
 		return self.ident
 
@@ -262,7 +256,6 @@ class C1218IdentRequest(C1218Request):
 
 class C1218TerminateRequest(C1218Request):
 	terminate = b'\x21'
-
 	def build(self):
 		return self.terminate
 
@@ -276,11 +269,10 @@ class C1218TerminateRequest(C1218Request):
 
 class C1218ReadRequest(C1218Request):
 	read = b'\x30'
-	__tableid__ = b'\x00\x01'
-	__offset__ = b''
-	__octetcount__ = b''
-
 	def __init__(self, tableid, offset=None, octetcount=None):
+		self._tableid = b'\x00\x01'
+		self._offset = b''
+		self._octetcount = b''
 		self.set_tableid(tableid)
 		if offset is not None or octetcount is not None:
 			self.read = b'\x3f'
@@ -288,7 +280,7 @@ class C1218ReadRequest(C1218Request):
 			self.set_octetcount(octetcount or 0)
 
 	def build(self):
-		return self.read + self.__tableid__ + self.__offset__ + self.__octetcount__
+		return self.read + self._tableid + self._offset + self._octetcount
 
 	@staticmethod
 	def parse(data):
@@ -308,43 +300,42 @@ class C1218ReadRequest(C1218Request):
 		return request
 
 	def set_tableid(self, tableid):
-		self.__tableid__ = struct.pack('>H', tableid)
+		self._tableid = struct.pack('>H', tableid)
 
 	@property
 	def tableid(self):
-		return struct.unpack('>H', self.__tableid__)[0]
+		return struct.unpack('>H', self._tableid)[0]
 
 	def set_offset(self, offset):
-		if self.__octetcount__ and self.__offset__:
+		if self._octetcount and self._offset:
 			self.read = b'\x3f'
-		self.__offset__ = struct.pack('>I', (offset & 0xffffff))[1:]
+		self._offset = struct.pack('>I', (offset & 0xffffff))[1:]
 
 	@property
 	def offset(self):
-		if self.__offset__ == b'':
+		if self._offset == b'':
 			return None
-		return struct.unpack('>I', b'\x00' + self.__offset__)[0]
+		return struct.unpack('>I', b'\x00' + self._offset)[0]
 
 	def set_octetcount(self, octetcount):
-		if self.__octetcount__ and self.__offset__:
+		if self._octetcount and self._offset:
 			self.read = b'\x3f'
-		self.__octetcount__ = struct.pack('>H', octetcount)
+		self._octetcount = struct.pack('>H', octetcount)
 
 	@property
 	def octetcount(self):
-		if self.__octetcount__ == b'':
+		if self._octetcount == b'':
 			return None
-		return struct.unpack('>H', self.__octetcount__)[0]
+		return struct.unpack('>H', self._octetcount)[0]
 
 class C1218WriteRequest(C1218Request):
 	write = b'\x40'
-	__tableid__ = b'\x00\x01'
-	__offset__ = b''
-	__datalen__ = b'\x00\x00'
-	__data__ = b''
-	__crc8__ = b''
-
 	def __init__(self, tableid, data, offset=None):
+		self._tableid = b'\x00\x01'
+		self._offset = b''
+		self._datalen = b'\x00\x00'
+		self._data = b''
+		self._crc8 = b''
 		self.set_tableid(tableid)
 		self.set_data(data)
 		if offset is not None and offset != 0:
@@ -353,11 +344,11 @@ class C1218WriteRequest(C1218Request):
 
 	def build(self):
 		packet = self.write
-		packet += self.__tableid__
-		packet += self.__offset__
-		packet += self.__datalen__
-		packet += self.__data__
-		packet += data_checksum(self.__data__)
+		packet += self._tableid
+		packet += self._offset
+		packet += self._datalen
+		packet += self._data
+		packet += data_checksum(self._data)
 		return packet
 
 	@staticmethod
@@ -381,36 +372,58 @@ class C1218WriteRequest(C1218Request):
 		return request
 
 	def set_tableid(self, tableid):
-		self.__tableid__ = struct.pack('>H', tableid)
+		self._tableid = struct.pack('>H', tableid)
 
 	@property
 	def tableid(self):
-		return struct.unpack('>H', self.__tableid__)[0]
+		return struct.unpack('>H', self._tableid)[0]
 
 	def set_offset(self, offset):
-		self.__offset__ = struct.pack('>I', (offset & 0xffffff))[1:]
+		self._offset = struct.pack('>I', (offset & 0xffffff))[1:]
 
 	@property
 	def offset(self):
-		if self.__offset__ == b'':
+		if self._offset == b'':
 			return None
-		return struct.unpack('>I', b'\x00' + self.__offset__)[0]
+		return struct.unpack('>I', b'\x00' + self._offset)[0]
 
 	def set_data(self, data):
-		self.__data__ = data
-		self.__datalen__ = struct.pack('>H', len(data))
+		self._data = data
+		self._datalen = struct.pack('>H', len(data))
 
 	@property
 	def data(self):
-		return self.__data__
+		return self._data
 
 class C1218Packet(C1218Request):
 	start = b'\xee'
 	identity = b'\x00'
 	control = b'\x00'
 	sequence = b'\x00'
-	__length__ = b'\x00\x00'  # can never exceed 8183
-	__data__ = b''
+	def __init__(self, data=None, control=None, length=None):
+		self._length = b'\x00\x00'  # can never exceed 8183
+		self._data = b''
+		if data:
+			self.set_data(data)
+		if length:
+			self.set_length(length)
+		if control:
+			self.set_control(control)
+
+	def __repr__(self):
+		if isinstance(self._data, C1218Request):
+			repr_data = repr(self._data)
+		else:
+			repr_data = '0x' + binascii.b2a_hex(self._data).decode('utf-8')
+		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self._data)) + ' crc=0x' + binascii.b2a_hex(packet_checksum(self.start + self.identity + self.control + self.sequence + self._length + self._data)).decode('utf-8') + ' >'
+
+	@property
+	def data(self):
+		return self._data
+
+	@data.setter
+	def data(self, value):
+		self.set_data(value)
 
 	@staticmethod
 	def parse(data):
@@ -433,29 +446,6 @@ class C1218Packet(C1218Request):
 		frame.sequence = sequence
 		return frame
 
-	def __init__(self, data=None, control=None, length=None):
-		if data:
-			self.set_data(data)
-		if length:
-			self.set_length(length)
-		if control:
-			self.set_control(control)
-
-	def __repr__(self):
-		if isinstance(self.__data__, C1218Request):
-			repr_data = repr(self.__data__)
-		else:
-			repr_data = '0x' + binascii.b2a_hex(self.__data__).decode('utf-8')
-		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self.__data__)) + ' crc=0x' + binascii.b2a_hex(packet_checksum(self.start + self.identity + self.control + self.sequence + self.__length__ + self.__data__)).decode('utf-8') + ' >'
-
-	@property
-	def data(self):
-		return self.__data__
-
-	@data.setter
-	def data(self, value):
-		self.set_data(value)
-
 	def set_control(self, control):
 		if isinstance(control, int):
 			if not (0x00 < control < 0xff):
@@ -470,21 +460,21 @@ class C1218Packet(C1218Request):
 			data = data.build()
 		elif not isinstance(data, bytes):
 			data = data.encode('utf-8')
-		self.__data__ = data
-		self.set_length(len(self.__data__))
+		self._data = data
+		self.set_length(len(self._data))
 
 	def set_length(self, length):
 		if length > 8183:
 			raise ValueError('length can not exceed 8183')
-		self.__length__ = struct.pack('>H', length)
+		self._length = struct.pack('>H', length)
 
 	def build(self):
 		packet = self.start
 		packet += self.identity
 		packet += self.control
 		packet += self.sequence
-		packet += self.__length__
-		packet += self.__data__
+		packet += self._length
+		packet += self._data
 		packet += packet_checksum(packet)
 		return packet
 
