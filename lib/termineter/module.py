@@ -19,7 +19,7 @@
 
 from __future__ import unicode_literals
 
-from termineter.options import AdvancedOptions, Options
+import termineter.options
 
 class TermineterModule(object):
 	frmwk_required_options = ()
@@ -31,8 +31,8 @@ class TermineterModule(object):
 		self.author = ['anonymous']
 		self.description = 'This module is undocumented.'
 		self.detailed_description = 'This module is undocumented.'
-		self.options = Options(frmwk.directories)
-		self.advanced_options = AdvancedOptions(frmwk.directories)
+		self.options = termineter.options.Options(frmwk.directories)
+		self.advanced_options = termineter.options.AdvancedOptions(frmwk.directories)
 
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' ' + self.name + ' >'

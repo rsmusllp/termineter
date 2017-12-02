@@ -32,10 +32,10 @@ import subprocess
 import sys
 import textwrap
 
-from termineter import __version__
-from termineter import its
-from termineter.core import Framework
-from termineter.errors import FrameworkRuntimeError
+import termineter
+import termineter.core
+import termineter.errors
+import termineter.its
 
 codename = 'T-900'
 
@@ -131,7 +131,7 @@ class InteractiveInterpreter(OverrideCmd):
 			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
 			self._disabled_commands.append('ipy')
 
-		if not its.on_linux:
+		if not termineter.its.on_linux:
 			self._hidden_commands.append('prep_driver')
 		self._hidden_commands.append('cd')
 		self._hidden_commands.append('exploit')
@@ -140,7 +140,7 @@ class InteractiveInterpreter(OverrideCmd):
 		if self.log_handler is None:
 			self._disabled_commands.append('logging')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
-		self.frmwk = Framework(stdout=stdout)
+		self.frmwk = termineter.core.Framework(stdout=stdout)
 		self.print_exception = self.frmwk.print_exception
 		self.print_error = self.frmwk.print_error
 		self.print_good = self.frmwk.print_good
@@ -175,7 +175,7 @@ class InteractiveInterpreter(OverrideCmd):
 		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
 		intro += os.linesep
 		fmt_string = "  <[ {0:<18} {1:>18}"
-		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
+		intro += fmt_string.format(self.__name__, 'v' + termineter.__version__ + '') + os.linesep
 		intro += fmt_string.format('model:', codename) + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
 		return intro
@@ -438,7 +438,7 @@ class InteractiveInterpreter(OverrideCmd):
 		from c1219.access.log import C1219LogAccess
 		from c1219.access.telephone import C1219TelephoneAccess
 		vars = {
-			'__version__': __version__,
+			'termineter.__version__': termineter.__version__,
 			'C1218Packet': c1218.data.C1218Packet,
 			'C1218ReadRequest': c1218.data.C1218ReadRequest,
 			'C1218WriteRequest': c1218.data.C1218WriteRequest,
@@ -531,7 +531,7 @@ class InteractiveInterpreter(OverrideCmd):
 			module_path = args[0]
 		try:
 			self.frmwk.reload_module(module_path)
-		except FrameworkRuntimeError as err:
+		except termineter.errors.FrameworkRuntimeError:
 			self.print_error('Failed to reload module')
 			return
 		self.print_status('Successfully reloaded module: ' + module_path)
