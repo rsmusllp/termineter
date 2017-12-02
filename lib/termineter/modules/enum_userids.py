@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from time import sleep
 
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	require_connection = False

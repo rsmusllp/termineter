@@ -24,7 +24,7 @@ import binascii
 import difflib
 
 import c1219.constants
-from termineter.templates import TermineterModule
+from termineter.module import TermineterModule
 
 HTML_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 

@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from c1218.errors import C1218ReadTableError
 from c1219.access.general import C1219GeneralAccess
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 STATUS_FLAGS = flags = (
 	'Unprogrammed',

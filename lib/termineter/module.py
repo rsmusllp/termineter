@@ -1,4 +1,4 @@
-#  termineter/templates.py
+#  termineter/module.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #

@@ -23,7 +23,7 @@ from time import sleep
 
 from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_TABLES
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 # 0     - 2039  Standard Tables
 # 2048  - 4087  Manufacturer Tables 0 - 2039

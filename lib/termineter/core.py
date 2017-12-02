@@ -28,15 +28,15 @@ import re
 import serial
 import sys
 
-from c1218.connection import Connection
-from c1218.errors import C1218IOError, C1218ReadTableError
-from termineter.errors import FrameworkConfigurationError, FrameworkRuntimeError
-from termineter.options import AdvancedOptions, Options
-from termineter.templates import TermineterModule, TermineterModuleOptical
-from termineter.utilities import Namespace, get_default_serial_settings
+import c1218.connection
+import c1218.errors
+import termineter.module
+import termineter.errors
+import termineter.options
+import termineter.utilities
 
-from serial.serialutil import SerialException
-from smoke_zephyr.utilities import FileWalker
+import serial.serialutil
+import smoke_zephyr.utilities
 
 class Framework(object):
 	"""
@@ -53,13 +53,13 @@ class Framework(object):
 		self.stdout = stdout
 		self.logger = logging.getLogger(self.__package__ + '.' + self.__class__.__name__.lower())
 
-		self.directories = Namespace()
+		self.directories = termineter.utilities.Namespace()
 		self.directories.user_data = os.path.abspath(os.path.join(os.path.expanduser('~'), '.termineter'))
 		self.directories.modules_path = os.path.abspath(os.path.join(package_path, 'modules'))
 		self.directories.data_path = os.path.abspath(os.path.join(package_path, 'data'))
 		if not os.path.isdir(self.directories.data_path):
 			self.logger.critical('path to data not found')
-			raise FrameworkConfigurationError('path to data not found')
+			raise termineter.errors.FrameworkConfigurationError('path to data not found')
 		if not os.path.isdir(self.directories.user_data):
 			os.mkdir(self.directories.user_data)
 
@@ -76,14 +76,14 @@ class Framework(object):
 		# Whether or not these are 'required' is really enforced by the individual
 		# modules get_missing_options method and by which options they require based
 		# on their respective types.  See framework/templates.py for more info.
-		self.options = Options(self.directories)
+		self.options = termineter.options.Options(self.directories)
 		self.options.add_boolean('USECOLOR', 'enable color on the console interface', default=False)
 		self.options.add_string('CONNECTION', 'serial connection string')
 		self.options.add_string('USERNAME', 'serial username', default='0000')
 		self.options.add_integer('USERID', 'serial userid', default=0)
 		self.options.add_string('PASSWORD', 'serial c12.18 password', default='00000000000000000000')
 		self.options.add_boolean('PASSWORDHEX', 'if the password is in hex', default=True)
-		self.advanced_options = AdvancedOptions(self.directories)
+		self.advanced_options = termineter.options.AdvancedOptions(self.directories)
 		self.advanced_options.add_boolean('AUTOCONNECT', 'automatically handle connections for modules', default=True)
 		self.advanced_options.add_integer('BAUDRATE', 'serial connection baud rate', default=9600)
 		self.advanced_options.add_integer('BYTESIZE', 'serial connection byte size', default=serial.EIGHTBITS)
@@ -101,8 +101,8 @@ class Framework(object):
 		self.current_module = None
 		if not os.path.isdir(modules_path):
 			self.logger.critical('path to modules not found')
-			raise FrameworkConfigurationError('path to modules not found')
-		for module_path in FileWalker(modules_path, absolute_path=True, skip_dirs=True):
+			raise termineter.errors.FrameworkConfigurationError('path to modules not found')
+		for module_path in smoke_zephyr.utilities.FileWalker(modules_path, absolute_path=True, skip_dirs=True):
 			module_path = module_path.replace(os.path.sep, '/')
 			if not module_path.endswith('.py'):
 				continue
@@ -116,17 +116,17 @@ class Framework(object):
 			self.logger.debug('loading module: ' + module_path)
 			try:
 				module_instance = self.import_module(module_path)
-			except FrameworkRuntimeError:
+			except termineter.errors.FrameworkRuntimeError:
 				continue
-			if not isinstance(module_instance, TermineterModule):
+			if not isinstance(module_instance, termineter.module.TermineterModule):
 				self.logger.error('module: ' + module_path + ' is not derived from the TermineterModule class')
 				continue
 			if not hasattr(module_instance, 'run'):
 				self.logger.critical('module: ' + module_path + ' has no run() method')
-				raise FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
-			if not isinstance(module_instance.options, Options) or not isinstance(module_instance.advanced_options, Options):
-				self.logger.critical('module: ' + module_path + ' options and advanced_options must be Options instances')
-				raise FrameworkRuntimeError('options and advanced_options must be Options instances')
+				raise termineter.errors.FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
+			if not isinstance(module_instance.options, termineter.options.Options) or not isinstance(module_instance.advanced_options, termineter.options.Options):
+				self.logger.critical('module: ' + module_path + ' options and advanced_options must be termineter.options.Options instances')
+				raise termineter.errors.FrameworkRuntimeError('options and advanced_options must be termineter.options.Options instances')
 			module_instance.name = module_name
 			module_instance.path = module_path
 			self.modules[module_path] = module_instance
@@ -158,19 +158,19 @@ class Framework(object):
 				return False
 		if not module_path in self.modules.keys():
 			self.logger.error('invalid module requested for reload')
-			raise FrameworkRuntimeError('invalid module requested for reload')
+			raise termineter.errors.FrameworkRuntimeError('invalid module requested for reload')
 
 		self.logger.info('reloading module: ' + module_path)
 		module_instance = self.import_module(module_path, reload_module=True)
-		if not isinstance(module_instance, TermineterModule):
+		if not isinstance(module_instance, termineter.module.TermineterModule):
 			self.logger.error('module: ' + module_path + ' is not derived from the TermineterModule class')
-			raise FrameworkRuntimeError('module: ' + module_path + ' is not derived from the TermineterModule class')
+			raise termineter.errors.FrameworkRuntimeError('module: ' + module_path + ' is not derived from the TermineterModule class')
 		if not hasattr(module_instance, 'run'):
 			self.logger.error('module: ' + module_path + ' has no run() method')
-			raise FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
-		if not isinstance(module_instance.options, Options) or not isinstance(module_instance.advanced_options, Options):
-			self.logger.error('module: ' + module_path + ' options and advanced_options must be Options instances')
-			raise FrameworkRuntimeError('options and advanced_options must be Options instances')
+			raise termineter.errors.FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
+		if not isinstance(module_instance.options, termineter.options.Options) or not isinstance(module_instance.advanced_options, termineter.options.Options):
+			self.logger.error('module: ' + module_path + ' options and advanced_options must be termineter.options.Options instances')
+			raise termineter.errors.FrameworkRuntimeError('options and advanced_options must be termineter.options.Options instances')
 		module_instance.name = module_path.split('/')[-1]
 		module_instance.path = module_path
 		self.modules[module_path] = module_instance
@@ -180,13 +180,13 @@ class Framework(object):
 		return True
 
 	def run(self, module=None):
-		if not isinstance(module, TermineterModule) and not isinstance(self.current_module, TermineterModule):
-			raise FrameworkRuntimeError('either the module or the current_module must be sent')
+		if not isinstance(module, termineter.module.TermineterModule) and not isinstance(self.current_module, termineter.module.TermineterModule):
+			raise termineter.errors.FrameworkRuntimeError('either the module or the current_module must be sent')
 		if module is None:
 			module = self.current_module
-		if isinstance(module, TermineterModuleOptical):
+		if isinstance(module, termineter.module.TermineterModuleOptical):
 			if not self._serial_connected:
-				raise FrameworkRuntimeError('the serial interface is disconnected')
+				raise termineter.errors.FrameworkRuntimeError('the serial interface is disconnected')
 
 			try:
 				self.serial_get()
@@ -207,7 +207,7 @@ class Framework(object):
 		try:
 			result = module.run()
 		finally:
-			if isinstance(module, TermineterModuleOptical) and self.serial_connection and self.advanced_options['AUTOCONNECT']:
+			if isinstance(module, termineter.module.TermineterModuleOptical) and self.serial_connection and self.advanced_options['AUTOCONNECT']:
 				self.serial_connection.stop()
 		return result
 
@@ -238,7 +238,7 @@ class Framework(object):
 			module_instance = module.Module(self)
 		except Exception:
 			self.logger.error('failed to load module: ' + module_path, exc_info=True)
-			raise FrameworkRuntimeError('failed to load module: ' + module_path)
+			raise termineter.errors.FrameworkRuntimeError('failed to load module: ' + module_path)
 		return module_instance
 
 	def print_exception(self, error):
@@ -308,9 +308,9 @@ class Framework(object):
 		if self._serial_connected:
 			try:
 				self.serial_connection.close()
-			except C1218IOError as error:
+			except c1218.errors.C1218IOError as error:
 				self.logger.error('caught C1218IOError: ' + str(error))
-			except SerialException as error:
+			except serial.serialutil.SerialException as error:
 				self.logger.error('caught SerialException: ' + str(error))
 			self._serial_connected = False
 			self.logger.warning('the serial interface has been disconnected')
@@ -326,14 +326,14 @@ class Framework(object):
 			'pktsize': self.advanced_options['PKTSIZE']
 		}
 
-		frmwk_serial_settings = get_default_serial_settings()
+		frmwk_serial_settings = termineter.utilities.get_default_serial_settings()
 		frmwk_serial_settings['baudrate'] = self.advanced_options['BAUDRATE']
 		frmwk_serial_settings['bytesize'] = self.advanced_options['BYTESIZE']
 		frmwk_serial_settings['stopbits'] = self.advanced_options['STOPBITS']
 
 		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
 		try:
-			self.serial_connection = Connection(self.options['CONNECTION'], c1218_settings=frmwk_c1218_settings, serial_settings=frmwk_serial_settings, enable_cache=self.advanced_options['CACHETBLS'])
+			self.serial_connection = c1218.connection.Connection(self.options['CONNECTION'], c1218_settings=frmwk_c1218_settings, serial_settings=frmwk_serial_settings, enable_cache=self.advanced_options['CACHETBLS'])
 		except Exception as error:
 			self.logger.error('could not open the serial device')
 			raise error
@@ -346,7 +346,7 @@ class Framework(object):
 		self.serial_get()
 		try:
 			self.serial_connection.start()
-		except C1218IOError as error:
+		except c1218.errors.C1218IOError as error:
 			self.logger.error('serial connection has been opened but the meter is unresponsive')
 			raise error
 		self._serial_connected = True
@@ -358,7 +358,7 @@ class Framework(object):
 		called by modules in order to login with a username and password configured within the framework instance.
 		"""
 		if not self._serial_connected:
-			raise FrameworkRuntimeError('the serial interface is disconnected')
+			raise termineter.errors.FrameworkRuntimeError('the serial interface is disconnected')
 
 		username = self.options['USERNAME']
 		userid = self.options['USERID']
@@ -367,17 +367,17 @@ class Framework(object):
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 			if hex_regex.match(password) is None:
 				self.print_error('Invalid characters in password')
-				raise FrameworkConfigurationError('invalid characters in password')
+				raise termineter.errors.FrameworkConfigurationError('invalid characters in password')
 			password = binascii.a2b_hex(password)
 		if len(username) > 10:
 			self.print_error('Username cannot be longer than 10 characters')
-			raise FrameworkConfigurationError('username cannot be longer than 10 characters')
+			raise termineter.errors.FrameworkConfigurationError('username cannot be longer than 10 characters')
 		if not (0 <= userid <= 0xffff):
 			self.print_error('User id must be between 0 and 0xffff')
-			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
+			raise termineter.errors.FrameworkConfigurationError('user id must be between 0 and 0xffff')
 		if len(password) > 20:
 			self.print_error('Password cannot be longer than 20 characters')
-			raise FrameworkConfigurationError('password cannot be longer than 20 characters')
+			raise termineter.errors.FrameworkConfigurationError('password cannot be longer than 20 characters')
 
 		if not self.serial_connection.login(username, userid, password):
 			return False
@@ -396,22 +396,22 @@ class Framework(object):
 		userid = self.options['USERID']
 		if len(username) > 10:
 			self.logger.error('username cannot be longer than 10 characters')
-			raise FrameworkConfigurationError('username cannot be longer than 10 characters')
+			raise termineter.errors.FrameworkConfigurationError('username cannot be longer than 10 characters')
 		if not (0 <= userid <= 0xffff):
 			self.logger.error('user id must be between 0 and 0xffff')
-			raise FrameworkConfigurationError('user id must be between 0 and 0xffff')
+			raise termineter.errors.FrameworkConfigurationError('user id must be between 0 and 0xffff')
 
 		try:
 			if not self.serial_connection.login(username, userid):
 				self.logger.error('the meter has rejected the username and userid')
-				raise FrameworkConfigurationError('the meter has rejected the username and userid')
-		except C1218IOError as error:
+				raise termineter.errors.FrameworkConfigurationError('the meter has rejected the username and userid')
+		except c1218.errors.C1218IOError as error:
 			self.logger.error('serial connection has been opened but the meter is unresponsive')
 			raise error
 
 		try:
 			general_config_table = self.serial_connection.get_table_data(0)
-		except C1218ReadTableError as error:
+		except c1218.errors.C1218ReadTableError as error:
 			self.logger.error('serial connection as been opened but the general configuration table (table #0) could not be read')
 			raise error
 
@@ -424,7 +424,7 @@ class Framework(object):
 
 		try:
 			self.serial_connection.stop()
-		except C1218IOError as error:
+		except c1218.errors.C1218IOError as error:
 			self.logger.error('serial connection has been opened but the meter is unresponsive')
 			raise error
 

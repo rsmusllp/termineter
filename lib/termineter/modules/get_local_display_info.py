@@ -20,7 +20,7 @@
 from __future__ import unicode_literals
 
 from c1219.access.local_display import C1219LocalDisplayAccess
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

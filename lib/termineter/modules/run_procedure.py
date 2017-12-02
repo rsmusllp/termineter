@@ -23,7 +23,7 @@ import binascii
 import re
 
 from c1219.constants import C1219_PROCEDURE_NAMES, C1219_PROC_RESULT_CODES
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):

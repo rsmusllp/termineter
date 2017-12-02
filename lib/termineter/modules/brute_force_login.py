@@ -24,7 +24,7 @@ import os
 import re
 import time
 
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 from termineter.utilities import StringGenerator
 
 class BruteForce:

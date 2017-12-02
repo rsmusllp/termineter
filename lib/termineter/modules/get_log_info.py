@@ -22,7 +22,7 @@ from __future__ import unicode_literals
 from c1218.errors import C1218ReadTableError
 from c1219.access.log import C1219LogAccess
 from c1219.data import C1219_EVENT_CODES
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
