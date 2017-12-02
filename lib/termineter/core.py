@@ -200,7 +200,7 @@ class Framework(object):
 					self.print_exception(error)
 					return
 				self.print_good('Successfully connected and the device is responding')
-				if module.attempt_login and not self.serial_login():
+				if not self.serial_login():
 					self.logger.warning('meter login failed, some tables may not be accessible')
 
 		self.logger.info('running module: ' + module.path)

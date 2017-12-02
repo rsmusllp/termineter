@@ -23,7 +23,6 @@ from termineter.options import AdvancedOptions, Options
 
 class TermineterModule(object):
 	frmwk_required_options = ()
-
 	def __init__(self, frmwk):
 		self.frmwk = frmwk
 
@@ -69,6 +68,5 @@ class TermineterModuleOptical(TermineterModule):
 		'PKTSIZE'
 	)
 	require_connection = True
-	attempt_login = True
 	def __init__(self, *args, **kwargs):
 		super(TermineterModuleOptical, self).__init__(*args, **kwargs)

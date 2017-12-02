@@ -25,7 +25,6 @@ from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	require_connection = False
-	attempt_login = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.version = 1
