@@ -58,11 +58,11 @@ class Connection:
 		self.calling_ap = calling_ap
 
 		self.logged_in = False
-		self.__initialized__ = False
+		self._initialized = False
 		self.c1219_endian = '<'
 		self.caching_enabled = enable_cache
-		self.__cacheable_tbls__ = [0, 1]
-		self.__tbl_cache__ = {}
+		self._cacheable_tables = [0, 1]
+		self._table_cache = {}
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
 

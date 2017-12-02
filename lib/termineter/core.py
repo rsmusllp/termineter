@@ -95,21 +95,6 @@ class Framework(object):
 		if sys.platform.startswith('linux'):
 			self.options.set_option('USECOLOR', 'True')
 
-		# check and configure rfcat stuff
-		self.rfcat_available = False
-		try:
-			import rflib
-		except ImportError:
-			self.logger.info('the rfcat library is not available, it can be found at https://code.google.com/p/rfcat/')
-		else:
-			self.logger.info('the rfcat library is available')
-			self.rfcat_available = True
-			# init the values to be used
-			self.rfcat_connection = None
-			self.__rfcat_connected__ = False
-			self.is_rfcat_connected = lambda: self.__rfcat_connected__
-			# self.options.add_integer('RFCATIDX', 'the rfcat device to use', default = 0)
-
 		# start loading modules
 		modules_path = os.path.abspath(self.directories.modules_path)
 		self.logger.debug('searching for modules in: ' + modules_path)
@@ -127,9 +112,6 @@ class Framework(object):
 				continue
 			if module_name.lower() != module_name:
 				continue
-			if module_path.startswith('rfcat') and not self.rfcat_available:
-				self.logger.debug('skipping module: ' + module_path + ' because rfcat is not available')
-				continue
 			# looks good, proceed to load
 			self.logger.debug('loading module: ' + module_path)
 			try:
@@ -139,9 +121,6 @@ class Framework(object):
 			if not isinstance(module_instance, TermineterModule):
 				self.logger.error('module: ' + module_path + ' is not derived from the TermineterModule class')
 				continue
-			# if isinstance(module_instance, TermineterModuleRfcat) and not self.rfcat_available:
-			# 	self.logger.debug('skipping module: ' + module_path + ' because rfcat is not available')
-			#	continue
 			if not hasattr(module_instance, 'run'):
 				self.logger.critical('module: ' + module_path + ' has no run() method')
 				raise FrameworkRuntimeError('module: ' + module_path + ' has no run() method')

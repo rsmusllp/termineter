@@ -37,7 +37,7 @@ from termineter import its
 from termineter.core import Framework
 from termineter.errors import FrameworkRuntimeError
 
-__codename__ = 'T-900'
+codename = 'T-900'
 
 def complete_all_paths(path):
 	if not path:
@@ -64,8 +64,8 @@ class OverrideCmd(cmd.Cmd, object):
 	def __init__(self, *args, **kwargs):
 		cmd.Cmd.__init__(self, *args, **kwargs)
 
-		self.__hidden_commands__ = ['EOF']
-		self.__disabled_commands__ = []
+		self._hidden_commands = ['EOF']
+		self._disabled_commands = []
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 
 	def cmdloop(self):
@@ -80,10 +80,10 @@ class OverrideCmd(cmd.Cmd, object):
 
 	def get_names(self):
 		commands = super(OverrideCmd, self).get_names()
-		for name in self.__hidden_commands__:
+		for name in self._hidden_commands:
 			if 'do_' + name in commands:
 				commands.remove('do_' + name)
-		for name in self.__disabled_commands__:
+		for name in self._disabled_commands:
 			if 'do_' + name in commands:
 				commands.remove('do_' + name)
 		return commands
@@ -99,7 +99,7 @@ class OverrideCmd(cmd.Cmd, object):
 		tmp_line = line.split()
 		if not tmp_line:
 			return line
-		if tmp_line[0] in self.__disabled_commands__:
+		if tmp_line[0] in self._disabled_commands:
 			self.default(tmp_line[0])
 			return ''
 		if len(tmp_line) == 1:
@@ -129,16 +129,16 @@ class InteractiveInterpreter(OverrideCmd):
 		if stdin is not None:
 			self.use_rawinput = False
 			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
-			self.__disabled_commands__.append('ipy')
+			self._disabled_commands.append('ipy')
 
 		if not its.on_linux:
-			self.__hidden_commands__.append('prep_driver')
-		self.__hidden_commands__.append('cd')
-		self.__hidden_commands__.append('exploit')
+			self._hidden_commands.append('prep_driver')
+		self._hidden_commands.append('cd')
+		self._hidden_commands.append('exploit')
 		self.last_module = None
 		self.log_handler = log_handler
 		if self.log_handler is None:
-			self.__disabled_commands__.append('logging')
+			self._disabled_commands.append('logging')
 		self.logger = logging.getLogger(self.__package__ + '.interpreter')
 		self.frmwk = Framework(stdout=stdout)
 		self.print_exception = self.frmwk.print_exception
@@ -176,12 +176,8 @@ class InteractiveInterpreter(OverrideCmd):
 		intro += os.linesep
 		fmt_string = "  <[ {0:<18} {1:>18}"
 		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
-		intro += fmt_string.format('model:', __codename__) + os.linesep
+		intro += fmt_string.format('model:', codename) + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
-		#if self.frmwk.rfcat_available:
-		#	intro += fmt_string.format('rfcat:', 'enabled') + os.linesep
-		#else:
-		#	intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
 		return intro
 
 	@property

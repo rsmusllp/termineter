@@ -59,80 +59,80 @@ class C1219SecurityAccess(object):  # Corresponds To Decade 4x
 			raise C1219ParseError('expected to read more data from ACT_SECURITY_LIMITING_TBL', ACT_SECURITY_LIMITING_TBL)
 
 		### Parse ACT_SECURITY_LIMITING_TBL ###
-		self.__nbr_passwords__ = act_security_table[0]
-		self.__password_len__ = act_security_table[1]
-		self.__nbr_keys__ = act_security_table[2]
-		self.__key_len__ = act_security_table[3]
-		self.__nbr_perm_used__ = struct.unpack(self.conn.c1219_endian + 'H', act_security_table[4:6])[0]
+		self._nbr_passwords = act_security_table[0]
+		self._password_len = act_security_table[1]
+		self._nbr_keys = act_security_table[2]
+		self._key_len = act_security_table[3]
+		self._nbr_perm_used = struct.unpack(self.conn.c1219_endian + 'H', act_security_table[4:6])[0]
 
 		### Parse SECURITY_TBL ###
 		if len(security_table) != ((self.nbr_passwords * self.password_len) + self.nbr_passwords):
 			raise C1219ParseError('expected to read more data from SECURITY_TBL', SECURITY_TBL)
-		self.__passwords__ = {}
+		self._passwords = {}
 		tmp = 0
 		while tmp < self.nbr_passwords:
-			self.__passwords__[tmp] = {'idx': tmp, 'password': security_table[:self.password_len], 'groups': security_table[self.password_len]}
+			self._passwords[tmp] = {'idx': tmp, 'password': security_table[:self.password_len], 'groups': security_table[self.password_len]}
 			security_table = security_table[self.password_len + 1:]
 			tmp += 1
 
 		### Parse ACCESS_CONTROL_TBL ###
 		if len(access_ctl_table) != (self.nbr_perm_used * 4):
 			raise C1219ParseError('expected to read more data from ACCESS_CONTROL_TBL', ACCESS_CONTROL_TBL)
-		self.__table_permissions__ = {}
-		self.__procedure_permissions__ = {}
+		self._table_permissions = {}
+		self._procedure_permissions = {}
 		tmp = 0
 		while tmp < self.nbr_perm_used:
 			(proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3) = get_table_idcb_field(self.conn.c1219_endian, access_ctl_table)
 			if proc_flag:
-				self.__procedure_permissions__[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': access_ctl_table[2], 'write': access_ctl_table[3]}
+				self._procedure_permissions[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': access_ctl_table[2], 'write': access_ctl_table[3]}
 			else:
-				self.__table_permissions__[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': access_ctl_table[2], 'write': access_ctl_table[3]}
+				self._table_permissions[proc_nbr] = {'idx': proc_nbr, 'mfg': std_vs_mfg, 'anyread': flag1, 'anywrite': flag2, 'read': access_ctl_table[2], 'write': access_ctl_table[3]}
 			access_ctl_table = access_ctl_table[4:]
 			tmp += 1
 
 		### Parse KEY_TBL ###
-		self.__keys__ = {}
+		self._keys = {}
 		if key_table is not None:
 			if len(key_table) != (self.nbr_keys * self.key_len):
 				raise C1219ParseError('expected to read more data from KEY_TBL', KEY_TBL)
 			tmp = 0
 			while tmp < self.nbr_keys:
-				self.__keys__[tmp] = key_table[:self.key_len]
+				self._keys[tmp] = key_table[:self.key_len]
 				key_table = key_table[self.key_len:]
 				tmp += 1
 
 	@property
 	def nbr_passwords(self):
-		return self.__nbr_passwords__
+		return self._nbr_passwords
 
 	@property
 	def password_len(self):
-		return self.__password_len__
+		return self._password_len
 
 	@property
 	def nbr_keys(self):
-		return self.__nbr_keys__
+		return self._nbr_keys
 
 	@property
 	def key_len(self):
-		return self.__key_len__
+		return self._key_len
 
 	@property
 	def nbr_perm_used(self):
-		return self.__nbr_perm_used__
+		return self._nbr_perm_used
 
 	@property
 	def passwords(self):
-		return self.__passwords__
+		return self._passwords
 
 	@property
 	def table_permissions(self):
-		return self.__table_permissions__
+		return self._table_permissions
 
 	@property
 	def procedure_permissions(self):
-		return self.__procedure_permissions__
+		return self._procedure_permissions
 
 	@property
 	def keys(self):
-		return self.__keys__
+		return self._keys

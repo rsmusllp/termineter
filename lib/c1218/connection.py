@@ -19,7 +19,6 @@
 
 from __future__ import unicode_literals
 
-import binascii
 import logging
 import random
 import sys
@@ -60,7 +59,7 @@ class ConnectionBase(object):
 		self.logger = logging.getLogger('c1218.connection')
 		self.loggerio = logging.getLogger('c1218.connection.io')
 		self.toggle_control = toggle_control
-		self.__toggle_bit__ = False
+		self._toggle_bit = False
 		if hasattr(serial, 'serial_for_url'):
 			self.serial_h = serial.serial_for_url(device)
 		else:
@@ -99,7 +98,7 @@ class ConnectionBase(object):
 			self.logger.debug('set DTR to False')
 
 		self.logged_in = False
-		self.__initialized__ = False
+		self._initialized = False
 		self.c1219_endian = '<'
 
 	def __repr__(self):
@@ -117,13 +116,13 @@ class ConnectionBase(object):
 		if not isinstance(data, C1218Packet):
 			data = C1218Packet(data)
 		if self.toggle_control:  # bit wise, fuck yeah
-			if self.__toggle_bit__:
+			if self._toggle_bit:
 				data.set_control(ord(data.control) | 0x20)
-				self.__toggle_bit__ = False
-			elif not self.__toggle_bit__:
+				self._toggle_bit = False
+			elif not self._toggle_bit:
 				if ord(data.control) & 0x20:
 					data.set_control(ord(data.control) ^ 0x20)
-				self.__toggle_bit__ = True
+				self._toggle_bit = True
 		elif self.toggle_control and not isinstance(data, C1218Packet):
 			self.loggerio.warning('toggle bit is on but the data is not a C1218Packet instance')
 		data = data.build()
@@ -213,7 +212,7 @@ class ConnectionBase(object):
 		"""
 		Send a terminate request and then disconnect from the serial device.
 		"""
-		if self.__initialized__:
+		if self._initialized:
 			self.stop()
 		self.logged_in = False
 		return self.serial_h.close()
@@ -243,14 +242,14 @@ class Connection(ConnectionBase):
 		enable_cache = kwargs.pop('enable_cache', True)
 		super(Connection, self).__init__(*args, **kwargs)
 		self.caching_enabled = enable_cache
-		self.__cacheable_tbls__ = [0, 1]
-		self.__tbl_cache__ = {}
+		self._cacheable_tables = [0, 1]
+		self._table_cache = {}
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
 
 	def flush_table_cache(self):
 		self.logger.info('flushing all cached tables')
-		self.__tbl_cache__ = {}
+		self._table_cache = {}
 
 	def set_table_cache_policy(self, cache_policy):
 		if self.caching_enabled == cache_policy:
@@ -275,7 +274,7 @@ class Connection(ConnectionBase):
 			self.logger.error('received incorrect response to identification service request')
 			return False
 
-		self.__initialized__ = True
+		self._initialized = True
 		self.send(C1218NegotiateRequest(self.c1218_pktsize, self.c1218_nbrpkts, baudrate=9600))
 		data = self.recv()
 		if data[0] != 0x00:
@@ -290,12 +289,12 @@ class Connection(ConnectionBase):
 
 		:param bool force: ignore the remote devices response
 		"""
-		if self.__initialized__:
+		if self._initialized:
 			self.send(C1218TerminateRequest())
 			data = self.recv()
 			if data == b'\x00' or force:
-				self.__initialized__ = False
-				self.__toggle_bit__ = False
+				self._initialized = False
+				self._toggle_bit = False
 				return True
 		return False
 
@@ -337,7 +336,7 @@ class Connection(ConnectionBase):
 		self.send(C1218LogoffRequest())
 		data = self.recv()
 		if data == b'\x00':
-			self.__initialized__ = False
+			self._initialized = False
 			return True
 		return False
 
@@ -351,9 +350,9 @@ class Connection(ConnectionBase):
 		  the meter supports this type of reading.
 		:param int offset: The offset at which to start to read the data from.
 		"""
-		if self.caching_enabled and tableid in self.__cacheable_tbls__ and tableid in self.__tbl_cache__.keys():
+		if self.caching_enabled and tableid in self._cacheable_tables and tableid in self._table_cache.keys():
 			self.logger.info('returning cached table #' + str(tableid))
-			return self.__tbl_cache__[tableid]
+			return self._table_cache[tableid]
 		self.send(C1218ReadRequest(tableid, offset, octetcount))
 		data = self.recv()
 		status = data[0]
@@ -378,9 +377,9 @@ class Connection(ConnectionBase):
 			self.logger.error('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid check sum')
 			raise C1218ReadTableError('could not read table id: ' + str(tableid) + ', error: data read was corrupt, invalid checksum')
 
-		if self.caching_enabled and tableid in self.__cacheable_tbls__ and not tableid in self.__tbl_cache__.keys():
+		if self.caching_enabled and tableid in self._cacheable_tables and not tableid in self._table_cache.keys():
 			self.logger.info('caching table #' + str(tableid))
-			self.__tbl_cache__[tableid] = data
+			self._table_cache[tableid] = data
 		return data
 
 	def set_table_data(self, tableid, data, offset=None):

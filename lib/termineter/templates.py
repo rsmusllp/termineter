@@ -72,6 +72,3 @@ class TermineterModuleOptical(TermineterModule):
 	attempt_login = True
 	def __init__(self, *args, **kwargs):
 		super(TermineterModuleOptical, self).__init__(*args, **kwargs)
-
-class TermineterModuleRfcat(TermineterModule):
-	pass

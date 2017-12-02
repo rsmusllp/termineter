@@ -37,9 +37,6 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 	This class provides generic access to the general configuration tables
 	that are stored in the decade 0x tables.
 	"""
-	__ed_mode__ = None
-	__std_status__ = None
-	__device_id__ = None
 	def __init__(self, conn):
 		"""
 		Initializes a new instance of the class and reads tables from the
@@ -49,6 +46,9 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 		@param conn: The driver to be used for interacting with the
 		necessary tables.
 		"""
+		self._ed_mode = None
+		self._std_status = None
+		self._device_id = None
 		self.conn = conn
 		general_config_table = conn.get_table_data(GEN_CONFIG_TBL)
 		general_mfg_table = conn.get_table_data(GENERAL_MFG_ID_TBL)
@@ -69,73 +69,73 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 			raise C1219ParseError('expected to read more data from ED_MODE_STATUS_TBL', ED_MODE_STATUS_TBL)
 
 		### Parse GEN_CONFIG_TBL ###
-		self.__char_format__ = {1: 'ISO/IEC 646 (7-bit)', 2: 'ISO 8859/1 (Latin 1)', 3: 'UTF-8', 4: 'UTF-16', 5: 'UTF-32'}.get((general_config_table[0] & 14) >> 1) or 'Unknown'
+		self._char_format = {1: 'ISO/IEC 646 (7-bit)', 2: 'ISO 8859/1 (Latin 1)', 3: 'UTF-8', 4: 'UTF-16', 5: 'UTF-32'}.get((general_config_table[0] & 14) >> 1) or 'Unknown'
 		encoding = self.encoding
-		self.__nameplate_type__ = {0: 'Gas', 1: 'Water', 2: 'Electric'}.get(general_config_table[7]) or 'Unknown'
-		self.__id_form__ = general_config_table[1] & 32
-		self.__std_version_no__ = general_config_table[11]
-		self.__std_revision_no__ = general_config_table[12]
-		self.__dim_std_tbls_used__ = general_config_table[13]
-		self.__dim_mfg_tbls_used__ = general_config_table[14]
-		self.__dim_std_proc_used__ = general_config_table[15]
-		self.__dim_mfg_proc_used__ = general_config_table[16]
+		self._nameplate_type = {0: 'Gas', 1: 'Water', 2: 'Electric'}.get(general_config_table[7]) or 'Unknown'
+		self._id_form = general_config_table[1] & 32
+		self._std_version_no = general_config_table[11]
+		self._std_revision_no = general_config_table[12]
+		self._dim_std_tables_used = general_config_table[13]
+		self._dim_mfg_tables_used = general_config_table[14]
+		self._dim_std_proc_used = general_config_table[15]
+		self._dim_mfg_proc_used = general_config_table[16]
 
-		self.__std_tbls_used__ = []
+		self._std_tables_used = []
 		tmp_data = general_config_table[19:]
-		for p in range(self.__dim_std_tbls_used__):
+		for p in range(self._dim_std_tables_used):
 			for i in range(7):
 				if tmp_data[p] & (2 ** i):
-					self.__std_tbls_used__.append(i + (p * 8))
+					self._std_tables_used.append(i + (p * 8))
 
-		self.__mfg_tbls_used__ = []
-		tmp_data = tmp_data[self.__dim_std_tbls_used__:]
-		for p in range(self.__dim_mfg_tbls_used__):
+		self._mfg_tables_used = []
+		tmp_data = tmp_data[self._dim_std_tables_used:]
+		for p in range(self._dim_mfg_tables_used):
 			for i in range(7):
 				if tmp_data[p] & (2 ** i):
-					self.__mfg_tbls_used__.append(i + (p * 8))
+					self._mfg_tables_used.append(i + (p * 8))
 
-		self.__std_proc_used__ = []
-		tmp_data = tmp_data[self.__dim_mfg_tbls_used__:]
-		for p in range(self.__dim_std_proc_used__):
+		self._std_proc_used = []
+		tmp_data = tmp_data[self._dim_mfg_tables_used:]
+		for p in range(self._dim_std_proc_used):
 			for i in range(7):
 				if tmp_data[p] & (2 ** i):
-					self.__std_proc_used__.append(i + (p * 8))
+					self._std_proc_used.append(i + (p * 8))
 
-		self.__mfg_proc_used__ = []
-		tmp_data = tmp_data[self.__dim_std_proc_used__:]
-		for p in range(self.__dim_mfg_proc_used__):
+		self._mfg_proc_used = []
+		tmp_data = tmp_data[self._dim_std_proc_used:]
+		for p in range(self._dim_mfg_proc_used):
 			for i in range(7):
 				if tmp_data[p] & (2 ** i):
-					self.__mfg_proc_used__.append(i + (p * 8))
+					self._mfg_proc_used.append(i + (p * 8))
 
 		### Parse GENERAL_MFG_ID_TBL ###
-		self.__manufacturer__ = general_mfg_table[0:4].rstrip().decode(encoding)
-		self.__ed_model__ = general_mfg_table[4:12].rstrip().decode(encoding)
-		self.__hw_version_no__ = general_mfg_table[12]
-		self.__hw_revision_no__ = general_mfg_table[13]
-		self.__fw_version_no__ = general_mfg_table[14]
-		self.__fw_revision_no__ = general_mfg_table[15]
-		if self.__id_form__ == 0:
-			self.__mfg_serial_no__ = general_mfg_table[16:32].strip()
+		self._manufacturer = general_mfg_table[0:4].rstrip().decode(encoding)
+		self._ed_model = general_mfg_table[4:12].rstrip().decode(encoding)
+		self._hw_version_no = general_mfg_table[12]
+		self._hw_revision_no = general_mfg_table[13]
+		self._fw_version_no = general_mfg_table[14]
+		self._fw_revision_no = general_mfg_table[15]
+		if self._id_form == 0:
+			self._mfg_serial_no = general_mfg_table[16:32].strip()
 		else:
-			self.__mfg_serial_no__ = general_mfg_table[16:24]
-		self.__mfg_serial_no__ = self.__mfg_serial_no__.decode(encoding)
+			self._mfg_serial_no = general_mfg_table[16:24]
+		self._mfg_serial_no = self._mfg_serial_no.decode(encoding)
 
 		### Parse ED_MODE_STATUS_TBL ###
 		if mode_status_table:
-			self.__ed_mode__ = mode_status_table[0]
-			self.__std_status__ = struct.unpack(conn.c1219_endian + 'H', mode_status_table[1:3])[0]
+			self._ed_mode = mode_status_table[0]
+			self._std_status = struct.unpack(conn.c1219_endian + 'H', mode_status_table[1:3])[0]
 
 		### Parse DEVICE_IDENT_TBL ###
 		if ident_table:
-			if self.__id_form__ == 0 and len(ident_table) != 20:
+			if self._id_form == 0 and len(ident_table) != 20:
 				raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
-			elif self.__id_form__ != 0 and len(ident_table) != 10:
+			elif self._id_form != 0 and len(ident_table) != 10:
 				raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
-			self.__device_id__ = ident_table.strip().decode(encoding)
+			self._device_id = ident_table.strip().decode(encoding)
 
 	def set_device_id(self, newid):
-		if self.__id_form__ == 0:
+		if self._id_form == 0:
 			newid += ' ' * (20 - len(newid))
 		else:
 			newid += ' ' * (10 - len(newid))
@@ -152,91 +152,91 @@ class C1219GeneralAccess(object):  # Corresponds To Decade 0x
 		except C1218ReadTableError:
 			return 1
 
-		if self.__id_form__ == 0 and len(ident_table) != 20:
+		if self._id_form == 0 and len(ident_table) != 20:
 			raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
-		elif self.__id_form__ != 0 and len(ident_table) != 10:
+		elif self._id_form != 0 and len(ident_table) != 10:
 			raise C1219ParseError('expected to read more data from DEVICE_IDENT_TBL', DEVICE_IDENT_TBL)
 		if not ident_table.startswith(newid):
 			return 2
-		self.__device_id__ = newid
+		self._device_id = newid
 		return 0
 
 	@property
 	def encoding(self):
-		return {2: 'iso-8859-1', 4: 'utf-16', 5: 'utf-32'}.get(self.__char_format__, 'utf-8')
+		return {2: 'iso-8859-1', 4: 'utf-16', 5: 'utf-32'}.get(self._char_format, 'utf-8')
 
 	@property
 	def char_format(self):
-		return self.__char_format__
+		return self._char_format
 
 	@property
 	def nameplate_type(self):
-		return self.__nameplate_type__
+		return self._nameplate_type
 
 	@property
 	def id_form(self):
-		return self.__id_form__
+		return self._id_form
 
 	@property
 	def std_version_no(self):
-		return self.__std_version_no__
+		return self._std_version_no
 
 	@property
 	def std_revision_no(self):
-		return self.__std_revision_no__
+		return self._std_revision_no
 
 	@property
 	def std_tbls_used(self):
-		return self.__std_tbls_used__
+		return self._std_tables_used
 
 	@property
 	def mfg_tbls_used(self):
-		return self.__mfg_tbls_used__
+		return self._mfg_tables_used
 
 	@property
 	def std_proc_used(self):
-		return self.__std_proc_used__
+		return self._std_proc_used
 
 	@property
 	def mfg_proc_used(self):
-		return self.__mfg_proc_used__
+		return self._mfg_proc_used
 
 	@property
 	def manufacturer(self):
-		return self.__manufacturer__
+		return self._manufacturer
 
 	@property
 	def ed_model(self):
-		return self.__ed_model__
+		return self._ed_model
 
 	@property
 	def hw_version_no(self):
-		return self.__hw_version_no__
+		return self._hw_version_no
 
 	@property
 	def hw_revision_no(self):
-		return self.__hw_revision_no__
+		return self._hw_revision_no
 
 	@property
 	def fw_version_no(self):
-		return self.__fw_version_no__
+		return self._fw_version_no
 
 	@property
 	def fw_revision_no(self):
-		return self.__fw_revision_no__
+		return self._fw_revision_no
 
 	@property
 	def mfg_serial_no(self):
-		return self.__mfg_serial_no__
+		return self._mfg_serial_no
 
 	@property
 	def ed_mode(self):
-		return self.__ed_mode__
+		return self._ed_mode
 
 	@property
 	def std_status(self):
-		return self.__std_status__
+		return self._std_status
 
 	@property
 	def device_id(self):
-		return self.__device_id__
+		return self._device_id
