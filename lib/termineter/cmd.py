@@ -17,10 +17,58 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 
+import argparse
 import cmd
 import logging
+import shlex
 import socket
 import ssl
+
+class ArgumentParser(argparse.ArgumentParser):
+	def exit(self, status=0, message=None):
+		raise ArgumentParserExit(status=status, message=message)
+
+class ArgumentParserExit(Exception):
+	def __init__(self, status=0, message=None):
+		self.status = status
+		self.message = message
+
+class _Command(object):
+	def __init__(self, callback):
+		self.callback = callback
+		self.parser = ArgumentParser()
+
+	def _wrapper(self, inst, args):
+		parser = self.parser
+		args = shlex.split(args)
+		try:
+			args = parser.parse_args(args)
+		except ArgumentParserExit:
+			return
+		return self.callback(inst, args)
+
+	@property
+	def wrapper(self):
+		def wrapper_function(*args, **kwargs):
+			return self._wrapper(*args, **kwargs)
+		wrapper_function.__doc__ = self.parser.format_help()
+		return wrapper_function
+
+def command(description=None):
+	def decorator(command):
+		if not isinstance(command, _Command):
+			command = _Command(command)
+		command.parser.description = description
+		return command.wrapper
+	return decorator
+
+def add_argument(*args, **kwargs):
+	def decorator(command):
+		if not isinstance(command, _Command):
+			command = _Command(command)
+		command.parser.add_argument(*args, **kwargs)
+		return command
+	return decorator
 
 class Cmd(cmd.Cmd):
 	def __init__(self, stdin=None, stdout=None, **kwargs):

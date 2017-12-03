@@ -26,7 +26,6 @@ import os
 import platform
 import random
 import shlex
-import socket
 import subprocess
 import sys
 import textwrap
@@ -323,6 +322,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 	def complete_info(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
 
+	@termineter.cmd.command('Start an interactive Python interpreter')
 	def do_ipy(self, args):
 		"""Start an interactive Python interpreter"""
 		import c1218.data
