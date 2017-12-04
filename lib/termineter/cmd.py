@@ -34,9 +34,11 @@ class ArgumentParserExit(Exception):
 		self.message = message
 
 class _Command(object):
-	def __init__(self, callback):
+	def __init__(self, callback, name=None):
+		self._arguments = []
 		self.callback = callback
-		self.parser = ArgumentParser()
+		name = name or callback.__name__[3:]  # remove the do_ prefix
+		self.parser = ArgumentParser(prog=name)
 
 	def _wrapper(self, inst, args):
 		parser = self.parser
@@ -47,12 +49,26 @@ class _Command(object):
 			return
 		return self.callback(inst, args)
 
+	def add_argument(self, *args, **kwargs):
+		self._arguments.append((args, kwargs))
+
 	@property
 	def wrapper(self):
+		self._arguments.reverse()
+		for args, kwargs in self._arguments:
+			self.parser.add_argument(*args, **kwargs)
 		def wrapper_function(*args, **kwargs):
 			return self._wrapper(*args, **kwargs)
 		wrapper_function.__doc__ = self.parser.format_help()
 		return wrapper_function
+
+def argument(*args, **kwargs):
+	def decorator(command):
+		if not isinstance(command, _Command):
+			command = _Command(command)
+		command.add_argument(*args, **kwargs)
+		return command
+	return decorator
 
 def command(description=None):
 	def decorator(command):
@@ -62,11 +78,11 @@ def command(description=None):
 		return command.wrapper
 	return decorator
 
-def add_argument(*args, **kwargs):
+def epilog(text):
 	def decorator(command):
 		if not isinstance(command, _Command):
 			command = _Command(command)
-		command.parser.add_argument(*args, **kwargs)
+		command.parser.epilog = text
 		return command
 	return decorator
 
