@@ -75,6 +75,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			self._hidden_commands.append('prep_driver')
 		self._hidden_commands.append('cd')
 		self._hidden_commands.append('exploit')
+		self._hidden_commands.append('print_status')
 		self.last_module = None
 		self.log_handler = log_handler
 		if self.log_handler is None:
@@ -131,24 +132,8 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			return self.__name__ + ' > '
 
 	def run_rc_file(self, rc_file):
-		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
-			self.logger.info('processing "' + rc_file + '" for commands')
-			for line in open(rc_file, 'r'):
-				line = line.strip()
-				if not len(line) or line[0] == '#':
-					continue
-				if line.startswith('print_'):
-					line = line[6:]
-					print_type, message = line.split(' ', 1)
-					if print_type in ('error', 'good', 'line', 'status'):
-						getattr(self, 'print_' + print_type)(message)
-						continue
-				self.print_line(self.prompt + line.strip())
-				self.onecmd(line.strip())
-		else:
-			self.logger.error('invalid rc file: ' + rc_file)
-			return False
-		return True
+		self.logger.info('processing "' + rc_file + '" for commands')
+		return super(InteractiveInterpreter, self).run_rc_file(rc_file)
 
 	@classmethod
 	def serve(cls, *args, **kwargs):
@@ -373,6 +358,11 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			self.frmwk.print_error('no module has been previously selected')
 			return
 		self.frmwk.current_module, self.last_module = self.last_module, self.frmwk.current_module
+
+	@termineter.cmd.command('Print a message in the interface.')
+	@termineter.cmd.argument('message', help='the message to print')
+	def do_print_status(self, args):
+		self.print_status(args.message)
 
 	@termineter.cmd.command('Reload a module into the framework')
 	@termineter.cmd.argument('module', default=None, nargs='?', help='the module to reload')

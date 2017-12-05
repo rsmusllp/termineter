@@ -57,6 +57,7 @@ class _Command(object):
 		self._arguments.reverse()
 		for args, kwargs in self._arguments:
 			self.parser.add_argument(*args, **kwargs)
+
 		def wrapper_function(*args, **kwargs):
 			return self._wrapper(*args, **kwargs)
 		wrapper_function.__doc__ = self.parser.format_help()
@@ -143,6 +144,15 @@ class Cmd(cmd.Cmd):
 		"""Exit The Interpreter"""
 		self.print_line('')
 		return self.do_exit('')
+
+	def run_rc_file(self, rc_file):
+		for line in open(rc_file, 'r'):
+			line = line.strip()
+			if not len(line) or line[0] == '#':
+				continue
+			self.print_line(self.prompt + line.strip())
+			self.onecmd(line.strip())
+		return True
 
 	@classmethod
 	def serve(cls, addr, run_once=False, log_level=None, use_ssl=False, ssl_cert=None, init_kwargs=None):
