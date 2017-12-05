@@ -221,25 +221,25 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		self.print_line('')
 
 	@termineter.cmd.command('Set and show logging options')
-	@termineter.cmd.argument('action', choices=('set', 'show'), default='show', nargs='?', help='set or show the logging option')
-	@termineter.cmd.argument('level', choices=('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'), default='DEBUG', nargs='?', help='the logging level to set')
+	@termineter.cmd.argument('level', nargs='?', help='the logging level to set')
 	def do_logging(self, args):
 		if self.log_handler is None:
 			self.print_error('No log handler is defined')
 			return
-		if args.action == 'show':
+		if args.level is None:
 			loglvl = self.log_handler.level
 			self.print_status('Effective logging level is: ' + ({10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR', 50: 'CRITICAL'}.get(loglvl) or 'UNKNOWN'))
-		elif args.action == 'set':
-			new_lvl = args.level.upper()
-			if new_lvl in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
-				self.log_handler.setLevel(getattr(logging, new_lvl))
-				self.print_status('Successfully changed the logging level to: ' + new_lvl)
-			else:
-				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
+			return
+
+		new_level = args.level.upper()
+		new_level = next((level for level in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL') if level.startswith(new_level)), None)
+		if new_level is None:
+			self.print_error('Invalid logging level: ' + args.level)
+		self.log_handler.setLevel(getattr(logging, new_level))
+		self.print_status('Successfully changed the logging level to: ' + new_level)
 
 	def complete_logging(self, text, line, begidx, endidx):
-		return [i for i in ['set', 'show', 'debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text.lower())]
+		return [i for i in ['debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text.lower())]
 
 	@termineter.cmd.command('Show module information')
 	@termineter.cmd.argument('module', default=None, nargs='?', help='the module whose information is to be shown')
