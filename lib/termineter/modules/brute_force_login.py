@@ -35,7 +35,7 @@ class BruteForce:
 			self.dictionary = open(dictionary_path, 'r')
 
 	def __iter__(self):
-		if self.dictionary == None:
+		if self.dictionary is None:
 			for password in StringGenerator(20):
 				yield password
 		else:
@@ -72,12 +72,11 @@ class Module(TermineterModuleOptical):
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
-		usehex = self.options.get_option_value('USEHEX')
-		dictionary_path = self.options.get_option_value('DICTIONARY')
-		username = self.options.get_option_value('USERNAME')
-		userid = self.options.get_option_value('USERID')
-		pure_brute = self.advanced_options.get_option_value('PUREBRUTE')
-		time_delay = self.advanced_options.get_option_value('DELAY')
+		usehex = self.options['USEHEX']
+		dictionary_path = self.options['DICTIONARY']
+		username = self.options['USERNAME']
+		userid = self.options['USERID']
+		time_delay = self.advanced_options['DELAY']
 
 		if len(username) > 10:
 			self.frmwk.print_error('Username cannot be longer than 10 characters')
@@ -86,22 +85,22 @@ class Module(TermineterModuleOptical):
 			self.frmwk.print_error('User id must be between 0 and 0xffff')
 			return
 
-		if not pure_brute:
+		if self.advanced_options['PUREBRUTE']:
+			self.frmwk.print_status('A pure brute force will take a very very long time')
+			usehex = True  # if doing a prue brute force, it has to be True
+			pw_generator = BruteForce()
+		else:
 			if not os.path.isfile(dictionary_path):
 				self.frmwk.print_error('Can not find dictionary path')
 				return
 			pw_generator = BruteForce(dictionary_path)
-		else:
-			self.frmwk.print_status('A pure brute force will take a very very long time')
-			usehex = True  # if doing a prue brute force, it has to be True
-			pw_generator = BruteForce()
 
 		hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 
 		self.frmwk.print_status('Starting brute force')
 
 		for password in pw_generator:
-			if not pure_brute:
+			if not self.advanced_options['PUREBRUTE']:
 				if usehex:
 					password = password.strip()
 					if hex_regex.match(password) is None:
@@ -125,7 +124,7 @@ class Module(TermineterModuleOptical):
 					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + to_hex(password))
 				else:
 					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
-				if self.advanced_options.get_option_value('STOPONSUCCESS'):
+				if self.advanced_options['STOPONSUCCESS']:
 					conn.stop(force=True)
 					break
 			else:

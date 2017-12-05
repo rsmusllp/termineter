@@ -105,7 +105,7 @@ class Framework(object):
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Loaded Modules: ' + str(len(self.modules)) + ', Serial Connected: ' + str(self.is_serial_connected()) + ' >'
 
-	def _opt_callback_set_table_cache_policy(self, policy):
+	def _opt_callback_set_table_cache_policy(self, policy, _):
 		if self.is_serial_connected():
 			self.serial_connection.set_table_cache_policy(policy)
 		return True

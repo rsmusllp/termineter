@@ -46,7 +46,7 @@ class Module(TermineterModuleOptical):
 		out_file = open(self.options['FILE'], 'w', 1)
 
 		number_of_tables = 0
-		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.get_option_value('FILE'))
+		self.frmwk.print_status('Starting dump, writing table data to: ' + self.options['FILE'])
 		for tableid in range(lower_boundary, (upper_boundary + 1)):
 			try:
 				data = conn.get_table_data(tableid)

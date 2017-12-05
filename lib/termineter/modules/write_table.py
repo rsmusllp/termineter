@@ -63,7 +63,7 @@ class Module(TermineterModuleOptical):
 		else:
 			self.frmwk.print_status('Successfully Wrote Data')
 
-		if self.advanced_options.get_option_value('VERIFY'):
+		if self.advanced_options['VERIFY']:
 			table = conn.get_table_data(tableid)
 			if table[offset:offset + len(data)] == data:
 				self.frmwk.print_status('Table Write Verification Passed')

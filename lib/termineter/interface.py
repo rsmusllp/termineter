@@ -278,7 +278,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			option_value = module.options[option_name]
 			if option_value is None:
 				option_value = ''
-			option_desc = module.options.get_option_help(option_name)
+			option_desc = module.options.get_option(option_name).help
 			self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
 		self.print_line('')
 		self.print_line('Description:')
@@ -538,7 +538,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 				option_value = options[option_name]
 				if option_value is None:
 					option_value = ''
-				option_desc = options.get_option_help(option_name)
+				option_desc = options.get_option(option_name).help
 				self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
 			self.print_line('')
 		elif args[0] == '-h':
