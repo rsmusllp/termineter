@@ -23,10 +23,27 @@ import logging
 import shlex
 import socket
 import ssl
+import sys
 
 class ArgumentParser(argparse.ArgumentParser):
+	def __init__(self, *args, **kwargs):
+		self.stdout = kwargs.pop('stdout', sys.stdout)
+		super(ArgumentParser, self).__init__(*args, **kwargs)
+
+	def error(self, message):
+		self.print_usage()
+		self.exit(2, "{}: error: {}\n".format(self.prog, message))
+
 	def exit(self, status=0, message=None):
+		if message:
+			self.stdout.write(message)
 		raise ArgumentParserExit(status=status, message=message)
+
+	def print_help(self):
+		return super(ArgumentParser, self).print_help(file=self.stdout)
+
+	def print_usage(self):
+		return super(ArgumentParser, self).print_usage(file=self.stdout)
 
 class ArgumentParserExit(Exception):
 	def __init__(self, status=0, message=None):
@@ -42,7 +59,15 @@ class _Command(object):
 
 	def _wrapper(self, inst, args):
 		parser = self.parser
-		args = shlex.split(args)
+		try:
+			args = shlex.split(args)
+		except ValueError as error:
+			message = 'Failed to parse argument'
+			if error.args:
+				message += ' (' + error.args[0] + ')'
+			inst.stdout.write(message + '\n')
+			return
+		parser.stdout = inst.stdout
 		try:
 			args = parser.parse_args(args)
 		except ArgumentParserExit:
