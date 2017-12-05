@@ -134,7 +134,6 @@ class Options(dict):
 		as the string option with the exception that the default value
 		will have the following variables replaced within it:
 			$USER_DATA The path to the users data directory
-			$MODULES_PATH The path to where modules are stored
 			$DATA_PATH The path to the framework's data directory
 		This will NOT check that the file exists or is readable.
 
@@ -153,9 +152,8 @@ class Options(dict):
 		True and the user must specify it, set to anything but None.
 		"""
 		if isinstance(default, str):
-			default = default.replace('$USER_DATA ', self.directories.user_data + os.path.sep)
-			default = default.replace('$MODULES_PATH ', self.directories.modules_path + os.path.sep)
 			default = default.replace('$DATA_PATH ', self.directories.data_path + os.path.sep)
+			default = default.replace('$USER_DATA ', self.directories.user_data + os.path.sep)
 		self.__setitem__(name, ('rfile', help, required, default, None))
 
 	def set_callback(self, name, callback):

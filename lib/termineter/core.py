@@ -45,17 +45,15 @@ class Framework(object):
 	modules.
 	"""
 	def __init__(self, stdout=None):
-		self.modules = {}
 		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
 		package_path = importlib.import_module(self.__package__).__path__[0]  # that's some python black magic trickery for you
 		if stdout is None:
 			stdout = sys.stdout
 		self.stdout = stdout
-		self.logger = logging.getLogger(self.__package__ + '.' + self.__class__.__name__.lower())
+		self.logger = logging.getLogger('termineter.framework')
 
 		self.directories = termineter.utilities.Namespace()
 		self.directories.user_data = os.path.abspath(os.path.join(os.path.expanduser('~'), '.termineter'))
-		self.directories.modules_path = os.path.abspath(os.path.join(package_path, 'modules'))
 		self.directories.data_path = os.path.abspath(os.path.join(package_path, 'data'))
 		if not os.path.isdir(self.directories.data_path):
 			self.logger.critical('path to data not found')
@@ -96,40 +94,11 @@ class Framework(object):
 			self.options.set_option('USECOLOR', 'True')
 
 		# start loading modules
-		modules_path = os.path.abspath(self.directories.modules_path)
-		self.logger.debug('searching for modules in: ' + modules_path)
 		self.current_module = None
-		if not os.path.isdir(modules_path):
-			self.logger.critical('path to modules not found')
-			raise termineter.errors.FrameworkConfigurationError('path to modules not found')
-		for module_path in smoke_zephyr.utilities.FileWalker(modules_path, absolute_path=True, skip_dirs=True):
-			module_path = module_path.replace(os.path.sep, '/')
-			if not module_path.endswith('.py'):
-				continue
-			module_path = module_path[len(modules_path) + 1:-3]
-			module_name = module_path.split(os.path.sep)[-1]
-			if module_name.startswith('__'):
-				continue
-			if module_name.lower() != module_name:
-				continue
-			# looks good, proceed to load
-			self.logger.debug('loading module: ' + module_path)
-			try:
-				module_instance = self.import_module(module_path)
-			except termineter.errors.FrameworkRuntimeError:
-				continue
-			if not isinstance(module_instance, termineter.module.TermineterModule):
-				self.logger.error('module: ' + module_path + ' is not derived from the TermineterModule class')
-				continue
-			if not hasattr(module_instance, 'run'):
-				self.logger.critical('module: ' + module_path + ' has no run() method')
-				raise termineter.errors.FrameworkRuntimeError('module: ' + module_path + ' has no run() method')
-			if not isinstance(module_instance.options, termineter.options.Options) or not isinstance(module_instance.advanced_options, termineter.options.Options):
-				self.logger.critical('module: ' + module_path + ' options and advanced_options must be termineter.options.Options instances')
-				raise termineter.errors.FrameworkRuntimeError('options and advanced_options must be termineter.options.Options instances')
-			module_instance.name = module_name
-			module_instance.path = module_path
-			self.modules[module_path] = module_instance
+		self.modules = termineter.module.ManagerManager(self, [
+			os.path.abspath(os.path.join(__file__, '..', 'modules')),
+			os.path.abspath(os.path.join(self.directories.user_data, 'modules'))
+		])
 		self.logger.info("successfully loaded {0:,} modules into the framework".format(len(self.modules)))
 		return
 
@@ -152,11 +121,11 @@ class Framework(object):
 		"""
 		if module_path is None:
 			if self.current_module is not None:
-				module_path = self.current_module.path
+				module_path = self.current_module.name
 			else:
 				self.logger.warning('must specify module if not module is currently being used')
 				return False
-		if not module_path in self.modules.keys():
+		if module_path not in self.module:
 			self.logger.error('invalid module requested for reload')
 			raise termineter.errors.FrameworkRuntimeError('invalid module requested for reload')
 
@@ -227,7 +196,7 @@ class Framework(object):
 		@type name: String
 		@param name: The name of the module requesting the logger
 		"""
-		return logging.getLogger(self.__package__ + '.modules.' + name)
+		return logging.getLogger('termineter.module.' + name)
 
 	def import_module(self, module_path, reload_module=False):
 		module = self.__package__ + '.modules.' + module_path.replace('/', '.')

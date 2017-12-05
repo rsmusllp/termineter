@@ -79,7 +79,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		self.log_handler = log_handler
 		if self.log_handler is None:
 			self._disabled_commands.append('logging')
-		self.logger = logging.getLogger(self.__package__ + '.interpreter')
+		self.logger = logging.getLogger('termineter.interpreter')
 		self.frmwk = termineter.core.Framework(stdout=stdout)
 		self.print_exception = self.frmwk.print_exception
 		self.print_error = self.frmwk.print_error
@@ -412,22 +412,24 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 	def do_reload(self, args):
 		"""Reload a module in to the framework"""
 		args = shlex.split(args)
-		if len(args) == 0:
-			if self.frmwk.current_module:
-				module_path = self.frmwk.current_module.path
-			else:
-				self.print_error('Must \'use\' module first')
-				return
-		elif not args[0] in self.frmwk.modules.keys():
+		if len(args):
+			module_path = args[0]
+		elif self.frmwk.current_module:
+			module_path = self.frmwk.current_module.name
+		else:
+			self.print_error('Must \'use\' module first')
+			return
+
+		if module_path not in self.frmwk.modules:
 			self.print_error('Invalid Module Selected.')
 			return
-		else:
-			module_path = args[0]
 		try:
-			self.frmwk.reload_module(module_path)
+			module = self.frmwk.modules.reload(module_path)
 		except termineter.errors.FrameworkRuntimeError:
 			self.print_error('Failed to reload module')
 			return
+		if module_path == self.frmwk.current_module.name:
+			self.frmwk.current_module = module
 		self.print_status('Successfully reloaded module: ' + module_path)
 
 	def complete_reload(self, text, line, begidx, endidx):

@@ -64,9 +64,10 @@ setup(
 	license='GPLv3',
 	install_requires=[
 		'crcelk>=1.0',
+		'pluginbase>=0.5',
 		'pyasn1>=0.1.7',
 		'pyserial>=2.6',
-		'smoke-zephyr==1.0.2'
+		'smoke-zephyr>=1.2'
 	],
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
