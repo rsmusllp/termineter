@@ -367,7 +367,9 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 				sys.stderr = os.fdopen(savestderr, 'w', 0)
 		else:
 			self.print_line(banner)
-			pyconsole = IPython.terminal.embed.InteractiveShellEmbed()
+			pyconsole = IPython.terminal.embed.InteractiveShellEmbed(
+				ipython_dir=os.path.join(self.frmwk.directories.user_data, 'ipython')
+			)
 			pyconsole.mainloop(vars)
 
 	def do_prep_driver(self, args):
