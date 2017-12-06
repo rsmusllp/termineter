@@ -197,8 +197,8 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			pass
 		return True
 
-	@termineter.cmd.command('Run the currently selected module')
 	def do_exploit(self, args):
+		"""Alias of the 'run' command"""
 		self.do_run(args)
 
 	def do_help(self, args):

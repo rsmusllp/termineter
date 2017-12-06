@@ -32,7 +32,7 @@ class Module(TermineterModuleOptical):
 		self.description = 'Initiate A Reset Procedure'
 		self.detailed_description = 'Initiate a remote reset procedure. Despite the name, this module is used locally through the optical interface.'
 		self.options.add_boolean('DEMAND', 'perform a demand reset', default=False)
-		self.options.add_boolean('SELFREAD', 'perform a self read', default=False)
+		self.options.add_boolean('SELF_READ', 'perform a self read', default=False)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
@@ -40,7 +40,7 @@ class Module(TermineterModuleOptical):
 		params = 0
 		if self.options['DEMAND']:
 			params |= 0b01
-		if self.options['SELFREAD']:
+		if self.options['SELF_READ']:
 			params |= 0b10
 
 		self.frmwk.print_status('Initiating Reset Procedure')

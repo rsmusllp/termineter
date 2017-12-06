@@ -27,6 +27,7 @@ import os
 import re
 import serial
 import sys
+import tabulate
 
 import c1218.connection
 import c1218.errors
@@ -36,7 +37,6 @@ import termineter.options
 import termineter.utilities
 
 import serial.serialutil
-import smoke_zephyr.utilities
 
 class Framework(object):
 	"""
@@ -75,23 +75,23 @@ class Framework(object):
 		# modules get_missing_options method and by which options they require based
 		# on their respective types.  See framework/templates.py for more info.
 		self.options = termineter.options.Options(self.directories)
-		self.options.add_boolean('USECOLOR', 'enable color on the console interface', default=False)
-		self.options.add_string('CONNECTION', 'serial connection string')
+		self.options.add_boolean('USE_COLOR', 'enable color on the console interface', default=False)
+		self.options.add_string('SERIAL_CONNECTION', 'serial connection string')
 		self.options.add_string('USERNAME', 'serial username', default='0000')
-		self.options.add_integer('USERID', 'serial userid', default=0)
+		self.options.add_integer('USER_ID', 'serial user id', default=0)
 		self.options.add_string('PASSWORD', 'serial c12.18 password', default='00000000000000000000')
-		self.options.add_boolean('PASSWORDHEX', 'if the password is in hex', default=True)
+		self.options.add_boolean('PASSWORD_HEX', 'if the password is in hex', default=True)
 		self.advanced_options = termineter.options.AdvancedOptions(self.directories)
-		self.advanced_options.add_boolean('AUTOCONNECT', 'automatically handle connections for modules', default=True)
-		self.advanced_options.add_integer('BAUDRATE', 'serial connection baud rate', default=9600)
-		self.advanced_options.add_integer('BYTESIZE', 'serial connection byte size', default=serial.EIGHTBITS)
-		self.advanced_options.add_boolean('CACHETBLS', 'cache certain read-only tables', default=True)
-		self.advanced_options.set_callback('CACHETBLS', self._opt_callback_set_table_cache_policy)
-		self.advanced_options.add_integer('STOPBITS', 'serial connection stop bits', default=serial.STOPBITS_ONE)
-		self.advanced_options.add_integer('NBRPKTS', 'c12.18 maximum packets for reassembly', default=2)
-		self.advanced_options.add_integer('PKTSIZE', 'c12.18 maximum packet size', default=512)
+		self.advanced_options.add_boolean('AUTO_CONNECT', 'automatically handle connections for modules', default=True)
+		self.advanced_options.add_boolean('CACHE_TABLES', 'cache certain read-only tables', default=True)
+		self.advanced_options.set_callback('CACHE_TABLES', self._opt_callback_set_table_cache_policy)
+		self.advanced_options.add_integer('SERIAL_BAUD_RATE', 'serial connection baud rate', default=9600)
+		self.advanced_options.add_integer('SERIAL_BYTE_SIZE', 'serial connection byte size', default=serial.EIGHTBITS)
+		self.advanced_options.add_integer('SERIAL_STOP_BITS', 'serial connection stop bits', default=serial.STOPBITS_ONE)
+		self.advanced_options.add_integer('C1218_MAX_PACKETS', 'c12.18 maximum packets for reassembly', default=2)
+		self.advanced_options.add_integer('C1218_PACKET_SIZE', 'c12.18 maximum packet size', default=512)
 		if sys.platform.startswith('linux'):
-			self.options.set_option('USECOLOR', 'True')
+			self.options.set_option('USE_COLOR', 'True')
 
 		# start loading modules
 		self.current_module = None
@@ -122,7 +122,7 @@ class Framework(object):
 			return False
 
 		ConnectionState = termineter.module.ConnectionState
-		if not self.advanced_options['AUTOCONNECT']:
+		if not self.advanced_options['AUTO_CONNECT']:
 			return True
 		if module.connection_state == ConnectionState.none:
 			return True
@@ -192,17 +192,17 @@ class Framework(object):
 		try:
 			result = module.run()
 		finally:
-			if isinstance(module, termineter.module.TermineterModuleOptical) and self.serial_connection and self.advanced_options['AUTOCONNECT']:
+			if isinstance(module, termineter.module.TermineterModuleOptical) and self.serial_connection and self.advanced_options['AUTO_CONNECT']:
 				self.serial_connection.stop()
 		return result
 
 	@property
 	def use_colors(self):
-		return self.options['USECOLOR']
+		return self.options['USE_COLOR']
 
 	@use_colors.setter
 	def use_colors(self, value):
-		self.options.set_option('USECOLOR', str(value))
+		self.options.set_option('USE_COLOR', str(value))
 
 	def get_module_logger(self, name):
 		"""
@@ -232,14 +232,14 @@ class Framework(object):
 		self.print_error(message)
 
 	def print_error(self, message):
-		if self.options['USECOLOR']:
+		if self.options['USE_COLOR']:
 			self.stdout.write('\033[1;31m[-] \033[1;m' + (os.linesep + '\033[1;31m[-] \033[1;m').join(message.split(os.linesep)) + os.linesep)
 		else:
 			self.stdout.write('[-] ' + (os.linesep + '[-] ').join(message.split(os.linesep)) + os.linesep)
 		self.stdout.flush()
 
 	def print_good(self, message):
-		if self.options['USECOLOR']:
+		if self.options['USE_COLOR']:
 			self.stdout.write('\033[1;32m[+] \033[1;m' + (os.linesep + '\033[1;32m[+] \033[1;m').join(message.split(os.linesep)) + os.linesep)
 		else:
 			self.stdout.write('[+] ' + (os.linesep + '[+] ').join(message.split(os.linesep)) + os.linesep)
@@ -250,11 +250,14 @@ class Framework(object):
 		self.stdout.flush()
 
 	def print_status(self, message):
-		if self.options['USECOLOR']:
+		if self.options['USE_COLOR']:
 			self.stdout.write('\033[1;34m[*] \033[1;m' + (os.linesep + '\033[1;34m[*] \033[1;m').join(message.split(os.linesep)) + os.linesep)
 		else:
 			self.stdout.write('[*] ' + (os.linesep + '[*] ').join(message.split(os.linesep)) + os.linesep)
 		self.stdout.flush()
+
+	def print_table(self, table, headers=(), tablefmt=None):
+		self.print_line(tabulate.tabulate(table, headers=headers, tablefmt=tablefmt))
 
 	def print_hexdump(self, data):
 		data_len = len(data)
@@ -307,18 +310,18 @@ class Framework(object):
 		it, setting the framework instance in the process.
 		"""
 		frmwk_c1218_settings = {
-			'nbrpkts': self.advanced_options['NBRPKTS'],
-			'pktsize': self.advanced_options['PKTSIZE']
+			'nbrpkts': self.advanced_options['C1218_MAX_PACKETS'],
+			'pktsize': self.advanced_options['C1218_PACKET_SIZE']
 		}
 
 		frmwk_serial_settings = termineter.utilities.get_default_serial_settings()
-		frmwk_serial_settings['baudrate'] = self.advanced_options['BAUDRATE']
-		frmwk_serial_settings['bytesize'] = self.advanced_options['BYTESIZE']
-		frmwk_serial_settings['stopbits'] = self.advanced_options['STOPBITS']
+		frmwk_serial_settings['baudrate'] = self.advanced_options['SERIAL_BAUD_RATE']
+		frmwk_serial_settings['bytesize'] = self.advanced_options['SERIAL_BYTE_SIZE']
+		frmwk_serial_settings['stopbits'] = self.advanced_options['SERIAL_STOP_BITS']
 
-		self.logger.info('opening serial device: ' + self.options['CONNECTION'])
+		self.logger.info('opening serial device: ' + self.options['SERIAL_CONNECTION'])
 		try:
-			self.serial_connection = c1218.connection.Connection(self.options['CONNECTION'], c1218_settings=frmwk_c1218_settings, serial_settings=frmwk_serial_settings, enable_cache=self.advanced_options['CACHETBLS'])
+			self.serial_connection = c1218.connection.Connection(self.options['SERIAL_CONNECTION'], c1218_settings=frmwk_c1218_settings, serial_settings=frmwk_serial_settings, enable_cache=self.advanced_options['CACHE_TABLES'])
 		except Exception as error:
 			self.logger.error('could not open the serial device')
 			raise error
@@ -346,9 +349,9 @@ class Framework(object):
 			raise termineter.errors.FrameworkRuntimeError('the serial interface is disconnected')
 
 		username = self.options['USERNAME']
-		userid = self.options['USERID']
+		user_id = self.options['USER_ID']
 		password = self.options['PASSWORD']
-		if self.options['PASSWORDHEX']:
+		if self.options['PASSWORD_HEX']:
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 			if hex_regex.match(password) is None:
 				self.print_error('Invalid characters in password')
@@ -357,14 +360,14 @@ class Framework(object):
 		if len(username) > 10:
 			self.print_error('Username cannot be longer than 10 characters')
 			raise termineter.errors.FrameworkConfigurationError('username cannot be longer than 10 characters')
-		if not (0 <= userid <= 0xffff):
+		if not (0 <= user_id <= 0xffff):
 			self.print_error('User id must be between 0 and 0xffff')
 			raise termineter.errors.FrameworkConfigurationError('user id must be between 0 and 0xffff')
 		if len(password) > 20:
 			self.print_error('Password cannot be longer than 20 characters')
 			raise termineter.errors.FrameworkConfigurationError('password cannot be longer than 20 characters')
 
-		if not self.serial_connection.login(username, userid, password):
+		if not self.serial_connection.login(username, user_id, password):
 			return False
 		return True
 
@@ -378,18 +381,18 @@ class Framework(object):
 		self.serial_connect()
 
 		username = self.options['USERNAME']
-		userid = self.options['USERID']
+		user_id = self.options['USER_ID']
 		if len(username) > 10:
 			self.logger.error('username cannot be longer than 10 characters')
 			raise termineter.errors.FrameworkConfigurationError('username cannot be longer than 10 characters')
-		if not (0 <= userid <= 0xffff):
+		if not (0 <= user_id <= 0xffff):
 			self.logger.error('user id must be between 0 and 0xffff')
 			raise termineter.errors.FrameworkConfigurationError('user id must be between 0 and 0xffff')
 
 		try:
-			if not self.serial_connection.login(username, userid):
-				self.logger.error('the meter has rejected the username and userid')
-				raise termineter.errors.FrameworkConfigurationError('the meter has rejected the username and userid')
+			if not self.serial_connection.login(username, user_id):
+				self.logger.error('the meter has rejected the username and user id')
+				raise termineter.errors.FrameworkConfigurationError('the meter has rejected the username and user id')
 		except c1218.errors.C1218IOError as error:
 			self.logger.error('serial connection has been opened but the meter is unresponsive')
 			raise error

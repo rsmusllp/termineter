@@ -124,17 +124,17 @@ class TermineterModule(object):
 
 class TermineterModuleOptical(TermineterModule):
 	frmwk_required_options = (
-		'CONNECTION',
+		'SERIAL_CONNECTION',
 		'USERNAME',
-		'USERID',
+		'USER_ID',
 		'PASSWORD',
-		'PASSWORDHEX',
-		'BAUDRATE',
-		'BYTESIZE',
-		'CACHETBLS',
-		'STOPBITS',
-		'NBRPKTS',
-		'PKTSIZE'
+		'PASSWORD_HEX',
+		'SERIAL_BAUD_RATE',
+		'SERIAL_BYTE_SIZE',
+		'CACHE_TABLES',
+		'SERIAL_STOP_BITS',
+		'NUMBER_PACKETS',
+		'PACKET_SIZE'
 	)
 	connection_state = ConnectionState.authenticated
 	connection_states = ConnectionState
