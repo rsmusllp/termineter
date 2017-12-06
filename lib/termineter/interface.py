@@ -383,9 +383,9 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		try:
 			module = self.frmwk.modules.reload(module_path)
 		except termineter.errors.FrameworkRuntimeError:
-			self.print_error('Failed to reload module')
+			self.print_error('Failed to reload the module')
 			return
-		if module_path == self.frmwk.current_module.name:
+		if module_path == self.frmwk.current_module.path:
 			self.frmwk.current_module = module
 		self.print_status('Successfully reloaded module: ' + module_path)
 
@@ -409,6 +409,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		return complete_path(text, allow_files=True)
 
 	@termineter.cmd.command('Run the specified module')
+	@termineter.cmd.argument('-r', '--reload', action='store_true', default=False, help='reload the module before running it')
 	@termineter.cmd.argument('module', default=None, nargs='?', help='the module to run')
 	def do_run(self, args):
 		old_module = None
@@ -422,8 +423,15 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 				return
 			old_module = self.frmwk.current_module
 			self.frmwk.current_module = self.frmwk.modules[args.module]
-
 		module = self.frmwk.current_module
+		if args.reload:
+			try:
+				module = self.frmwk.modules.reload(module.path)
+			except termineter.errors.FrameworkRuntimeError:
+				self.print_error('Failed to reload the module')
+				return
+			self.frmwk.current_module = module
+
 		missing_options = module.get_missing_options()
 		if missing_options:
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
