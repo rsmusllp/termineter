@@ -256,8 +256,11 @@ class Framework(object):
 			self.stdout.write('[*] ' + (os.linesep + '[*] ').join(message.split(os.linesep)) + os.linesep)
 		self.stdout.flush()
 
-	def print_table(self, table, headers=(), tablefmt=None):
-		self.print_line(tabulate.tabulate(table, headers=headers, tablefmt=tablefmt))
+	def print_table(self, table, headers=(), line_prefix=None, tablefmt=None):
+		text = tabulate.tabulate(table, headers=headers, tablefmt=tablefmt)
+		if line_prefix:
+			text = '\n'.join(line_prefix + line for line in text.split('\n'))
+		self.print_line(text)
 
 	def print_hexdump(self, data):
 		data_len = len(data)

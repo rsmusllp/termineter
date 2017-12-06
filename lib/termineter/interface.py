@@ -131,6 +131,21 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		else:
 			return self.__name__ + ' > '
 
+	def reload_module(self, module):
+		is_current = self.frmwk.current_module and module.path == self.frmwk.current_module.path
+		try:
+			module = self.frmwk.modules.reload(module.path)
+		except termineter.errors.FrameworkRuntimeError:
+			self.print_error('Failed to reload the module')
+			return
+		except Exception as error:
+			self.print_exception(error)
+			return
+		self.print_status('Successfully reloaded module: ' + module.path)
+		if is_current:
+			self.frmwk.current_module = module
+		return module
+
 	def run_rc_file(self, rc_file):
 		self.logger.info('processing "' + rc_file + '" for commands')
 		return super(InteractiveInterpreter, self).run_rc_file(rc_file)
@@ -227,7 +242,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		return [i for i in ['debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text.lower())]
 
 	@termineter.cmd.command('Show module information')
-	@termineter.cmd.argument('module', default=None, nargs='?', help='the module whose information is to be shown')
+	@termineter.cmd.argument('module', nargs='?', help='the module whose information is to be shown')
 	def do_info(self, args):
 		if args.module is None:
 			if self.frmwk.current_module is None:
@@ -366,28 +381,20 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		self.print_status(args.message)
 
 	@termineter.cmd.command('Reload a module into the framework')
-	@termineter.cmd.argument('module', default=None, nargs='?', help='the module to reload')
+	@termineter.cmd.argument('module', nargs='?', help='the module to reload')
 	def do_reload(self, args):
 		"""Reload a module in to the framework"""
 		if args.module is not None:
-			module_path = args.module
+			if args.module not in self.frmwk.modules:
+				self.print_error('Invalid Module Selected.')
+				return
+			module = self.frmwk.modules[args.module]
 		elif self.frmwk.current_module:
-			module_path = self.frmwk.current_module.path
+			module = self.frmwk.current_module
 		else:
 			self.print_error('Must \'use\' module first')
 			return
-
-		if module_path not in self.frmwk.modules:
-			self.print_error('Invalid Module Selected.')
-			return
-		try:
-			module = self.frmwk.modules.reload(module_path)
-		except termineter.errors.FrameworkRuntimeError:
-			self.print_error('Failed to reload the module')
-			return
-		if module_path == self.frmwk.current_module.path:
-			self.frmwk.current_module = module
-		self.print_status('Successfully reloaded module: ' + module_path)
+		self.reload_module(module)
 
 	def complete_reload(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
@@ -410,7 +417,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 
 	@termineter.cmd.command('Run the specified module')
 	@termineter.cmd.argument('-r', '--reload', action='store_true', default=False, help='reload the module before running it')
-	@termineter.cmd.argument('module', default=None, nargs='?', help='the module to run')
+	@termineter.cmd.argument('module', nargs='?', help='the module to run')
 	def do_run(self, args):
 		old_module = None
 		if args.module is None:
@@ -425,12 +432,9 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			self.frmwk.current_module = self.frmwk.modules[args.module]
 		module = self.frmwk.current_module
 		if args.reload:
-			try:
-				module = self.frmwk.modules.reload(module.path)
-			except termineter.errors.FrameworkRuntimeError:
-				self.print_error('Failed to reload the module')
+			module = self.reload_module(module)
+			if module is None:
 				return
-			self.frmwk.current_module = module
 
 		missing_options = module.get_missing_options()
 		if missing_options:
@@ -484,70 +488,42 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			options = self.frmwk.options
 		return [i + ' ' for i in options.keys() if i.startswith(text.upper())]
 
+	@termineter.cmd.command('Show the specified information')
+	@termineter.cmd.argument('thing', choices=('advanced', 'modules', 'options'), default='options', nargs='?', help='what to show')
 	def do_show(self, args):
 		"""Valid parameters for the "show" command are: modules, options"""
-		args = shlex.split(args)
-		if len(args) == 0:
-			args.append('options')
-		elif not args[0] in ['advanced', 'modules', 'options', '-h']:
-			self.print_error('Invalid parameter "' + args[0] + '", use "show -h" for more information')
-			return
-		if args[0] == 'modules':
-			self.print_line('')
+		self.print_line('')
+		if args.thing == 'modules':
 			self.print_line('Modules' + os.linesep + '=======')
-			self.print_line('')
-			longest_name = 18
-			for module_name in self.frmwk.modules.keys():
-				longest_name = max(longest_name, len(module_name))
-			fmt_string = "  {0:" + str(longest_name) + "} {1}"
-			self.print_line(fmt_string.format('Name', 'Description'))
-			self.print_line(fmt_string.format('----', '-----------'))
-			module_names = sorted(list(self.frmwk.modules.keys()))
-			module_names.sort()
-			for module_name in module_names:
-				module_obj = self.frmwk.modules[module_name]
-				self.print_line(fmt_string.format(module_name, module_obj.description))
-			self.print_line('')
-			return
-		elif args[0] == 'options' or args[0] == 'advanced':
-			self.print_line('')
-			if self.frmwk.current_module and args[0] == 'options':
+			headers = ('Name', 'Description')
+			rows = [(module.path, module.description) for module in self.frmwk.modules.values()]
+		else:
+			if self.frmwk.current_module and args.thing == 'options':
 				options = self.frmwk.current_module.options
 				self.print_line('Module Options' + os.linesep + '==============')
-			if self.frmwk.current_module and args[0] == 'advanced':
+			if self.frmwk.current_module and args.thing == 'advanced':
 				options = self.frmwk.current_module.advanced_options
 				self.print_line('Advanced Module Options' + os.linesep + '=======================')
-			elif self.frmwk.current_module is None and args[0] == 'options':
+			elif self.frmwk.current_module is None and args.thing == 'options':
 				options = self.frmwk.options
 				self.print_line('Framework Options' + os.linesep + '=================')
-			elif self.frmwk.current_module is None and args[0] == 'advanced':
+			elif self.frmwk.current_module is None and args.thing == 'advanced':
 				options = self.frmwk.advanced_options
 				self.print_line('Advanced Framework Options' + os.linesep + '==========================')
-			self.print_line('')
-			longest_name = 16
-			longest_value = 10
-			for option_name, option_def in options.items():
-				longest_name = max(longest_name, len(option_name))
-				longest_value = max(longest_value, len(str(options[option_name])))
-			fmt_string = "  {0:<" + str(longest_name) + "} {1:<" + str(longest_value) + "} {2}"
-
-			self.print_line(fmt_string.format('Name', 'Value', 'Description'))
-			self.print_line(fmt_string.format('----', '-----', '-----------'))
-			for option_name in options.keys():
-				option_value = options[option_name]
-				if option_value is None:
-					option_value = ''
-				option_desc = options.get_option(option_name).help
-				self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
-			self.print_line('')
-		elif args[0] == '-h':
-			self.print_status('Valid parameters for the "show" command are: modules, options')
+			headers = ('Name', 'Value', 'Description')
+			raw_options = [options.get_option(name) for name in options]
+			rows = [(option.name, str(option.value), option.help) for option in raw_options]
+		rows = sorted(rows, key=lambda row: row[0])
+		self.print_line('')
+		self.frmwk.print_table(rows, headers=headers, line_prefix='  ')
+		self.print_line('')
+		return
 
 	def complete_show(self, text, line, begidx, endidx):
 		return [i for i in ['advanced', 'modules', 'options'] if i.startswith(text.lower())]
 
 	@termineter.cmd.command('Select a module to use')
-	@termineter.cmd.argument('module', default=None, help='the module to use')
+	@termineter.cmd.argument('module', help='the module to use')
 	def do_use(self, args):
 		if args.module not in self.frmwk.modules:
 			self.logger.error('failed to change context to module: ' + args.module)
