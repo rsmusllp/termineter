@@ -116,7 +116,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
 		intro += os.linesep
 		fmt_string = "  <[ {0:<18} {1:>18}"
-		intro += fmt_string.format(self.__name__, 'v' + termineter.__version__ + '') + os.linesep
+		intro += fmt_string.format(self.__name__, 'v' + termineter.__version__) + os.linesep
 		intro += fmt_string.format('model:', codename) + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
 		return intro
@@ -248,7 +248,6 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			self.print_line('  Authors: ' + module.author[0])
 			for additional_author in module.author[1:]:
 				self.print_line('               ' + additional_author)
-		self.print_line('  Version: ' + str(module.version))
 		self.print_line('')
 		self.print_line('Basic Options: ')
 		longest_name = 16
@@ -549,3 +548,12 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 
 	def complete_use(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
+
+	@termineter.cmd.command('Show the framework version information')
+	def do_version(self, args):
+		fmt_string = "{0:<18} {1:>24}"
+		self.print_line(fmt_string.format(self.__name__ + ':', 'v' + termineter.__version__))
+		revision = ('unknown' if termineter.revision is None else termineter.revision[:12])
+		self.print_line(fmt_string.format('revision:', revision))
+		self.print_line(fmt_string.format('model:', codename))
+		self.print_line(fmt_string.format('loaded modules:', len(self.frmwk.modules)))

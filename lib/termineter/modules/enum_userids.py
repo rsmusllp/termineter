@@ -27,7 +27,6 @@ class Module(TermineterModuleOptical):
 	require_connection = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Enumerate Valid User IDs From The Device'
 		self.detailed_description = 'This module will enumerate existing user IDs from the device.'

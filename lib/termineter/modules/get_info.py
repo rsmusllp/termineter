@@ -43,7 +43,6 @@ STATUS_FLAGS = flags = (
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Get Basic Meter Information By Reading Tables'
 		self.detailed_description = 'This module retreives some basic meter information and displays it in a human-readable way.'

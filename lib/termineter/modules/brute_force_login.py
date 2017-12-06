@@ -56,7 +56,6 @@ class Module(TermineterModuleOptical):
 	require_connection = False
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 4
 		self.author = ['Spencer McIntyre']
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'

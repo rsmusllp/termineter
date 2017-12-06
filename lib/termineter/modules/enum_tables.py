@@ -34,7 +34,6 @@ from termineter.module import TermineterModuleOptical
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 5
 		self.author = ['Spencer McIntyre']
 		self.description = 'Enumerate Readable C12.19 Tables From The Device'
 		self.detailed_description = """\

@@ -25,7 +25,6 @@ from termineter.module import TermineterModuleOptical
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Set The Meter\'s I.D.'
 		self.detailed_description = 'This module will over write the Smart Meter\'s device ID with the new value specified in METERID.'

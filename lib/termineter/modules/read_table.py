@@ -25,7 +25,6 @@ from termineter.module import TermineterModuleOptical
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Read Data From A C12.19 Table'
 		self.detailed_description = 'This module allows individual tables to be read from the smart meter.'
@@ -42,4 +41,3 @@ class Module(TermineterModuleOptical):
 
 		self.frmwk.print_status('Read ' + str(len(data)) + ' bytes')
 		self.frmwk.print_hexdump(data)
-

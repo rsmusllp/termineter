@@ -80,8 +80,7 @@ class TermineterModule(object):
 	frmwk_required_options = ()
 	def __init__(self, frmwk):
 		self.frmwk = frmwk
-		self.version = 0
-		self.author = ['anonymous']
+		self.author = ['Anonymous']
 		self.description = 'This module is undocumented.'
 		self.detailed_description = 'This module is undocumented.'
 		self.options = termineter.options.Options(frmwk.directories)
