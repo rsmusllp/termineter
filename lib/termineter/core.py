@@ -110,6 +110,39 @@ class Framework(object):
 			self.serial_connection.set_table_cache_policy(policy)
 		return True
 
+	def _run_optical(self, module):
+		if not self._serial_connected:
+			self.print_error('The serial interface has not been connected')
+			return False
+
+		try:
+			self.serial_get()
+		except Exception as error:
+			self.print_exception(error)
+			return False
+
+		ConnectionState = termineter.module.ConnectionState
+		if not self.advanced_options['AUTOCONNECT']:
+			return True
+		if module.connection_state == ConnectionState.none:
+			return True
+
+		try:
+			self.serial_connect()
+		except Exception as error:
+			self.print_exception(error)
+			return
+		self.print_good('Successfully connected and the device is responding')
+		if module.connection_state == ConnectionState.connected:
+			return True
+
+		if not self.serial_login():
+			self.logger.warning('meter login failed, some tables may not be accessible')
+		if module.connection_state == ConnectionState.authenticated:
+			return True
+		self.logger.warning('unknown optical connection state: ' + module.connection_state.name)
+		return True
+
 	def reload_module(self, module_path=None):
 		"""
 		Reloads a module into the framework.  If module_path is not
@@ -153,25 +186,8 @@ class Framework(object):
 			raise termineter.errors.FrameworkRuntimeError('either the module or the current_module must be sent')
 		if module is None:
 			module = self.current_module
-		if isinstance(module, termineter.module.TermineterModuleOptical):
-			if not self._serial_connected:
-				raise termineter.errors.FrameworkRuntimeError('the serial interface is disconnected')
-
-			try:
-				self.serial_get()
-			except Exception as error:
-				self.print_exception(error)
-				return
-			if module.require_connection and self.advanced_options['AUTOCONNECT']:
-				try:
-					self.serial_connect()
-				except Exception as error:
-					self.print_exception(error)
-					return
-				self.print_good('Successfully connected and the device is responding')
-				if not self.serial_login():
-					self.logger.warning('meter login failed, some tables may not be accessible')
-
+		if isinstance(module, termineter.module.TermineterModuleOptical) and not self._run_optical(module):
+			return
 		self.logger.info('running module: ' + module.path)
 		try:
 			result = module.run()

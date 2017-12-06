@@ -241,13 +241,15 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			return
 
 		self.print_line('')
-		self.print_line('     Name: ' + module.name)
+		self.print_line('        Name: ' + module.name)
 		if len(module.author) == 1:
-			self.print_line('   Author: ' + module.author[0])
+			self.print_line('      Author: ' + module.author[0])
 		elif len(module.author) > 1:
-			self.print_line('  Authors: ' + module.author[0])
+			self.print_line('     Authors: ' + module.author[0])
 			for additional_author in module.author[1:]:
-				self.print_line('               ' + additional_author)
+				self.print_line('              ' + additional_author)
+		if isinstance(module, termineter.module.TermineterModuleOptical):
+			self.print_line('  Connection: ' + module.connection_state.name)
 		self.print_line('')
 		self.print_line('Basic Options: ')
 		longest_name = 16

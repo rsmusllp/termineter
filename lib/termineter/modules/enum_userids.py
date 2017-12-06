@@ -24,7 +24,7 @@ from time import sleep
 from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
-	require_connection = False
+	connection_state = TermineterModuleOptical.connection_states.none
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.author = ['Spencer McIntyre']

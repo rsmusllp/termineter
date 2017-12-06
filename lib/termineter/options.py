@@ -38,6 +38,9 @@ class Option(object):
 		self.value = default
 		self.callback = callback
 
+	def __repr__(self):
+		return "<{0} name='{1}' value={2!r} >".format(self.__class__.__name__, self.name, self.value)
+
 class Options(collections.abc.Mapping):
 	"""
 	This is a generic options container, it is used to organize framework
@@ -145,7 +148,7 @@ class Options(collections.abc.Mapping):
 		option = self.get_option(name)
 		old_value = option.value
 		if option.type in ('str', 'rfile'):
-			pass
+			option.value = value
 		elif option.type == 'int':
 			value = value.lower()
 			if not value.isdigit():
@@ -178,7 +181,7 @@ class Options(collections.abc.Mapping):
 		Get a list of options that are required, but with default values
 		of None.
 		"""
-		return [option for option in self.values() if option.required and option.value is None]
+		return [option.name for option in self._options.values() if option.required and option.value is None]
 
 	def get_option(self, name):
 		"""

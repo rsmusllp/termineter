@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 import collections
 import collections.abc
+import enum
 import importlib
 import logging
 
@@ -30,6 +31,11 @@ import termineter.options
 import pluginbase
 
 _ModuleReference = collections.namedtuple('_ModuleReference', ('instance', 'pymodule'))
+
+class ConnectionState(enum.Enum):
+	none = 'none'
+	connected = 'connected'
+	authenticated = 'authenticated'
 
 class ManagerManager(collections.abc.Mapping):
 	def __init__(self, frmwk, searchpath):
@@ -130,6 +136,11 @@ class TermineterModuleOptical(TermineterModule):
 		'NBRPKTS',
 		'PKTSIZE'
 	)
-	require_connection = True
+	connection_state = ConnectionState.authenticated
+	connection_states = ConnectionState
 	def __init__(self, *args, **kwargs):
 		super(TermineterModuleOptical, self).__init__(*args, **kwargs)
+
+	@property
+	def connection(self):
+		return self.frmwk.serial_connection

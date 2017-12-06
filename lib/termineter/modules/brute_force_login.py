@@ -53,7 +53,7 @@ def to_hex(data):
 	return binascii.b2a_hex(data).decode('utf-8')
 
 class Module(TermineterModuleOptical):
-	require_connection = False
+	connection_state = TermineterModuleOptical.connection_states.none
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
 		self.author = ['Spencer McIntyre']
