@@ -466,20 +466,19 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			options = self.frmwk.options
 			advanced_options = self.frmwk.advanced_options
 		if args.option_name in options:
-			try:
-				options.set_option(args.option_name, args.option_value)
-				self.print_line(args.option_name + ' => ' + args.option_value)
-			except TypeError:
-				self.print_error('Invalid data type')
-			return
+			pass
 		elif args.option_name in advanced_options:
-			try:
-				advanced_options.set_option(args.option_name, args.option_value)
-				self.print_line(args.option_name + ' => ' + args.option_value)
-			except TypeError:
-				self.print_error('Invalid data type')
+			options = advanced_options
+		else:
+			self.print_error('Unknown option: ' + args.option_name)
 			return
-		self.print_error('Unknown variable name')
+		try:
+			success = options.set_option(args.option_name, args.option_value)
+		except TypeError:
+			self.print_error('Invalid data type')
+			return
+		if success:
+			self.print_line(args.option_name + ' => ' + args.option_value)
 
 	def complete_set(self, text, line, begidx, endidx):
 		if self.frmwk.current_module:

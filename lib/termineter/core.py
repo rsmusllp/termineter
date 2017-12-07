@@ -84,12 +84,14 @@ class Framework(object):
 		self.advanced_options = termineter.options.AdvancedOptions(self.directories)
 		self.advanced_options.add_boolean('AUTO_CONNECT', 'automatically handle connections for modules', default=True)
 		self.advanced_options.add_boolean('CACHE_TABLES', 'cache certain read-only tables', default=True)
-		self.advanced_options.set_callback('CACHE_TABLES', self._opt_callback_set_table_cache_policy)
+		self.advanced_options.set_callback('CACHE_TABLES', self._opt_callback_set_cache_tables)
+		self.advanced_options.add_integer('C1218_MAX_PACKETS', 'c12.18 maximum packets for reassembly', default=2)
+		self.advanced_options.add_integer('C1218_PACKET_SIZE', 'c12.18 maximum packet size', default=512)
 		self.advanced_options.add_integer('SERIAL_BAUD_RATE', 'serial connection baud rate', default=9600)
 		self.advanced_options.add_integer('SERIAL_BYTE_SIZE', 'serial connection byte size', default=serial.EIGHTBITS)
 		self.advanced_options.add_integer('SERIAL_STOP_BITS', 'serial connection stop bits', default=serial.STOPBITS_ONE)
-		self.advanced_options.add_integer('C1218_MAX_PACKETS', 'c12.18 maximum packets for reassembly', default=2)
-		self.advanced_options.add_integer('C1218_PACKET_SIZE', 'c12.18 maximum packet size', default=512)
+		self.advanced_options.add_string('TABLE_FORMAT', 'the format to print tables in', default='simple')
+		self.advanced_options.set_callback('TABLE_FORMAT', self._opt_callback_set_table_format)
 		if sys.platform.startswith('linux'):
 			self.options.set_option('USE_COLOR', 'True')
 
@@ -105,9 +107,15 @@ class Framework(object):
 	def __repr__(self):
 		return '<' + self.__class__.__name__ + ' Loaded Modules: ' + str(len(self.modules)) + ', Serial Connected: ' + str(self.is_serial_connected()) + ' >'
 
-	def _opt_callback_set_table_cache_policy(self, policy, _):
+	def _opt_callback_set_cache_tables(self, policy, _):
 		if self.is_serial_connected():
 			self.serial_connection.set_table_cache_policy(policy)
+		return True
+
+	def _opt_callback_set_table_format(self, table_format, _):
+		if table_format not in tabulate.tabulate_formats:
+			self.print_error('TABLE_FORMAT must be one of: ' + ', '.join(tabulate.tabulate_formats))
+			return False
 		return True
 
 	def _run_optical(self, module):
@@ -257,6 +265,7 @@ class Framework(object):
 		self.stdout.flush()
 
 	def print_table(self, table, headers=(), line_prefix=None, tablefmt=None):
+		tablefmt = tablefmt or self.advanced_options['TABLE_FORMAT']
 		text = tabulate.tabulate(table, headers=headers, tablefmt=tablefmt)
 		if line_prefix:
 			text = '\n'.join(line_prefix + line for line in text.split('\n'))

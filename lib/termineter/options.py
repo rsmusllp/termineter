@@ -174,7 +174,8 @@ class Options(collections.abc.Mapping):
 			raise Exception('unknown value type')
 		if option.callback and not option.callback(value, old_value):
 			option.value = old_value
-		return old_value
+			return False
+		return True
 
 	def get_missing_options(self):
 		"""
