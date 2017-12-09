@@ -380,6 +380,35 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 	def do_print_status(self, args):
 		self.print_status(args.message)
 
+	@termineter.cmd.command('Load the protocon engine')
+	@termineter.cmd.argument('-u', '--url', help='the connection URL (defaults to the serial device)')
+	@termineter.cmd.argument('scripts', metavar='script', nargs='*', help='the script to execute')
+	def do_protocon(self, args):
+		try:
+			import protocon
+		except ImportError:
+			self.print_error('The protocon package is unavailable, please install it first')
+			return
+		if args.url:
+			url = args.url
+		else:
+			url = "serial://{0}?baudrate={1}&bytesize={2}&parity=N&stopbits={3}".format(
+				self.frmwk.options['SERIAL_CONNECTION'],
+				self.frmwk.advanced_options['SERIAL_BAUD_RATE'],
+				self.frmwk.advanced_options['SERIAL_BYTE_SIZE'],
+				self.frmwk.advanced_options['SERIAL_STOP_BITS']
+			)
+		try:
+			engine = protocon.Engine.from_url(url)
+		except protocon.ProtoconDriverError as error:
+			self.print_error('Driver error: ' + error.message)
+		except Exception as error:
+			self.print_exception(error)
+		else:
+			engine.entry(args.scripts)
+			engine.connection.close()
+		return 0
+
 	@termineter.cmd.command('Reload a module into the framework')
 	@termineter.cmd.argument('module', nargs='?', help='the module to reload')
 	def do_reload(self, args):
