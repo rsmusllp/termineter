@@ -93,7 +93,7 @@ class Framework(object):
 		self.advanced_options.add_string('TABLE_FORMAT', 'the format to print tables in', default='simple')
 		self.advanced_options.set_callback('TABLE_FORMAT', self._opt_callback_set_table_format)
 		if sys.platform.startswith('linux'):
-			self.options.set_option('USE_COLOR', 'True')
+			self.options.set_option_value('USE_COLOR', 'True')
 
 		# start loading modules
 		self.current_module = None
@@ -210,7 +210,7 @@ class Framework(object):
 
 	@use_colors.setter
 	def use_colors(self, value):
-		self.options.set_option('USE_COLOR', str(value))
+		self.options.set_option_value('USE_COLOR', str(value))
 
 	def get_module_logger(self, name):
 		"""

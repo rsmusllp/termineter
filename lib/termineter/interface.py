@@ -502,7 +502,7 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 			self.print_error('Unknown option: ' + args.option_name)
 			return
 		try:
-			success = options.set_option(args.option_name, args.option_value)
+			success = options.set_option_value(args.option_name, args.option_value)
 		except TypeError:
 			self.print_error('Invalid data type')
 			return

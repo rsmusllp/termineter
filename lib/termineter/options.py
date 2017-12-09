@@ -56,7 +56,7 @@ class Options(collections.abc.Mapping):
 		self._options = {}
 
 	def __getitem__(self, item):
-		return self._options[item].value
+		return self.get_option_value(item)
 
 	def __iter__(self):
 		return iter(self._options)
@@ -137,7 +137,7 @@ class Options(collections.abc.Mapping):
 		"""
 		self.get_option(name).callback = callback
 
-	def set_option(self, name, value):
+	def set_option_value(self, name, value):
 		"""
 		Set an option's value.
 
@@ -192,6 +192,9 @@ class Options(collections.abc.Mapping):
 		:return: The option instance.
 		"""
 		return self._options[name]
+
+	def get_option_value(self, name):
+		return self.get_option(name).value
 
 class AdvancedOptions(Options):
 	pass
