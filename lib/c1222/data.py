@@ -78,8 +78,8 @@ class C1222EPSEM(C1222Data):
 	def __repr__(self):
 		return '<C1222EPSEM data=0x' + binascii.b2a_hex(self.data).decode('utf-8') + ' data_len=' + str(len(self.data)) + ' >'
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) < 2:
 			raise Exception('invalid data (size)')
 		flags = data[0]
@@ -100,7 +100,7 @@ class C1222EPSEM(C1222Data):
 			data = data[2:]
 		if length != len(data):
 			raise Exception('invalid data (size)')
-		epsem = C1222EPSEM(data, ed_class)
+		epsem = cls(data, ed_class)
 		epsem.reserved = reserved
 		epsem.recovery = recovery
 		epsem.proxy_service = proxy_service
@@ -124,8 +124,8 @@ class C1222UserInformation(C1222Data):
 	def __init__(self, data):
 		self.data = data
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) < 6:
 			raise Exception('invalid data (size)')
 		if data[0] != 0xbe:
@@ -142,7 +142,7 @@ class C1222UserInformation(C1222Data):
 			raise Exception('invalid start byte')
 		if data[5] != len(data[6:]):
 			raise Exception('invalid data (size)')
-		return C1222UserInformation(data[6:])
+		return cls(data[6:])
 
 	def build(self):
 		data = self.data
@@ -361,9 +361,9 @@ class C1222Packet(C1222Request):
 		else:
 			return '<C1222Packet data=0x' + str(self._data).encode('hex') + ' data_len=' + str(len(self._data)) + ' >'
 
-	@staticmethod
-	def parse(data):
-		if data[0] != b'\x60':
+	@classmethod
+	def from_bytes(cls, data):
+		if data[0] != 0x60:
 			raise Exception('invalid start byte')
 
 		(called_ap, data) = ber_decoder.decode(data)
@@ -371,14 +371,14 @@ class C1222Packet(C1222Request):
 		(calling_ap, data) = ber_decoder.decode(data)
 		(calling_ap_invocation_id, data) = ber_decoder.decode(data)
 
-		if data[0] == b'\xbe':
-			data = C1222UserInformation.parse(data)
+		if data[0] == 0xbe:
+			data = C1222UserInformation.from_bytes(data)
 
 		called_ap = C1222CalledAPTitle(called_ap)
 		calling_ap = C1222CallingAPTitle(calling_ap)
 		calling_ap_invocation_id = C1222CallingAPInvocationID(calling_ap_invocation_id)
 
-		frame = C1222Packet(called_ap, calling_ap, calling_ap_invocation_id, data)
+		frame = cls(called_ap, calling_ap, calling_ap_invocation_id, data)
 		return frame
 
 	@property

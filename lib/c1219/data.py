@@ -130,7 +130,7 @@ def get_table_idcb_field(endianess, data):
 	flag3 = bool(bfld & 32768)
 	return (proc_nbr, std_vs_mfg, proc_flag, flag1, flag2, flag3)
 
-class C1219ProcedureInit:
+class C1219ProcedureInit(object):
 	"""
 	A C1219 Procedure Request, this data is written to table 7 in order to
 	start a procedure.
@@ -175,10 +175,10 @@ class C1219ProcedureInit:
 	def build(self):
 		return self.table_idb_bfld + struct.pack('B', self.seqnum) + self.params
 
-	@staticmethod
-	def parse(endianess, data):
+	@classmethod
+	def from_bytes(cls, endianess, data):
 		if len(data) < 3:
 			raise Exception('invalid data (size)')
 		proc_nbr, std_vs_mfg, selector = get_table_idbb_field(endianess, data[0:2])
 		seqnum = data[2]
-		return C1219ProcedureInit(endianess, proc_nbr, std_vs_mfg, selector, seqnum, data[3:])
+		return cls(endianess, proc_nbr, std_vs_mfg, selector, seqnum, data[3:])
