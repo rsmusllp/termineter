@@ -52,6 +52,10 @@ Termineter is a Python framework which provides a platform for the security \
 testing of smart meters.\
 """
 
+with open(os.path.join(base_directory, 'requirements.txt'), 'r') as file_h:
+	requirements = file_h.readlines()
+requirements = [line.strip() for line in requirements]
+
 setup(
 	name='termineter',
 	version=__version__,
@@ -62,13 +66,7 @@ setup(
 	long_description=long_description,
 	url='https://github.com/securestate/termineter',
 	license='GPLv3',
-	install_requires=[
-		'crcelk>=1.0',
-		'pluginbase>=0.5',
-		'pyasn1>=0.1.7',
-		'pyserial>=2.6',
-		'smoke-zephyr>=1.2'
-	],
+	install_requires=requirements,
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
 	package_data={
