@@ -314,7 +314,7 @@ class Connection(ConnectionBase):
 		self.send(C1218LogonRequest(username, userid))
 		data = self.recv()
 		if data != b'\x00':
-			self.logger.warning('login failed, user name and user id rejected')
+			self.logger.warning('login failed, username and user id rejected')
 			return False
 
 		if password is not None:

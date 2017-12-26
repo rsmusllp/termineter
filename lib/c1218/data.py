@@ -66,9 +66,13 @@ class C1218Request(object):
 	def build(self):
 		raise NotImplementedError('no build method defined')
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		raise NotImplementedError('no parse method defined')
+
+	@classmethod
+	def from_hex(cls, data):
+		return cls.from_bytes(binascii.a2b_hex(data))
 
 	@property
 	def name(self):
@@ -90,15 +94,15 @@ class C1218LogonRequest(C1218Request):
 	def build(self):
 		return self.logon + self._userid + self._username
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) != 13:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x50':
+		if data[0] != 0x50:
 			raise Exception('invalid start byte')
 		userid = struct.unpack('>H', data[1:3])[0]
 		username = data[3:]
-		return C1218LogonRequest(username, userid)
+		return cls(username, userid)
 
 	def set_userid(self, userid):
 		if isinstance(userid, str) and userid.isdigit():
@@ -133,14 +137,14 @@ class C1218SecurityRequest(C1218Request):
 	def build(self):
 		return self.security + self._password
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) != 21:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x51':
+		if data[0] != 0x51:
 			raise Exception('invalid start byte')
 		password = data[1:21]
-		return C1218SecurityRequest(password)
+		return cls(password)
 
 	def set_password(self, value):
 		if len(value) > 20:
@@ -158,13 +162,13 @@ class C1218LogoffRequest(C1218Request):
 	def build(self):
 		return self.logoff
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) != 1:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x52':
+		if data[0] != 0x52:
 			raise Exception('invalid start byte')
-		return C1218LogoffRequest()
+		return cls()
 
 class C1218NegotiateRequest(C1218Request):
 	negotiate = b'\x60'
@@ -182,8 +186,8 @@ class C1218NegotiateRequest(C1218Request):
 		nbrpkt = struct.pack('B', self._nbrpkt)
 		return self.negotiate + pktsize + nbrpkt + self._baudrate
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if data[0] == 0x60:
 			baud_included = False
 			if len(data) != 4:
@@ -201,8 +205,8 @@ class C1218NegotiateRequest(C1218Request):
 			baudrate = data[4]
 			if baudrate == 0 or baudrate > 10:
 				raise Exception('invalid data (invalid baudrate)')
-		request = C1218NegotiateRequest(pktsize, nbrpkt, baudrate)
-		request.negotiate = data[0]
+		request = cls(pktsize, nbrpkt, baudrate)
+		request.negotiate = struct.pack('B', data[0])
 		return request
 
 	def set_pktsize(self, pktsize):
@@ -230,42 +234,42 @@ class C1218WaitRequest(C1218Request):
 	def build(self):
 		return self.wait + self._time
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) != 2:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x70':
+		if data[0] != 0x70:
 			raise Exception('invalid start byte')
-		return C1218WaitRequest(ord(data[1]))
+		return cls(data[1])
 
 	def set_time(self, time):
-		self._time = chr(time)
+		self._time = struct.pack('B', time)
 
 class C1218IdentRequest(C1218Request):
 	ident = b'\x20'
 	def build(self):
 		return self.ident
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) != 1:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x20':
+		if data[0] != 0x20:
 			raise Exception('invalid start byte')
-		return C1218IdentRequest()
+		return cls()
 
 class C1218TerminateRequest(C1218Request):
 	terminate = b'\x21'
 	def build(self):
 		return self.terminate
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) != 1:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x21':
+		if data[0] != 0x21:
 			raise Exception('invalid start byte')
-		return C1218TerminateRequest()
+		return cls()
 
 class C1218ReadRequest(C1218Request):
 	read = b'\x30'
@@ -282,21 +286,21 @@ class C1218ReadRequest(C1218Request):
 	def build(self):
 		return self.read + self._tableid + self._offset + self._octetcount
 
-	@staticmethod
-	def parse(data):
-		if (data[0] == b'\x30' and len(data) < 3) or (data[0] == b'\x3f' and len(data) < 8):
+	@classmethod
+	def from_bytes(cls, data):
+		if (data[0] == 0x30 and len(data) < 3) or (data[0] == 0x3f and len(data) < 8):
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x30' and data[0] != b'\x3f':
+		if data[0] != 0x30 and data[0] != 0x3f:
 			raise Exception('invalid start byte')
 		tableid = struct.unpack('>H', data[1:3])[0]
-		if data[0] == b'\x30':
+		if data[0] == 0x30:
 			offset = None
 			octetcount = None
-		elif data[0] == b'\x3f':
+		elif data[0] == 0x3f:
 			offset = struct.unpack('>I', b'\x00' + data[3:6])[0]
 			octetcount = struct.unpack('>H', data[6:8])[0]
-		request = C1218ReadRequest(tableid, offset, octetcount)
-		request.read = data[0]
+		request = cls(tableid, offset, octetcount)
+		request.read = struct.pack('B', data[0])
 		return request
 
 	def set_tableid(self, tableid):
@@ -351,23 +355,23 @@ class C1218WriteRequest(C1218Request):
 		packet += data_checksum(self._data)
 		return packet
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) < 3:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\x40' and data[0] != b'\x4f':
+		if data[0] != 0x40 and data[0] != 0x4f:
 			raise Exception('invalid start byte')
 		tableid = struct.unpack('>H', data[1:3])[0]
 		chksum = data[-1]
-		if data[0] == b'\x40':
+		if data[0] == 0x40:
 			table_data = data[5:-1]
 			offset = None
-		elif data[0] == b'\x4f':
+		elif data[0] == 0x4f:
 			table_data = data[8:-1]
 			offset = struct.unpack('>I', b'\x00' + data[3:6])[0]
 		if check_data_checksum(table_data, chksum):
 			raise Exception('invalid check sum')
-		request = C1218WriteRequest(tableid, table_data, offset=offset)
+		request = cls(tableid, table_data, offset=offset)
 		request.write = data[0]
 		return request
 
@@ -415,7 +419,8 @@ class C1218Packet(C1218Request):
 			repr_data = repr(self._data)
 		else:
 			repr_data = '0x' + binascii.b2a_hex(self._data).decode('utf-8')
-		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self._data)) + ' crc=0x' + binascii.b2a_hex(packet_checksum(self.start + self.identity + self.control + self.sequence + self._length + self._data)).decode('utf-8') + ' >'
+		crc = binascii.b2a_hex(packet_checksum(self.start + self.identity + self.control + self.sequence + self._length + self._data)).decode('utf-8')
+		return '<C1218Packet data=' + repr_data + ' data_len=' + str(len(self._data)) + ' crc=0x' + crc + ' >'
 
 	@property
 	def data(self):
@@ -425,25 +430,23 @@ class C1218Packet(C1218Request):
 	def data(self, value):
 		self.set_data(value)
 
-	@staticmethod
-	def parse(data):
+	@classmethod
+	def from_bytes(cls, data):
 		if len(data) < 8:
 			raise Exception('invalid data (size)')
-		if data[0] != b'\xee':
+		if data[0] != 0xee:
 			raise Exception('invalid start byte')
 		identity = data[1]
-		control = ord(data[2])
+		control = data[2]
 		sequence = data[3]
 		length = struct.unpack('>H', data[4:6])[0]
 		chksum = data[-2:]
 		if packet_checksum(data[:-2]) != chksum:
 			raise Exception('invalid check sum')
 		data = data[6:-2]
-		if ord(data[0]) in C1218_REQUEST_IDS:
-			data = C1218_REQUEST_IDS[ord(data[0])].parse(data)
 		frame = C1218Packet(data, control, length)
-		frame.identity = identity
-		frame.sequence = sequence
+		frame.identity = struct.pack('B', identity)
+		frame.sequence = struct.pack('B', sequence)
 		return frame
 
 	def set_control(self, control):
