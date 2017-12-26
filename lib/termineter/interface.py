@@ -36,7 +36,7 @@ import termineter.core
 import termineter.errors
 import termineter.its
 
-codename = 'T-900'
+codename = 'T-1000'
 
 def complete_all_paths(path):
 	if not path:

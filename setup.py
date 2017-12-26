@@ -1,9 +1,9 @@
-#!/usr/bin/python3 -B
+#!/usr/bin/env python3
 # vim: tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab
 #
 #  setup.py
 #
-#  Copyright 2016 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
+#  Copyright 2017 Spencer J. McIntyre
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
