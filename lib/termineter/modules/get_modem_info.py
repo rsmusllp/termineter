@@ -22,15 +22,14 @@ from __future__ import unicode_literals
 from c1218.errors import C1218ReadTableError
 from c1219.access.telephone import C1219TelephoneAccess
 from c1219.data import C1219_CALL_STATUS_FLAGS
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Get Information About The Integrated Modem'
-		self.detailed_description = 'This module reads various C1219 tables from decade 90 to gather information about the integrated modem. If successfully parsed, useful information will be displayed.'
+		self.detailed_description = 'This module reads various C12.19 tables from decade 90 to gather information about the integrated modem. If successfully parsed, useful information will be displayed.'
 
 	def run(self):
 		conn = self.frmwk.serial_connection

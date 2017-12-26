@@ -25,12 +25,11 @@ import time
 
 from c1218.errors import C1218ReadTableError
 from c1219.data import C1219_TABLES
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 2
 		self.author = ['Spencer McIntyre']
 		self.description = 'Dump Readable C12.19 Tables From The Device To A CSV File'
 		self.detailed_description = 'This module will enumerate the readable tables on the smart meter and write them out to a CSV formated file for analysis. The format is table id, table name, table data length, table data.  The table data is represented in hex.'
@@ -46,7 +45,7 @@ class Module(TermineterModuleOptical):
 		out_file = open(self.options['FILE'], 'w', 1)
 
 		number_of_tables = 0
-		self.frmwk.print_status('Starting Dump. Writing table data to: ' + self.options.get_option_value('FILE'))
+		self.frmwk.print_status('Starting dump, writing table data to: ' + self.options['FILE'])
 		for tableid in range(lower_boundary, (upper_boundary + 1)):
 			try:
 				data = conn.get_table_data(tableid)

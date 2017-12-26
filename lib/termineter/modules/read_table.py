@@ -20,20 +20,19 @@
 from __future__ import unicode_literals
 
 from c1218.errors import C1218ReadTableError
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Read Data From A C12.19 Table'
 		self.detailed_description = 'This module allows individual tables to be read from the smart meter.'
-		self.options.add_integer('TABLEID', 'table to read from', True)
+		self.options.add_integer('TABLE_ID', 'table to read from', True)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		tableid = self.options['TABLEID']
+		tableid = self.options['TABLE_ID']
 
 		try:
 			data = conn.get_table_data(tableid)
@@ -42,4 +41,3 @@ class Module(TermineterModuleOptical):
 
 		self.frmwk.print_status('Read ' + str(len(data)) + ' bytes')
 		self.frmwk.print_hexdump(data)
-

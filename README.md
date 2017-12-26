@@ -16,7 +16,7 @@ found in North America.  Termineter communicates with Smart Meters via a
 connection using an ANSI type-2 optical probe with a serial interface.
 
 # License
-Copyright (C) 2011-2016, Spencer J. McIntyre
+Copyright (C) 2011-2017, Spencer J. McIntyre
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -33,10 +33,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
-This license does not apply to the following components:
-
-* CrcMoose
-
 # Credits
 Special Thanks To:
 
@@ -52,7 +48,7 @@ Termineter Development Team:
 * Spencer McIntyre of the SecureState Research and Innovation Team
 
 # About
-Author: Spencer McIntyre - [zeroSteiner](https://twitter.com/zeroSteiner)
+Author: Spencer McIntyre - zeroSteiner ([\@zeroSteiner][1])
 
 Author Home Page: http://www.securestate.com/
 
@@ -65,3 +61,5 @@ Termineter can be installed from the Python Package Index using
 pip. Simply run `sudo pip install termineter`.
 
 For additional install information please see the INSTALL.md file.
+
+[1]: https://twitter.com/zeroSteiner

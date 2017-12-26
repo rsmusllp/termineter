@@ -20,24 +20,23 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 
-import cmd
 import code
 import logging
 import os
 import platform
 import random
 import shlex
-import socket
 import subprocess
 import sys
 import textwrap
 
-from termineter import __version__
-from termineter import its
-from termineter.core import Framework
-from termineter.errors import FrameworkRuntimeError
+import termineter
+import termineter.cmd
+import termineter.core
+import termineter.errors
+import termineter.its
 
-__codename__ = 'T-900'
+codename = 'T-1000'
 
 def complete_all_paths(path):
 	if not path:
@@ -59,88 +58,30 @@ def complete_path(path, allow_files=False):
 		paths = [p for p in paths if not os.path.isfile(p)]
 	return paths
 
-class OverrideCmd(cmd.Cmd, object):
-	__doc__ = 'OverrideCmd class is meant to override methods from cmd.Cmd so they can\nbe imported into the base interpreter class.'
-	def __init__(self, *args, **kwargs):
-		cmd.Cmd.__init__(self, *args, **kwargs)
-
-		self.__hidden_commands__ = ['EOF']
-		self.__disabled_commands__ = []
-		self.__package__ = '.'.join(self.__module__.split('.')[:-1])
-
-	def cmdloop(self):
-		while True:
-			try:
-				super(OverrideCmd, self).cmdloop()
-				return
-			except KeyboardInterrupt:
-				self.print_line('')
-				self.print_error('Please use the \'exit\' command to quit')
-				continue
-
-	def get_names(self):
-		commands = super(OverrideCmd, self).get_names()
-		for name in self.__hidden_commands__:
-			if 'do_' + name in commands:
-				commands.remove('do_' + name)
-		for name in self.__disabled_commands__:
-			if 'do_' + name in commands:
-				commands.remove('do_' + name)
-		return commands
-
-	def emptyline(self):
-		# don't do anything on a blank line being passed
-		pass
-
-	def help_help(self):  # Get help out of the undocumented section, stupid python
-		self.do_help('')
-
-	def precmd(self, line):  # use this to allow using '?' after the command for help
-		tmp_line = line.split()
-		if not tmp_line:
-			return line
-		if tmp_line[0] in self.__disabled_commands__:
-			self.default(tmp_line[0])
-			return ''
-		if len(tmp_line) == 1:
-			return line
-		if tmp_line[1] == '?':
-			self.do_help(tmp_line[0])
-			return ''
-		return line
-
-	def do_exit(self, args):
-		return True
-
-	def do_EOF(self, args):
-		"""Exit The Interpreter"""
-		self.print_line('')
-		return self.do_exit('')
-
 # the core interpreter for the console
-class InteractiveInterpreter(OverrideCmd):
-	__doc__ = 'The core interpreter for the program'
+class InteractiveInterpreter(termineter.cmd.Cmd):
+	"""The core interpreter for the CLI interface."""
 	__name__ = 'termineter'
 	prompt = __name__ + ' > '
 	ruler = '+'
 	doc_header = 'Type help <command> For Information\nList Of Available Commands:'
 	def __init__(self, check_rc_file=True, stdin=None, stdout=None, log_handler=None):
-		OverrideCmd.__init__(self, stdin=stdin, stdout=stdout)
-		if stdin is not None:
-			self.use_rawinput = False
+		super(InteractiveInterpreter, self).__init__(stdin=stdin, stdout=stdout)
+		if not self.use_rawinput:
 			# No 'use_rawinput' will cause problems with the ipy command so disable it for now
-			self.__disabled_commands__.append('ipy')
+			self._disabled_commands.append('ipy')
 
-		if not its.on_linux:
-			self.__hidden_commands__.append('prep_driver')
-		self.__hidden_commands__.append('cd')
-		self.__hidden_commands__.append('exploit')
+		if not termineter.its.on_linux:
+			self._hidden_commands.append('prep_driver')
+		self._hidden_commands.append('cd')
+		self._hidden_commands.append('exploit')
+		self._hidden_commands.append('print_status')
 		self.last_module = None
 		self.log_handler = log_handler
 		if self.log_handler is None:
-			self.__disabled_commands__.append('logging')
-		self.logger = logging.getLogger(self.__package__ + '.interpreter')
-		self.frmwk = Framework(stdout=stdout)
+			self._disabled_commands.append('logging')
+		self.logger = logging.getLogger('termineter.interpreter')
+		self.frmwk = termineter.core.Framework(stdout=stdout)
 		self.print_exception = self.frmwk.print_exception
 		self.print_error = self.frmwk.print_error
 		self.print_good = self.frmwk.print_good
@@ -175,13 +116,9 @@ class InteractiveInterpreter(OverrideCmd):
 		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
 		intro += os.linesep
 		fmt_string = "  <[ {0:<18} {1:>18}"
-		intro += fmt_string.format(self.__name__, 'v' + __version__ + '') + os.linesep
-		intro += fmt_string.format('model:', __codename__) + os.linesep
+		intro += fmt_string.format(self.__name__, 'v' + termineter.__version__) + os.linesep
+		intro += fmt_string.format('model:', codename) + os.linesep
 		intro += fmt_string.format('loaded modules:', len(self.frmwk.modules)) + os.linesep
-		#if self.frmwk.rfcat_available:
-		#	intro += fmt_string.format('rfcat:', 'enabled') + os.linesep
-		#else:
-		#	intro += fmt_string.format('rfcat:', 'disabled') + os.linesep
 		return intro
 
 	@property
@@ -194,105 +131,56 @@ class InteractiveInterpreter(OverrideCmd):
 		else:
 			return self.__name__ + ' > '
 
+	def reload_module(self, module):
+		is_current = self.frmwk.current_module and module.path == self.frmwk.current_module.path
+		try:
+			module = self.frmwk.modules.reload(module.path)
+		except termineter.errors.FrameworkRuntimeError:
+			self.print_error('Failed to reload the module')
+			return
+		except Exception as error:
+			self.print_exception(error)
+			return
+		self.print_status('Successfully reloaded module: ' + module.path)
+		if is_current:
+			self.frmwk.current_module = module
+		return module
+
 	def run_rc_file(self, rc_file):
-		if os.path.isfile(rc_file) and os.access(rc_file, os.R_OK):
-			self.logger.info('processing "' + rc_file + '" for commands')
-			for line in open(rc_file, 'r'):
-				line = line.strip()
-				if not len(line) or line[0] == '#':
-					continue
-				if line.startswith('print_'):
-					line = line[6:]
-					print_type, message = line.split(' ', 1)
-					if print_type in ('error', 'good', 'line', 'status'):
-						getattr(self, 'print_' + print_type)(message)
-						continue
-				self.print_line(self.prompt + line.strip())
-				self.onecmd(line.strip())
-		else:
-			self.logger.error('invalid rc file: ' + rc_file)
-			return False
-		return True
+		self.logger.info('processing "' + rc_file + '" for commands')
+		return super(InteractiveInterpreter, self).run_rc_file(rc_file)
 
-	@staticmethod
-	def serve(addr, run_once=False, log_level=None, use_ssl=False, ssl_cert=None):
-		import ssl
-		__package__ = '.'.join(InteractiveInterpreter.__module__.split('.')[:-1])
-		logger = logging.getLogger(__package__ + '.interpreter.server')
+	@classmethod
+	def serve(cls, *args, **kwargs):
+		init_kwargs = kwargs.pop('init_kwargs', {})
+		init_kwargs['check_rc_file'] = False
+		kwargs['init_kwargs'] = init_kwargs
+		super(InteractiveInterpreter, cls).serve(*args, **kwargs)
 
-		srv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		srv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		srv_sock.bind(addr)
-		logger.debug('listening for connections on: ' + addr[0] + ':' + str(addr[1]))
-		srv_sock.listen(1)
-		while True:
-			try:
-				(clt_sock, clt_addr) = srv_sock.accept()
-			except KeyboardInterrupt:
-				break
-			logger.info('received connection from: ' + clt_addr[0] + ':' + str(clt_addr[1]))
-
-			if use_ssl:
-				ssl_sock = ssl.wrap_socket(clt_sock, server_side=True, certfile=ssl_cert)
-				ins = ssl_sock.makefile('r', 1)
-				outs = ssl_sock.makefile('w', 1)
-			else:
-				ins = clt_sock.makefile('r', 1)
-				outs = clt_sock.makefile('w', 1)
-
-			log_stream = logging.StreamHandler(outs)
-			if log_level is not None:
-				log_stream.setLevel(log_level)
-			log_stream.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
-			logging.getLogger('').addHandler(log_stream)
-
-			interpreter = InteractiveInterpreter(check_rc_file=False, stdin=ins, stdout=outs)
-			try:
-				interpreter.cmdloop()
-			except socket.error:
-				log_stream.close()
-				logging.getLogger('').removeHandler(log_stream)
-				logger.warning('received a socket error during the main interpreter loop')
-				continue
-			log_stream.flush()
-			log_stream.close()
-			logging.getLogger('').removeHandler(log_stream)
-
-			outs.close()
-			ins.close()
-			clt_sock.shutdown(socket.SHUT_RDWR)
-			clt_sock.close()
-			del clt_sock
-			if run_once:
-				break
-		srv_sock.shutdown(socket.SHUT_RDWR)
-		srv_sock.close()
-
+	@termineter.cmd.command('Stop using a module and return back to the framework context.')
 	def do_back(self, args):
-		"""Stop using a module"""
 		self.frmwk.current_module = None
 
+	@termineter.cmd.command('Display the banner')
 	def do_banner(self, args):
-		"""Print the banner"""
 		self.print_line(self.intro)
 
+	@termineter.cmd.command('Change the current working directory.')
+	@termineter.cmd.argument('path', help='the new path to change into')
 	def do_cd(self, args):
-		"""Change the current working directory"""
-		path = args.split(' ')[0]
-		if not path:
+		if not args.path:
 			self.print_error('must specify a path')
 			return
-		if not os.path.isdir(path):
+		if not os.path.isdir(args.path):
 			self.print_error('invalid path')
 			return
-		os.chdir(path)
+		os.chdir(args.path)
 
 	def complete_cd(self, text, line, begidx, endidx):
 		return complete_path(text, allow_files=False)
 
+	@termineter.cmd.command('Connect the serial interface.')
 	def do_connect(self, args):
-		"""Connect the serial interface"""
-		args = shlex.split(args)
 		if self.frmwk.is_serial_connected():
 			self.print_status('Already connected')
 			return
@@ -301,42 +189,14 @@ class InteractiveInterpreter(OverrideCmd):
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
 			return
 		try:
-			self.frmwk.serial_connect()
+			self.frmwk.test_serial_connection()
 		except Exception as error:
 			self.print_exception(error)
 			return
 		self.print_good('Successfully connected and the device is responding')
-		if len(args) and args[0] == '-l':
-			if self.frmwk.serial_login():
-				self.print_good('Successfully authenticated to the device')
-			else:
-				self.print_error('Failed to authenticate to the device')
 
-	def do_disconnect(self, args):
-		"""Disconnect the serial interface"""
-		args = shlex.split(args)
-		if not self.frmwk.is_serial_connected():
-			self.print_error('Not connected')
-			return
-		result = self.frmwk.serial_disconnect()
-		if result:
-			self.print_good('Successfully disconnected')
-		else:
-			self.print_error('An error occurred while closing the serial interface')
-		if len(args) and args[0] == '-r':
-			missing_options = self.frmwk.options.get_missing_options()
-			if missing_options:
-				self.print_error('The following options must be set: ' + ', '.join(missing_options))
-				return
-			try:
-				self.frmwk.serial_connect()
-			except Exception as error:
-				self.print_exception(error)
-				return
-			self.print_good('Successfully reconnected and the device is responding')
-
+	@termineter.cmd.command('Exit the interpreter.')
 	def do_exit(self, args):
-		"""Exit The Interpreter"""
 		quotes = (
 			'I\'ll be back.',
 			'Hasta la vista, baby.',
@@ -353,67 +213,58 @@ class InteractiveInterpreter(OverrideCmd):
 		return True
 
 	def do_exploit(self, args):
-		"""Run the currently selected module"""
+		"""Alias of the 'run' command"""
 		self.do_run(args)
 
 	def do_help(self, args):
 		super(InteractiveInterpreter, self).do_help(args)
 		self.print_line('')
 
+	@termineter.cmd.command('Set and show logging options')
+	@termineter.cmd.argument('level', nargs='?', help='the logging level to set')
 	def do_logging(self, args):
-		"""Set and show logging options"""
-		args = shlex.split(args)
-		if not args:
-			args.append('show')
-		elif not args[0] in ['show', 'set', '-h']:
-			self.print_error('Invalid parameter "' + args[0] + '", use "logging -h" for more information')
-			return
-		if args[0] == '-h':
-			self.print_status('Valid parameters for the "logging" command are: show, set')
-			return
-		elif self.log_handler is None:
+		if self.log_handler is None:
 			self.print_error('No log handler is defined')
 			return
-		if args[0] == 'show':
+		if args.level is None:
 			loglvl = self.log_handler.level
 			self.print_status('Effective logging level is: ' + ({10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR', 50: 'CRITICAL'}.get(loglvl) or 'UNKNOWN'))
-		elif args[0] == 'set':
-			if len(args) == 1:
-				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
-				return
-			new_lvl = args[1].upper()
-			if new_lvl in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
-				self.log_handler.setLevel(getattr(logging, new_lvl))
-				self.print_status('Successfully changed the logging level to: ' + new_lvl)
-			else:
-				self.print_error('Missing log level, valid options are: debug, info, warning, error, critical')
+			return
+
+		new_level = args.level.upper()
+		new_level = next((level for level in ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL') if level.startswith(new_level)), None)
+		if new_level is None:
+			self.print_error('Invalid logging level: ' + args.level)
+		self.log_handler.setLevel(getattr(logging, new_level))
+		self.print_status('Successfully changed the logging level to: ' + new_level)
 
 	def complete_logging(self, text, line, begidx, endidx):
-		return [i for i in ['set', 'show', 'debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text.lower())]
+		return [i for i in ['debug', 'info', 'warning', 'error', 'critical'] if i.startswith(text.lower())]
 
+	@termineter.cmd.command('Show module information')
+	@termineter.cmd.argument('module', nargs='?', help='the module whose information is to be shown')
 	def do_info(self, args):
-		"""Show module information"""
-		args = shlex.split(args)
-		if not args and self.frmwk.current_module is None:
-			self.print_error('Must select module to show information')
-			return
-		if len(args) and args[0]:
-			if args[0] in self.frmwk.modules.keys():
-				module = self.frmwk.modules[args[0]]
-			else:
-				self.print_error('Invalid module name')
+		if args.module is None:
+			if self.frmwk.current_module is None:
+				self.print_error('Must select module to show information')
 				return
-		else:
 			module = self.frmwk.current_module
+		elif args.module in self.frmwk.modules:
+			module = self.frmwk.modules[args.module]
+		else:
+			self.print_error('Invalid module name')
+			return
+
 		self.print_line('')
-		self.print_line('     Name: ' + module.name)
+		self.print_line('        Name: ' + module.name)
 		if len(module.author) == 1:
-			self.print_line('   Author: ' + module.author[0])
+			self.print_line('      Author: ' + module.author[0])
 		elif len(module.author) > 1:
-			self.print_line('  Authors: ' + module.author[0])
+			self.print_line('     Authors: ' + module.author[0])
 			for additional_author in module.author[1:]:
-				self.print_line('               ' + additional_author)
-		self.print_line('  Version: ' + str(module.version))
+				self.print_line('              ' + additional_author)
+		if isinstance(module, termineter.module.TermineterModuleOptical):
+			self.print_line('  Connection: ' + module.connection_state.name)
 		self.print_line('')
 		self.print_line('Basic Options: ')
 		longest_name = 16
@@ -428,7 +279,7 @@ class InteractiveInterpreter(OverrideCmd):
 			option_value = module.options[option_name]
 			if option_value is None:
 				option_value = ''
-			option_desc = module.options.get_option_help(option_name)
+			option_desc = module.options.get_option(option_name).help
 			self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
 		self.print_line('')
 		self.print_line('Description:')
@@ -439,6 +290,7 @@ class InteractiveInterpreter(OverrideCmd):
 	def complete_info(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
 
+	@termineter.cmd.command('Start an interactive Python interpreter')
 	def do_ipy(self, args):
 		"""Start an interactive Python interpreter"""
 		import c1218.data
@@ -448,7 +300,7 @@ class InteractiveInterpreter(OverrideCmd):
 		from c1219.access.log import C1219LogAccess
 		from c1219.access.telephone import C1219TelephoneAccess
 		vars = {
-			'__version__': __version__,
+			'termineter.__version__': termineter.__version__,
 			'C1218Packet': c1218.data.C1218Packet,
 			'C1218ReadRequest': c1218.data.C1218ReadRequest,
 			'C1218WriteRequest': c1218.data.C1218WriteRequest,
@@ -468,39 +320,43 @@ class InteractiveInterpreter(OverrideCmd):
 			vars['conn'] = self.frmwk.serial_connection
 			banner += os.linesep
 			banner += 'The connection instance is in the \'conn\' variable.'
-		pyconsole = code.InteractiveConsole(vars)
-
-		savestdin = os.dup(sys.stdin.fileno())
-		savestdout = os.dup(sys.stdout.fileno())
-		savestderr = os.dup(sys.stderr.fileno())
 		try:
-			pyconsole.interact(banner)
-		except SystemExit:
-			sys.stdin = os.fdopen(savestdin, 'r', 0)
-			sys.stdout = os.fdopen(savestdout, 'w', 0)
-			sys.stderr = os.fdopen(savestderr, 'w', 0)
+			import IPython.terminal.embed
+		except ImportError:
+			pyconsole = code.InteractiveConsole(vars)
+			savestdin = os.dup(sys.stdin.fileno())
+			savestdout = os.dup(sys.stdout.fileno())
+			savestderr = os.dup(sys.stderr.fileno())
+			try:
+				pyconsole.interact(banner)
+			except SystemExit:
+				sys.stdin = os.fdopen(savestdin, 'r', 0)
+				sys.stdout = os.fdopen(savestdout, 'w', 0)
+				sys.stderr = os.fdopen(savestderr, 'w', 0)
+		else:
+			self.print_line(banner)
+			pyconsole = IPython.terminal.embed.InteractiveShellEmbed(
+				ipython_dir=os.path.join(self.frmwk.directories.user_data, 'ipython')
+			)
+			pyconsole.mainloop(vars)
 
+	@termineter.cmd.command('Prepare the optical probe driver')
+	@termineter.cmd.argument('vendor_id', help='the 4 hex digits of the vendor id')
+	@termineter.cmd.argument('product_id', help='the 4 hex digits of the product id')
 	def do_prep_driver(self, args):
-		"""Prep the optical probe driver"""
-		args = shlex.split(args)
-		if len(args) != 2:
-			self.print_line('Usage:')
-			self.print_line('  prep_driver VVVV PPPP')
-			self.print_line('')
-			self.print_line('Where VVVV and PPPP are the 4 hex digits of the vendor and product IDs respectively')
-			return
 		if os.getuid():
 			self.print_error('Must be running as root to prep the driver')
 			return
-		vendor, product = args
-		if vendor.startswith('0x'):
-			vendor = vendor[2:]
-		if product.startswith('0x'):
-			product = product[2:]
+		vendor_id = args.vendor_id
+		if vendor_id.startswith('0x'):
+			vendor_id = vendor_id[2:]
+		product_id = args.product_id
+		if product_id.startswith('0x'):
+			product_id = product_id[2:]
 		linux_kernel_version = platform.uname()[2].split('.')[:2]
 		linux_kernel_version = tuple(int(part) for part in linux_kernel_version)
 		if linux_kernel_version < (3, 12):
-			proc_args = ['modprobe', 'ftdi-sio', "vendor=0x{0}".format(vendor), "product=0x{0}".format(product)]
+			proc_args = ['modprobe', 'ftdi-sio', "vendor=0x{0}".format(vendor_id), "product=0x{0}".format(product_id)]
 		else:
 			proc_args = ['modprobe', 'ftdi-sio']
 		proc_h = subprocess.Popen(proc_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, close_fds=True, shell=False)
@@ -509,44 +365,73 @@ class InteractiveInterpreter(OverrideCmd):
 			return
 		if linux_kernel_version >= (3, 12) and os.path.isfile('/sys/bus/usb-serial/drivers/ftdi_sio/new_id'):
 			with open('/sys/bus/usb-serial/drivers/ftdi_sio/new_id', 'w') as file_h:
-				file_h.write("{0} {1}".format(vendor, product))
+				file_h.write("{0} {1}".format(vendor_id, product_id))
 		self.print_status('Finished driver preparation')
 
+	@termineter.cmd.command('Use the last specified module.')
 	def do_previous(self, args):
-		"""Use the last specified module."""
 		if self.last_module is None:
 			self.frmwk.print_error('no module has been previously selected')
 			return
 		self.frmwk.current_module, self.last_module = self.last_module, self.frmwk.current_module
 
+	@termineter.cmd.command('Print a message in the interface.')
+	@termineter.cmd.argument('message', help='the message to print')
+	def do_print_status(self, args):
+		self.print_status(args.message)
+
+	@termineter.cmd.command('Load the protocon engine')
+	@termineter.cmd.argument('-u', '--url', help='the connection URL (defaults to the serial device)')
+	@termineter.cmd.argument('scripts', metavar='script', nargs='*', help='the script to execute')
+	def do_protocon(self, args):
+		try:
+			import protocon
+		except ImportError:
+			self.print_error('The protocon package is unavailable, please install it first')
+			return
+		if args.url:
+			url = args.url
+		else:
+			url = "serial://{0}?baudrate={1}&bytesize={2}&parity=N&stopbits={3}".format(
+				self.frmwk.options['SERIAL_CONNECTION'],
+				self.frmwk.advanced_options['SERIAL_BAUD_RATE'],
+				self.frmwk.advanced_options['SERIAL_BYTE_SIZE'],
+				self.frmwk.advanced_options['SERIAL_STOP_BITS']
+			)
+		try:
+			engine = protocon.Engine.from_url(url)
+		except protocon.ProtoconDriverError as error:
+			self.print_error('Driver error: ' + error.message)
+		except Exception as error:
+			self.print_exception(error)
+		else:
+			engine.entry(args.scripts)
+			engine.connection.close()
+		return 0
+
+	@termineter.cmd.command('Reload a module into the framework')
+	@termineter.cmd.argument('module', nargs='?', help='the module to reload')
 	def do_reload(self, args):
 		"""Reload a module in to the framework"""
-		args = shlex.split(args)
-		if len(args) == 0:
-			if self.frmwk.current_module:
-				module_path = self.frmwk.current_module.path
-			else:
-				self.print_error('Must \'use\' module first')
+		if args.module is not None:
+			if args.module not in self.frmwk.modules:
+				self.print_error('Invalid Module Selected.')
 				return
-		elif not args[0] in self.frmwk.modules.keys():
-			self.print_error('Invalid Module Selected.')
-			return
+			module = self.frmwk.modules[args.module]
+		elif self.frmwk.current_module:
+			module = self.frmwk.current_module
 		else:
-			module_path = args[0]
-		try:
-			self.frmwk.reload_module(module_path)
-		except FrameworkRuntimeError as err:
-			self.print_error('Failed to reload module')
+			self.print_error('Must \'use\' module first')
 			return
-		self.print_status('Successfully reloaded module: ' + module_path)
+		self.reload_module(module)
 
 	def complete_reload(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
 
+	@termineter.cmd.command('Run one or more resource files')
+	@termineter.cmd.argument('resource_files', metavar='resource_file', nargs='+', help='the resource files to run')
 	def do_resource(self, args):
-		"""Run a resource file"""
-		args = shlex.split(args)
-		for rc_file in args:
+		for rc_file in args.resource_files:
 			if not os.path.isfile(rc_file):
 				self.print_error('Invalid resource file: ' + rc_file + ' (not found)')
 				continue
@@ -559,17 +444,27 @@ class InteractiveInterpreter(OverrideCmd):
 	def complete_resource(self, text, line, begidx, endidx):
 		return complete_path(text, allow_files=True)
 
+	@termineter.cmd.command('Run the specified module')
+	@termineter.cmd.argument('-r', '--reload', action='store_true', default=False, help='reload the module before running it')
+	@termineter.cmd.argument('module', nargs='?', help='the module to run')
 	def do_run(self, args):
-		"""Run the currently selected module"""
-		args = shlex.split(args)
 		old_module = None
-		if len(args) and args[0] in self.frmwk.modules.keys():
+		if args.module is None:
+			if self.frmwk.current_module is None:
+				self.print_error('Must \'use\' module first')
+				return
+		else:
+			if args.module not in self.frmwk.modules:
+				self.print_error('Invalid module specified: ' + args.module)
+				return
 			old_module = self.frmwk.current_module
-			self.frmwk.current_module = self.frmwk.modules[args[0]]
-		if self.frmwk.current_module is None:
-			self.print_error('Must \'use\' module first')
-			return
+			self.frmwk.current_module = self.frmwk.modules[args.module]
 		module = self.frmwk.current_module
+		if args.reload:
+			module = self.reload_module(module)
+			if module is None:
+				return
+
 		missing_options = module.get_missing_options()
 		if missing_options:
 			self.print_error('The following options must be set: ' + ', '.join(missing_options))
@@ -589,36 +484,30 @@ class InteractiveInterpreter(OverrideCmd):
 	def complete_run(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
 
+	@termineter.cmd.command('Set an option\'s value')
+	@termineter.cmd.argument('option_name', metavar='option', help='the option\'s name')
+	@termineter.cmd.argument('option_value', metavar='value', help='the option\'s new value')
 	def do_set(self, args):
-		"""Set an option, usage: set [option] [value]"""
-		args = shlex.split(args)
-		if len(args) < 2:
-			self.print_error('set: [option] [value]')
-			return
-		name = args[0].upper()
-		value = ' '.join(args[1:])
-
 		if self.frmwk.current_module:
 			options = self.frmwk.current_module.options
 			advanced_options = self.frmwk.current_module.advanced_options
 		else:
 			options = self.frmwk.options
 			advanced_options = self.frmwk.advanced_options
-		if name in options:
-			try:
-				options.set_option(name, value)
-				self.print_line(name + ' => ' + value)
-			except TypeError:
-				self.print_error('Invalid data type')
+		if args.option_name in options:
+			pass
+		elif args.option_name in advanced_options:
+			options = advanced_options
+		else:
+			self.print_error('Unknown option: ' + args.option_name)
 			return
-		elif name in advanced_options:
-			try:
-				advanced_options.set_option(name, value)
-				self.print_line(name + ' => ' + value)
-			except TypeError:
-				self.print_error('Invalid data type')
+		try:
+			success = options.set_option_value(args.option_name, args.option_value)
+		except TypeError:
+			self.print_error('Invalid data type')
 			return
-		self.print_error('Unknown variable name')
+		if success:
+			self.print_line(args.option_name + ' => ' + args.option_value)
 
 	def complete_set(self, text, line, begidx, endidx):
 		if self.frmwk.current_module:
@@ -627,82 +516,58 @@ class InteractiveInterpreter(OverrideCmd):
 			options = self.frmwk.options
 		return [i + ' ' for i in options.keys() if i.startswith(text.upper())]
 
+	@termineter.cmd.command('Show the specified information')
+	@termineter.cmd.argument('thing', choices=('advanced', 'modules', 'options'), default='options', nargs='?', help='what to show')
 	def do_show(self, args):
 		"""Valid parameters for the "show" command are: modules, options"""
-		args = shlex.split(args)
-		if len(args) == 0:
-			args.append('options')
-		elif not args[0] in ['advanced', 'modules', 'options', '-h']:
-			self.print_error('Invalid parameter "' + args[0] + '", use "show -h" for more information')
-			return
-		if args[0] == 'modules':
-			self.print_line('')
+		self.print_line('')
+		if args.thing == 'modules':
 			self.print_line('Modules' + os.linesep + '=======')
-			self.print_line('')
-			longest_name = 18
-			for module_name in self.frmwk.modules.keys():
-				longest_name = max(longest_name, len(module_name))
-			fmt_string = "  {0:" + str(longest_name) + "} {1}"
-			self.print_line(fmt_string.format('Name', 'Description'))
-			self.print_line(fmt_string.format('----', '-----------'))
-			module_names = sorted(list(self.frmwk.modules.keys()))
-			module_names.sort()
-			for module_name in module_names:
-				module_obj = self.frmwk.modules[module_name]
-				self.print_line(fmt_string.format(module_name, module_obj.description))
-			self.print_line('')
-			return
-		elif args[0] == 'options' or args[0] == 'advanced':
-			self.print_line('')
-			if self.frmwk.current_module and args[0] == 'options':
+			headers = ('Name', 'Description')
+			rows = [(module.path, module.description) for module in self.frmwk.modules.values()]
+		else:
+			if self.frmwk.current_module and args.thing == 'options':
 				options = self.frmwk.current_module.options
 				self.print_line('Module Options' + os.linesep + '==============')
-			if self.frmwk.current_module and args[0] == 'advanced':
+			if self.frmwk.current_module and args.thing == 'advanced':
 				options = self.frmwk.current_module.advanced_options
 				self.print_line('Advanced Module Options' + os.linesep + '=======================')
-			elif self.frmwk.current_module is None and args[0] == 'options':
+			elif self.frmwk.current_module is None and args.thing == 'options':
 				options = self.frmwk.options
 				self.print_line('Framework Options' + os.linesep + '=================')
-			elif self.frmwk.current_module is None and args[0] == 'advanced':
+			elif self.frmwk.current_module is None and args.thing == 'advanced':
 				options = self.frmwk.advanced_options
 				self.print_line('Advanced Framework Options' + os.linesep + '==========================')
-			self.print_line('')
-			longest_name = 16
-			longest_value = 10
-			for option_name, option_def in options.items():
-				longest_name = max(longest_name, len(option_name))
-				longest_value = max(longest_value, len(str(options[option_name])))
-			fmt_string = "  {0:<" + str(longest_name) + "} {1:<" + str(longest_value) + "} {2}"
-
-			self.print_line(fmt_string.format('Name', 'Value', 'Description'))
-			self.print_line(fmt_string.format('----', '-----', '-----------'))
-			for option_name in options.keys():
-				option_value = options[option_name]
-				if option_value is None:
-					option_value = ''
-				option_desc = options.get_option_help(option_name)
-				self.print_line(fmt_string.format(option_name, str(option_value), option_desc))
-			self.print_line('')
-		elif args[0] == '-h':
-			self.print_status('Valid parameters for the "show" command are: modules, options')
+			headers = ('Name', 'Value', 'Description')
+			raw_options = [options.get_option(name) for name in options]
+			rows = [(option.name, str(option.value), option.help) for option in raw_options]
+		rows = sorted(rows, key=lambda row: row[0])
+		self.print_line('')
+		self.frmwk.print_table(rows, headers=headers, line_prefix='  ')
+		self.print_line('')
+		return
 
 	def complete_show(self, text, line, begidx, endidx):
 		return [i for i in ['advanced', 'modules', 'options'] if i.startswith(text.lower())]
 
+	@termineter.cmd.command('Select a module to use')
+	@termineter.cmd.argument('module', help='the module to use')
 	def do_use(self, args):
-		"""Select a module to use"""
-		args = shlex.split(args)
-		if len(args) != 1:
-			self.print_line('Usage:')
-			self.print_line('  use [module name]')
+		if args.module not in self.frmwk.modules:
+			self.logger.error('failed to change context to module: ' + args.module)
+			self.print_error('Failed to change context to module: ' + args.module)
 			return
-		mod_name = args[0]
-		if mod_name in self.frmwk.modules.keys():
-			self.last_module = self.frmwk.current_module
-			self.frmwk.current_module = self.frmwk.modules[mod_name]
-		else:
-			self.logger.error('failed to load module: ' + mod_name)
-			self.print_error('Failed to load module: ' + mod_name)
+		self.last_module = self.frmwk.current_module
+		self.frmwk.current_module = self.frmwk.modules[args.module]
 
 	def complete_use(self, text, line, begidx, endidx):
 		return [i for i in self.frmwk.modules.keys() if i.startswith(text)]
+
+	@termineter.cmd.command('Show the framework version information')
+	def do_version(self, args):
+		fmt_string = "{0:<18} {1:>24}"
+		self.print_line(fmt_string.format(self.__name__ + ':', 'v' + termineter.__version__))
+		revision = ('unknown' if termineter.revision is None else termineter.revision[:12])
+		self.print_line(fmt_string.format('revision:', revision))
+		self.print_line(fmt_string.format('model:', codename))
+		self.print_line(fmt_string.format('loaded modules:', len(self.frmwk.modules)))

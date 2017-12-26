@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 
 import copy
 import itertools
-import os
 
 import serial
 

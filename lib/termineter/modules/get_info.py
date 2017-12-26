@@ -21,7 +21,7 @@ from __future__ import unicode_literals
 
 from c1218.errors import C1218ReadTableError
 from c1219.access.general import C1219GeneralAccess
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 STATUS_FLAGS = flags = (
 	'Unprogrammed',
@@ -43,7 +43,6 @@ STATUS_FLAGS = flags = (
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Get Basic Meter Information By Reading Tables'
 		self.detailed_description = 'This module retreives some basic meter information and displays it in a human-readable way.'

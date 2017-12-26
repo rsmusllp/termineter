@@ -34,7 +34,7 @@ def sock_read_ready(socket, timeout):
 	readys = select.select([socket.fileno()], [], [], timeout)
 	return len(readys[0]) == 1
 
-class Connection:
+class Connection(object):
 	def __init__(self, host, called_ap, calling_ap, enable_cache=True, bind_host=('', 1153)):
 		self.logger = logging.getLogger('c1222.connection')
 		self.loggerio = logging.getLogger('c1222.connection.io')
@@ -58,11 +58,11 @@ class Connection:
 		self.calling_ap = calling_ap
 
 		self.logged_in = False
-		self.__initialized__ = False
+		self._initialized = False
 		self.c1219_endian = '<'
 		self.caching_enabled = enable_cache
-		self.__cacheable_tbls__ = [0, 1]
-		self.__tbl_cache__ = {}
+		self._cacheable_tables = [0, 1]
+		self._table_cache = {}
 		if enable_cache:
 			self.logger.info('selective table caching has been enabled')
 
@@ -104,10 +104,10 @@ class Connection:
 			data += tmp_data
 			if len(tmp_data) != 8192:
 				break
-		pkt = C1222Packet.parse(data)
+		pkt = C1222Packet.from_bytes(data)
 		if not isinstance(pkt.data, C1222UserInformation):
 			return pkt.data
-		return C1222EPSEM.parse(pkt.data.data)
+		return C1222EPSEM.from_bytes(pkt.data.data)
 
 	def send(self, data):
 		pkt = C1222Packet(self.called_ap, self.calling_ap, random.randint(0, 999999), data=C1222UserInformation(C1222EPSEM(data)))

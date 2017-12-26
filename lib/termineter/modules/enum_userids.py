@@ -21,14 +21,12 @@ from __future__ import unicode_literals
 
 from time import sleep
 
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
-	require_connection = False
-	attempt_login = False
+	connection_state = TermineterModuleOptical.connection_states.none
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Enumerate Valid User IDs From The Device'
 		self.detailed_description = 'This module will enumerate existing user IDs from the device.'

@@ -24,8 +24,8 @@
 #  methods should work.
 
 class BaseC1219TableAccess(object):
-	__tbl_props__ = ()
+	_tbl_props = ()
 	def __getattr__(self, item):
-		if item in self.__tbl_props__:
+		if item in self._tbl_props:
 			return getattr(self, "__{0}__".format(item), None)
 		raise AttributeError()

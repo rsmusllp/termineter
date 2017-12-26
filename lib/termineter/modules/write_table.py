@@ -23,30 +23,29 @@ import binascii
 import re
 
 from c1218.errors import C1218WriteTableError
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 2
 		self.author = ['Spencer McIntyre']
 		self.description = 'Write Data To A C12.19 Table'
 		self.detailed_description = '''\
-		This will over write the data in a write able table on the smart meter. If USEHEX is set to true then the DATA
+		This will over write the data in a write able table on the smart meter. If USE_HEX is set to true then the DATA
 		option is expected to be represented as a string of hex characters.
 		'''
-		self.options.add_integer('TABLEID', 'table to read from', True)
+		self.options.add_integer('TABLE_ID', 'table to read from', True)
 		self.options.add_string('DATA', 'data to write to the table', True)
-		self.options.add_boolean('USEHEX', 'specifies that the \'DATA\' option is represented in hex', default=True)
+		self.options.add_boolean('USE_HEX', 'specifies that the \'DATA\' option is represented in hex', default=True)
 		self.options.add_integer('OFFSET', 'offset to start writing data at', required=False, default=0)
 		self.advanced_options.add_boolean('VERIFY', 'verify that the data was written with a read request', default=True)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
-		tableid = self.options['TABLEID']
+		tableid = self.options['TABLE_ID']
 		data = self.options['DATA']
 		offset = self.options['OFFSET']
-		if self.options['USEHEX']:
+		if self.options['USE_HEX']:
 			data = data.replace(' ', '')
 			hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 			if hex_regex.match(data) is None:
@@ -63,7 +62,7 @@ class Module(TermineterModuleOptical):
 		else:
 			self.frmwk.print_status('Successfully Wrote Data')
 
-		if self.advanced_options.get_option_value('VERIFY'):
+		if self.advanced_options['VERIFY']:
 			table = conn.get_table_data(tableid)
 			if table[offset:offset + len(data)] == data:
 				self.frmwk.print_status('Table Write Verification Passed')

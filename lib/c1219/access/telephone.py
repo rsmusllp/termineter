@@ -35,13 +35,6 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 	This class provides generic access to the telephone/modem configuration
 	tables that are stored in the decade 9x tables.
 	"""
-	__global_bit_rate__ = None
-	__originate_bit_rate__ = None
-	__answer_bit_rate__ = None
-	__prefix_number__ = ''
-	__primary_phone_number_idx__ = None
-	__secondary_phone_number_idx__ = None
-
 	def __init__(self, conn):
 		"""
 		Initializes a new instance of the class and reads tables from the
@@ -51,6 +44,12 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		@param conn: The driver to be used for interacting with the
 		necessary tables.
 		"""
+		self._global_bit_rate = None
+		self._originate_bit_rate = None
+		self._answer_bit_rate = None
+		self._prefix_number = ''
+		self._primary_phone_number_idx = None
+		self._secondary_phone_number_idx = None
 		self.conn = conn
 		actual_telephone_table = self.conn.get_table_data(ACT_TELEPHONE_TBL)
 		global_parameters_table = self.conn.get_table_data(GLOBAL_PARAMETERS_TBL)
@@ -61,39 +60,38 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		if (actual_telephone_table) < 14:
 			raise C1219ParseError('expected to read more data from ACT_TELEPHONE_TBL', ACT_TELEPHONE_TBL)
 
-		info = {}
 		### Parse ACT_TELEPHONE_TBL ###
 		use_extended_status = bool(actual_telephone_table[0] & 128)
 		prefix_length = actual_telephone_table[4]
 		nbr_originate_numbers = actual_telephone_table[5]
 		phone_number_length = actual_telephone_table[6]
 		bit_rate_settings = (actual_telephone_table[1] >> 3) & 3		# not the actual settings but rather where they are defined
-		self.__can_answer__ = bool(actual_telephone_table[0] & 1)
-		self.__use_extended_status__ = use_extended_status
-		self.__nbr_originate_numbers__ = nbr_originate_numbers
+		self._can_answer = bool(actual_telephone_table[0] & 1)
+		self._use_extended_status = use_extended_status
+		self._nbr_originate_numbers = nbr_originate_numbers
 
 		### Parse GLOBAL_PARAMETERS_TBL ###
-		self.__psem_identity__ = global_parameters_table[0]
+		self._psem_identity = global_parameters_table[0]
 		if bit_rate_settings == 1:
 			if len(global_parameters_table) < 5:
 				raise C1219ParseError('expected to read more data from GLOBAL_PARAMETERS_TBL', GLOBAL_PARAMETERS_TBL)
-			self.__global_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', global_parameters_table[1:5])[0]
+			self._global_bit_rate = struct.unpack(conn.c1219_endian + 'I', global_parameters_table[1:5])[0]
 
 		### Parse ORIGINATE_PARAMETERS_TBL ###
 		if bit_rate_settings == 2:
-			self.__originate_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', originate_parameters_table[0:4])[0]
+			self._originate_bit_rate = struct.unpack(conn.c1219_endian + 'I', originate_parameters_table[0:4])[0]
 			originate_parameters_table = originate_parameters_table[4:]
-		self.__dial_delay__ = originate_parameters_table[0]
+		self._dial_delay = originate_parameters_table[0]
 		originate_parameters_table = originate_parameters_table[1:]
 
 		if prefix_length != 0:
-			self.__prefix_number__ = originate_parameters_table[:prefix_length]
+			self._prefix_number = originate_parameters_table[:prefix_length]
 			originate_parameters_table = originate_parameters_table[prefix_length:]
 
-		self.__originating_numbers__ = {}
+		self._originating_numbers = {}
 		tmp = 0
-		while tmp < self.__nbr_originate_numbers__:
-			self.__originating_numbers__[tmp] = {'idx': tmp, 'number': originate_parameters_table[:phone_number_length], 'status': None}
+		while tmp < self._nbr_originate_numbers:
+			self._originating_numbers[tmp] = {'idx': tmp, 'number': originate_parameters_table[:phone_number_length], 'status': None}
 			originate_parameters_table = originate_parameters_table[phone_number_length:]
 			tmp += 1
 
@@ -101,24 +99,24 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 		primary_phone_number_idx = originate_schedule_table[0] & 7
 		secondary_phone_number_idx = (originate_schedule_table[0] >> 4) & 7
 		if primary_phone_number_idx < 7:
-			self.__primary_phone_number_idx__ = primary_phone_number_idx
+			self._primary_phone_number_idx = primary_phone_number_idx
 		if secondary_phone_number_idx < 7:
-			self.__secondary_phone_number_idx__ = secondary_phone_number_idx
+			self._secondary_phone_number_idx = secondary_phone_number_idx
 
 		### Prase ANSWER_PARAMETERS_TBL ###
 		if bit_rate_settings == 2:
-			self.__answer_bit_rate__ = struct.unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
+			self._answer_bit_rate = struct.unpack(conn.c1219_endian + 'I', answer_parameters_table[0:4])[0]
 		self.update_last_call_statuses()
 
 	def initiate_call(self, number=None, idx=None):
 		if number:
 			idx = None
-			for tmpidx in self.__originating_numbers__.keys():
-				if self.__originating_numbers__[tmpidx]['number'] == number:
+			for tmpidx in self._originating_numbers.keys():
+				if self._originating_numbers[tmpidx]['number'] == number:
 					idx = tmpidx
 			if idx is None:
 				raise C1219ProcedureError('target phone number not found in originating numbers')
-		if not idx in self.__originating_numbers__.keys():
+		if not idx in self._originating_numbers.keys():
 			raise C1219ProcedureError('phone number index not within originating numbers range')
 		return self.initiate_call_ex(self.conn, idx)
 
@@ -133,54 +131,54 @@ class C1219TelephoneAccess(object):	# Corresponds To Decade 9x
 			raise C1219ParseError('expected to read more data from CALL_STATUS_TBL', CALL_STATUS_TBL)
 		call_status_rcd_length = (len(call_status_table) / self.nbr_originate_numbers)
 		while tmp < self.nbr_originate_numbers:
-			self.__originating_numbers__[tmp]['status'] = call_status_table[0]
+			self._originating_numbers[tmp]['status'] = call_status_table[0]
 			call_status_table = call_status_table[call_status_rcd_length:]
 			tmp += 1
 
 	@property
 	def answer_bit_rate(self):
-		return self.__answer_bit_rate__
+		return self._answer_bit_rate
 
 	@property
 	def can_answer(self):
-		return self.__can_answer__
+		return self._can_answer
 
 	@property
 	def dial_delay(self):
-		return self.__dial_delay__
+		return self._dial_delay
 
 	@property
 	def global_bit_rate(self):
-		return self.__global_bit_rate__
+		return self._global_bit_rate
 
 	@property
 	def nbr_originate_numbers(self):
-		return self.__nbr_originate_numbers__
+		return self._nbr_originate_numbers
 
 	@property
 	def originate_bit_rate(self):
-		return self.__originate_bit_rate__
+		return self._originate_bit_rate
 
 	@property
 	def originating_numbers(self):
-		return self.__originating_numbers__
+		return self._originating_numbers
 
 	@property
 	def prefix_number(self):
-		return self.__prefix_number__
+		return self._prefix_number
 
 	@property
 	def primary_phone_number_idx(self):
-		return self.__primary_phone_number_idx__
+		return self._primary_phone_number_idx
 
 	@property
 	def psem_identity(self):
-		return self.__psem_identity__
+		return self._psem_identity
 
 	@property
 	def secondary_phone_number_idx(self):
-		return self.__secondary_phone_number_idx__
+		return self._secondary_phone_number_idx
 
 	@property
 	def use_extended_status(self):
-		return self.__use_extended_status__
+		return self._use_extended_status

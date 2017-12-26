@@ -24,7 +24,7 @@ import binascii
 import difflib
 
 import c1219.constants
-from termineter.templates import TermineterModule
+from termineter.module import TermineterModule
 
 HTML_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -66,21 +66,20 @@ HTML_FOOTER = """</body>
 class Module(TermineterModule):
 	def __init__(self, *args, **kwargs):
 		TermineterModule.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Check C12.19 Tables For Differences'
 		self.detailed_description = 'This module will compare two CSV files created with dump_tables and display differences in a formatted HTML file.'
-		self.options.add_string('FIRSTFILE', 'the first csv file to compare')
-		self.options.add_string('SECONDFILE', 'the second csv file to compare')
-		self.options.add_string('REPORTFILE', 'file to write the report data into', default='table_diff.html')
-		self.advanced_options.add_boolean('ALLTABLES', 'do not skip tables that typically change', default=False)
+		self.options.add_string('FIRST_FILE', 'the first csv file to compare')
+		self.options.add_string('SECOND_FILE', 'the second csv file to compare')
+		self.options.add_string('REPORT_FILE', 'file to write the report data into', default='table_diff.html')
+		self.advanced_options.add_boolean('ALL_TABLES', 'do not skip tables that typically change', default=False)
 
 	def run(self):
-		first_file = self.options['FIRSTFILE']
+		first_file = self.options['FIRST_FILE']
 		first_file = open(first_file, 'r')
-		second_file = self.options['SECONDFILE']
+		second_file = self.options['SECOND_FILE']
 		second_file = open(second_file, 'r')
-		self.report = open(self.options['REPORTFILE'], 'w', 1)
+		self.report = open(self.options['REPORT_FILE'], 'w', 1)
 		self.differ = difflib.HtmlDiff()
 		self.tables_to_skip = [
                     c1219.constants.PROC_INITIATE_TBL,
@@ -127,7 +126,7 @@ class Module(TermineterModule):
 		return lid, ldata
 
 	def report_line(self, fline, sline, lineno):
-		if not self.advanced_options['ALLTABLES'] and lineno in self.tables_to_skip:
+		if not self.advanced_options['ALL_TABLES'] and lineno in self.tables_to_skip:
 			return
 		seq = difflib.SequenceMatcher(None, fline, sline)
 		opcodes = seq.get_opcodes()

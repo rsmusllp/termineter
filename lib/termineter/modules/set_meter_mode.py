@@ -24,12 +24,11 @@ import struct
 from c1218.errors import C1218ReadTableError, C1218WriteTableError
 from c1219.constants import C1219_METER_MODE_NAMES, C1219_PROC_RESULT_CODES
 from c1219.errors import C1219ProcedureError
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 
 class Module(TermineterModuleOptical):
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 1
 		self.author = ['Spencer McIntyre']
 		self.description = 'Change the Meter\'s Operating Mode'
 		self.detailed_description = 'Change the operating mode of the meter. Accepted values for MODE are METERING, TEST, METERSHOP, and FACTORY.'

@@ -73,7 +73,7 @@ class C1219LogAccess(object):  # Corresponds To Decade 7x
 		nbr_mfg_events = actual_log_table[2]
 		hist_data_length = actual_log_table[3]
 		event_data_length = actual_log_table[4]
-		self.__nbr_history_entries__, self.__nbr_event_entries__ = struct.unpack(self.conn.c1219_endian + 'HH', actual_log_table[5:9])
+		self.__nbr_history_entries__, self._nbr_event_entries = struct.unpack(self.conn.c1219_endian + 'HH', actual_log_table[5:9])
 		if std_version_no > 1:
 			ext_log_flags = actual_log_table[9]
 			nbr_program_tables = struct.unpack(self.conn.c1219_endian + 'H', actual_log_table[10:12])
@@ -100,15 +100,15 @@ class C1219LogAccess(object):  # Corresponds To Decade 7x
 			raise C1219ParseError('log data size does not align with expected record size, possibly corrupt', HISTORY_LOG_DATA_TBL)
 
 		entry_idx = 0
-		self.__logs__ = []
+		self._logs = []
 		while entry_idx < self.nbr_history_entries:
-			self.__logs__.append(get_history_entry_record(self.conn.c1219_endian, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, log_data[:size_of_log_rcd]))
+			self._logs.append(get_history_entry_record(self.conn.c1219_endian, hist_date_time_flag, tm_format, event_number_flag, hist_seq_nbr_flag, log_data[:size_of_log_rcd]))
 			log_data = log_data[size_of_log_rcd:]
 			entry_idx += 1
 
 	@property
 	def nbr_event_entries(self):
-		return self.__nbr_event_entries__
+		return self._nbr_event_entries
 
 	@property
 	def nbr_history_entries(self):
@@ -116,4 +116,4 @@ class C1219LogAccess(object):  # Corresponds To Decade 7x
 
 	@property
 	def logs(self):
-		return self.__logs__
+		return self._logs

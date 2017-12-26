@@ -1,9 +1,9 @@
-#!/usr/bin/python3 -B
+#!/usr/bin/env python3
 # vim: tabstop=4 softtabstop=4 shiftwidth=4 noexpandtab
 #
 #  setup.py
 #
-#  Copyright 2016 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
+#  Copyright 2017 Spencer J. McIntyre
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -52,6 +52,10 @@ Termineter is a Python framework which provides a platform for the security \
 testing of smart meters.\
 """
 
+with open(os.path.join(base_directory, 'requirements.txt'), 'r') as file_h:
+	requirements = file_h.readlines()
+requirements = [line.strip() for line in requirements]
+
 setup(
 	name='termineter',
 	version=__version__,
@@ -62,26 +66,21 @@ setup(
 	long_description=long_description,
 	url='https://github.com/securestate/termineter',
 	license='GPLv3',
-	install_requires=(
-		'crcelk>=1.0',
-		'pyasn1>=0.1.7',
-		'pyserial>=2.6',
-		'smoke-zephyr==1.0.2'
-	),
+	install_requires=requirements,
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
 	package_data={
 		'': ['data/*'],
 	},
-	classifiers=(
-		b'Development Status :: 5 - Production/Stable',
-		b'Environment :: Console',
-		b'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-		b'Operating System :: OS Independent',
-		b'Programming Language :: Python :: 2.7',
-		b'Programming Language :: Python :: 3.4',
-		b'Programming Language :: Python :: 3.5',
-		b'Topic :: Security'
-	),
+	classifiers=[
+		'Development Status :: 5 - Production/Stable',
+		'Environment :: Console',
+		'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+		'Operating System :: OS Independent',
+		'Programming Language :: Python :: 3.4',
+		'Programming Language :: Python :: 3.5',
+		'Programming Language :: Python :: 3.6',
+		'Topic :: Security'
+	],
 	scripts=['termineter']
 )

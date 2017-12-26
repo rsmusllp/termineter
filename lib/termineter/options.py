@@ -19,6 +19,7 @@
 
 from __future__ import unicode_literals
 
+import collections.abc
 import os
 
 def string_is_hex(string):
@@ -26,7 +27,21 @@ def string_is_hex(string):
 		return False
 	return bool(not filter(lambda c: c not in '0123456789abcdefABCDEF', string))
 
-class Options(dict):
+class Option(object):
+	__slots__ = ('callback', 'default', 'help', 'name', 'required', 'type', 'value')
+	def __init__(self, name, type, help, required, default=None, callback=None):
+		self.name = name
+		self.type = type
+		self.help = help
+		self.required = required
+		self.default = default
+		self.value = default
+		self.callback = callback
+
+	def __repr__(self):
+		return "<{0} name='{1}' value={2!r} >".format(self.__class__.__name__, self.name, self.value)
+
+class Options(collections.abc.Mapping):
 	"""
 	This is a generic options container, it is used to organize framework
 	and module options. Once the options are defined and set, the values
@@ -35,98 +50,63 @@ class Options(dict):
 	"""
 	def __init__(self, directories):
 		"""
-		Initializes a new Options instance
-
-		@type directories: Namespace
-		@param directories: An object with attributes of various
-		directories.
+		:param directories: An object with attributes of various directories.
 		"""
-		dict.__init__(self)
 		self.directories = directories
+		self._options = {}
 
-	def __getitem__(self, name):
-		options_def = dict.__getitem__(self, name)
-		return options_def[3]
+	def __getitem__(self, item):
+		return self.get_option_value(item)
+
+	def __iter__(self):
+		return iter(self._options)
+
+	def __len__(self):
+		return len(self._options)
 
 	def add_string(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of String.
 
-		@type name: String
-		@param name: The name of the option, how it will be referenced.
-
-		@type help: String
-		@param help: The string returned as help to describe how the option
-		is used.
-
-		@type required: Boolean
-		@param required: Whether to require that this option be set or not.
-
-		@type default: String
-		@param default: The default value for this option. If required is
-		True and the user must specify it, set to anything but None.
+		:param str name: The name of the option, how it will be referenced.
+		:param str help: The string returned as help to describe how the option is used.
+		:param bool required: Whether to require that this option be set or not.
+		:param str default: The default value for this option. If required is True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('str', help, required, default, None))
+		self._options[name] = Option(name, 'str', help, required, default=default)
 
 	def add_integer(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of Integer.
 
-		@type name: String
-		@param name: The name of the option, how it will be referenced.
-
-		@type help: String
-		@param help: The string returned as help to describe how the option
-		is used.
-
-		@type required: Boolean
-		@param required: Whether to require that this option be set or not.
-
-		@type default: Integer
-		@param default: The default value for this option. If required is
-		True and the user must specify it, set to anything but None.
+		:param str name: The name of the option, how it will be referenced.
+		:param str help: The string returned as help to describe how the option is used.
+		:param bool required: Whether to require that this option be set or not.
+		:param int default: The default value for this option. If required is True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('int', help, required, default, None))
+		self._options[name] = Option(name, 'int', help, required, default=default)
 
 	def add_float(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of Float.
 
-		@type name: String
-		@param name: The name of the option, how it will be referenced.
-
-		@type help: String
-		@param help: The string returned as help to describe how the option
-		is used.
-
-		@type required: Boolean
-		@param required: Whether to require that this option be set or not.
-
-		@type default: Float
-		@param default: The default value for this option. If required is
-		True and the user must specify it, set to anything but None.
+		:param str name: The name of the option, how it will be referenced.
+		:param str help: The string returned as help to describe how the option is used.
+		:param bool required: Whether to require that this option be set or not.
+		:param float default: The default value for this option. If required is True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('flt', help, required, default, None))
+		self._options[name] = Option(name, 'flt', help, required, default=default)
 
 	def add_boolean(self, name, help, required=True, default=None):
 		"""
 		Add a new option with a type of Boolean.
 
-		@type name: String
-		@param name: The name of the option, how it will be referenced.
-
-		@type help: String
-		@param help: The string returned as help to describe how the option
-		is used.
-
-		@type required: Boolean
-		@param required: Whether to require that this option be set or not.
-
-		@type default: Boolean
-		@param default: The default value for this option. If required is
-		True and the user must specify it, set to anything but None.
+		:param str name: The name of the option, how it will be referenced.
+		:param str help: The string returned as help to describe how the option is used.
+		:param bool required: Whether to require that this option be set or not.
+		:param bool default: The default value for this option. If required is True and the user must specify it, set to anything but None.
 		"""
-		self.__setitem__(name, ('bool', help, required, default, None))
+		self._options[name] = Option(name, 'bool', help, required, default=default)
 
 	def add_rfile(self, name, help, required=True, default=None):
 		"""
@@ -134,126 +114,87 @@ class Options(dict):
 		as the string option with the exception that the default value
 		will have the following variables replaced within it:
 			$USER_DATA The path to the users data directory
-			$MODULES_PATH The path to where modules are stored
 			$DATA_PATH The path to the framework's data directory
 		This will NOT check that the file exists or is readable.
 
-		@type name: String
-		@param name: The name of the option, how it will be referenced.
-
-		@type help: String
-		@param help: The string returned as help to describe how the option
-		is used.
-
-		@type required: Boolean
-		@param required: Whether to require that this option be set or not.
-
-		@type default: String
-		@param default: The default value for this option. If required is
-		True and the user must specify it, set to anything but None.
+		:param str name: The name of the option, how it will be referenced.
+		:param str help: The string returned as help to describe how the option is used.
+		:param bool required: Whether to require that this option be set or not.
+		:param str default: The default value for this option. If required is True and the user must specify it, set to anything but None.
 		"""
 		if isinstance(default, str):
-			default = default.replace('$USER_DATA ', self.directories.user_data + os.path.sep)
-			default = default.replace('$MODULES_PATH ', self.directories.modules_path + os.path.sep)
 			default = default.replace('$DATA_PATH ', self.directories.data_path + os.path.sep)
-		self.__setitem__(name, ('rfile', help, required, default, None))
+			default = default.replace('$USER_DATA ', self.directories.user_data + os.path.sep)
+		self._options[name] = Option(name, 'rfile', help, required, default=default)
 
 	def set_callback(self, name, callback):
 		"""
-		Set an options value
+		Set a callback function for the specified option. This function is
+		called when the option's value changes.
 
-		@type name: String
-		@param name: The options name that is to be changed
-
-		@type callback: Function
-		@param callback: This function will be called when the set_option()
-		is called and will be passed a single parameter of the value that
-		is being set.  It will be called prior to the value being set and
-		an exception can be thrown to alert the user that the value is invalid.
+		:param str name: The name of the option to set the callback for.
+		:param callback: This function to be called when the option is changed.
 		"""
-		if not self.__contains__(name):
-			raise ValueError('invalid variable\option name')
-		options_def = dict.__getitem__(self, name)
-		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], options_def[3], callback))
+		self.get_option(name).callback = callback
 
-	def set_option(self, name, value):
+	def set_option_value(self, name, value):
 		"""
-		Set an options value
+		Set an option's value.
 
-		@type name: String
-		@param name: The options name that is to be changed
-
-		@type value: *
-		@param value: The value to set the option to, the type must be the
-		same as it was defined with using the addX function.
+		:param str name: The name of the option to set the value for.
+		:param str value: The value to set the option to, it will be converted from a string.
+		:return: The previous value for the specified option.
 		"""
-		if not self.__contains__(name):
-			raise ValueError('invalid variable\\option name')
-		options_def = dict.__getitem__(self, name)
-		if options_def[0] in ['str', 'rfile']:
-			pass
-		elif options_def[0] == 'int':
+		option = self.get_option(name)
+		old_value = option.value
+		if option.type in ('str', 'rfile'):
+			option.value = value
+		elif option.type == 'int':
 			value = value.lower()
 			if not value.isdigit():
 				if value.startswith('0x') and string_is_hex(value[2:]):
 					value = int(value[2:], 16)
 				else:
 					raise TypeError('invalid value type')
-			value = int(value)
-		elif options_def[0] == 'flt':
+			option.value = int(value)
+		elif option.type == 'flt':
 			if value.count('.') > 1:
 				raise TypeError('invalid value type')
 			if not value.replace('.', '').isdigit():
 				raise TypeError('invalid value type')
-			value = float(value)
-		elif options_def[0] == 'bool':
+			option.value = float(value)
+		elif option.type == 'bool':
 			if value.lower() in ['true', '1', 'on']:
-				value = True
+				option.value = True
 			elif value.lower() in ['false', '0', 'off']:
-				value = False
+				option.value = False
 			else:
 				raise TypeError('invalid value type')
 		else:
 			raise Exception('unknown value type')
-		if options_def[4]:
-			options_def[4](value)
-		self.__setitem__(name, (options_def[0], options_def[1], options_def[2], value, options_def[4]))
+		if option.callback and not option.callback(value, old_value):
+			option.value = old_value
+			return False
+		return True
 
 	def get_missing_options(self):
 		"""
 		Get a list of options that are required, but with default values
 		of None.
 		"""
-		missing_options = []
-		for option_name, option_def in self.items():
-			if option_def[2] and option_def[3] is None:
-				missing_options.append(option_name)
-		return missing_options
+		return [option.name for option in self._options.values() if option.required and option.value is None]
+
+	def get_option(self, name):
+		"""
+		Get the option instance.
+
+		:param str name: The name of the option to retrieve.
+		:return: The option instance.
+		"""
+		return self._options[name]
 
 	def get_option_value(self, name):
-		"""
-		Return an options value.
-
-		@type name: String
-		@param name: The name of the option who's value is to be returned.
-		"""
-		if not self.__contains__(name):
-			raise ValueError('invalid variable\option name')
-		options_def = dict.__getitem__(self, name)
-		return options_def[3]
-
-	def get_option_help(self, name):
-		"""
-		Return an options help string.
-
-		@type name: String
-		@param name: The name of the option who's help string is to be
-		returned.
-		"""
-		if not self.__contains__(name):
-			raise ValueError('invalid variable\option name')
-		options_def = dict.__getitem__(self, name)
-		return options_def[1]
+		return self.get_option(name).value
 
 class AdvancedOptions(Options):
 	pass
