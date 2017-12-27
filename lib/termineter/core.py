@@ -25,9 +25,7 @@ import logging
 import logging.handlers
 import os
 import re
-import serial
 import sys
-import tabulate
 
 import c1218.connection
 import c1218.errors
@@ -36,7 +34,10 @@ import termineter.errors
 import termineter.options
 import termineter.utilities
 
+import serial
 import serial.serialutil
+import tabulate
+import termcolor
 
 class Framework(object):
 	"""
@@ -240,36 +241,18 @@ class Framework(object):
 		self.print_error(message)
 
 	def print_error(self, message):
+		prefix = '[-] '
 		if self.options['USE_COLOR']:
-			self.stdout.write('\033[1;31m[-] \033[1;m' + (os.linesep + '\033[1;31m[-] \033[1;m').join(message.split(os.linesep)) + os.linesep)
-		else:
-			self.stdout.write('[-] ' + (os.linesep + '[-] ').join(message.split(os.linesep)) + os.linesep)
+			prefix = termcolor.colored(prefix, 'red', attrs=('bold',))
+		self.stdout.write(prefix + (os.linesep + prefix).join(message.split(os.linesep)) + os.linesep)
 		self.stdout.flush()
 
 	def print_good(self, message):
+		prefix = '[+] '
 		if self.options['USE_COLOR']:
-			self.stdout.write('\033[1;32m[+] \033[1;m' + (os.linesep + '\033[1;32m[+] \033[1;m').join(message.split(os.linesep)) + os.linesep)
-		else:
-			self.stdout.write('[+] ' + (os.linesep + '[+] ').join(message.split(os.linesep)) + os.linesep)
+			prefix = termcolor.colored(prefix, 'green', attrs=('bold',))
+		self.stdout.write(prefix + (os.linesep + prefix).join(message.split(os.linesep)) + os.linesep)
 		self.stdout.flush()
-
-	def print_line(self, message):
-		self.stdout.write(message + os.linesep)
-		self.stdout.flush()
-
-	def print_status(self, message):
-		if self.options['USE_COLOR']:
-			self.stdout.write('\033[1;34m[*] \033[1;m' + (os.linesep + '\033[1;34m[*] \033[1;m').join(message.split(os.linesep)) + os.linesep)
-		else:
-			self.stdout.write('[*] ' + (os.linesep + '[*] ').join(message.split(os.linesep)) + os.linesep)
-		self.stdout.flush()
-
-	def print_table(self, table, headers=(), line_prefix=None, tablefmt=None):
-		tablefmt = tablefmt or self.advanced_options['TABLE_FORMAT']
-		text = tabulate.tabulate(table, headers=headers, tablefmt=tablefmt)
-		if line_prefix:
-			text = '\n'.join(line_prefix + line for line in text.split('\n'))
-		self.print_line(text)
 
 	def print_hexdump(self, data):
 		data_len = len(data)
@@ -292,6 +275,31 @@ class Framework(object):
 					r += '.'
 			self.stdout.write(r + os.linesep)
 			i += 16
+		self.stdout.flush()
+
+	def print_line(self, message):
+		self.stdout.write(message + os.linesep)
+		self.stdout.flush()
+
+	def print_status(self, message):
+		prefix = '[*] '
+		if self.options['USE_COLOR']:
+			prefix = termcolor.colored(prefix, 'blue', attrs=('bold',))
+		self.stdout.write(prefix + (os.linesep + prefix).join(message.split(os.linesep)) + os.linesep)
+		self.stdout.flush()
+
+	def print_table(self, table, headers=(), line_prefix=None, tablefmt=None):
+		tablefmt = tablefmt or self.advanced_options['TABLE_FORMAT']
+		text = tabulate.tabulate(table, headers=headers, tablefmt=tablefmt)
+		if line_prefix:
+			text = '\n'.join(line_prefix + line for line in text.split('\n'))
+		self.print_line(text)
+
+	def print_warning(self, message):
+		prefix = '[!] '
+		if self.options['USE_COLOR']:
+			prefix = termcolor.colored(prefix, '', attrs=('bold',))
+		self.stdout.write(prefix + (os.linesep + prefix).join(message.split(os.linesep)) + os.linesep)
 		self.stdout.flush()
 
 	def is_serial_connected(self):

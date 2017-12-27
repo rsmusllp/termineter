@@ -25,7 +25,6 @@ import logging
 import os
 import platform
 import random
-import shlex
 import subprocess
 import sys
 import textwrap
@@ -35,6 +34,8 @@ import termineter.cmd
 import termineter.core
 import termineter.errors
 import termineter.its
+
+import termcolor
 
 codename = 'T-1000'
 
@@ -124,10 +125,10 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 	@property
 	def prompt(self):
 		if self.frmwk.current_module:
+			module_name = self.frmwk.current_module.name
 			if self.frmwk.use_colors:
-				return self.__name__ + ' (\033[1;33m' + self.frmwk.current_module.name + '\033[1;m) > '
-			else:
-				return self.__name__ + ' (' + self.frmwk.current_module.name + ') > '
+				module_name = termcolor.colored(module_name, 'yellow', attrs=('bold',))
+			return self.__name__ + ' (' + module_name + ') > '
 		else:
 			return self.__name__ + ' > '
 
