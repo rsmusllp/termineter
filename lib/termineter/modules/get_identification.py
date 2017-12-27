@@ -1,4 +1,4 @@
-#  termineter/modules/get_identification_info.py
+#  termineter/modules/get_identification.py
 #
 #  Copyright 2017 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #

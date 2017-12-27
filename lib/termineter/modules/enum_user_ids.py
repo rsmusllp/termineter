@@ -1,4 +1,4 @@
-#  termineter/modules/enum_tables.py
+#  termineter/modules/enum_user_ids.py
 #
 #  Copyright 2011 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #

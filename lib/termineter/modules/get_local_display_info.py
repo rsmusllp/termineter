@@ -1,4 +1,4 @@
-#  termineter/modules/get_log_info.py
+#  termineter/modules/get_local_display_info.py
 #
 #  Copyright 2016 Spencer J. McIntyre <SMcIntyre [at] SecureState [dot] net>
 #
