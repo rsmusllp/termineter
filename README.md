@@ -15,6 +15,8 @@ C1219-2007 with 7-bit character sets.  This is the most common configuration
 found in North America.  Termineter communicates with Smart Meters via a
 connection using an ANSI type-2 optical probe with a serial interface.
 
+[![asciicast](https://asciinema.org/a/154407.png)][1]
+
 # License
 Copyright (C) 2011-2017, Spencer J. McIntyre
 
@@ -48,7 +50,7 @@ Termineter Development Team:
 * Spencer McIntyre of the SecureState Research and Innovation Team
 
 # About
-Author: Spencer McIntyre - zeroSteiner ([\@zeroSteiner][1])
+Author: Spencer McIntyre - zeroSteiner ([\@zeroSteiner][2])
 
 Author Home Page: http://www.securestate.com/
 
@@ -62,4 +64,5 @@ pip. Simply run `sudo pip install termineter`.
 
 For additional install information please see the INSTALL.md file.
 
-[1]: https://twitter.com/zeroSteiner
+[1]: https://asciinema.org/a/154407
+[2]: https://twitter.com/zeroSteiner
