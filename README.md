@@ -18,22 +18,8 @@ connection using an ANSI type-2 optical probe with a serial interface.
 [![asciicast](https://asciinema.org/a/154407.png)][1]
 
 # License
-Copyright (C) 2011-2017, Spencer J. McIntyre
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
+Termineter is released under the BSD 3-clause license, for more details see
+the [LICENSE](https://github.com/securestate/termineter/blob/master/LICENSE) file.
 
 # Credits
 Special Thanks To:
