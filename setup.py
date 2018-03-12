@@ -37,13 +37,6 @@ from __future__ import unicode_literals
 import os
 import sys
 
-base_directory = os.path.dirname(__file__)
-lib_directory = os.path.join(base_directory, 'lib')
-if os.path.isdir(os.path.join(lib_directory, 'termineter')):
-	sys.path.insert(0, lib_directory)
-
-from termineter import __version__
-
 try:
 	from setuptools import setup, find_packages
 except ImportError:
@@ -63,13 +56,9 @@ Termineter is a Python framework which provides a platform for the security \
 testing of smart meters.\
 """
 
-with open(os.path.join(base_directory, 'requirements.txt'), 'r') as file_h:
-	requirements = file_h.readlines()
-requirements = [line.strip() for line in requirements]
-
 setup(
 	name='termineter',
-	version=__version__,
+	version='1.0.3',
 	author='Spencer McIntyre',
 	author_email='smcintyre@securestate.com',
 	maintainer='Spencer McIntyre',
@@ -77,7 +66,16 @@ setup(
 	long_description=long_description,
 	url='https://github.com/securestate/termineter',
 	license='BSD',
-	install_requires=requirements,
+	# these are duplicated in requirements.txt
+	install_requires=[
+		'crcelk>=1.0',
+		'pluginbase>=0.5',
+		'pyasn1>=0.1.7',
+		'pyserial>=2.6',
+		'smoke-zephyr>=1.2',
+		'tabulate>=0.8.1',
+		'termcolor>=1.1.0'
+	],
 	package_dir={'': 'lib'},
 	packages=find_packages('lib'),
 	package_data={

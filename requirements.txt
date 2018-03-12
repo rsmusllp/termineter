@@ -1,3 +1,4 @@
+# these are duplicated in setup.py
 crcelk>=1.0
 pluginbase>=0.5
 pyasn1>=0.1.7
