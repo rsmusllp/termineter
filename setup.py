@@ -57,7 +57,7 @@ testing of smart meters.\
 
 setup(
 	name='termineter',
-	version='1.0.4',
+	version='1.0.5',
 	author='Spencer McIntyre',
 	author_email='smcintyre@securestate.com',
 	maintainer='Spencer McIntyre',
