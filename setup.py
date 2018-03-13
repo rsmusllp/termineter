@@ -31,24 +31,23 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
-
 import os
 import sys
+
+base_directory = os.path.dirname(__file__)
 
 try:
 	from setuptools import setup, find_packages
 except ImportError:
-	print('Termineter needs setuptools in order to build. Install it using')
-	print('your package manager (usually python-setuptools) or via pip (pip')
-	print('install setuptools).')
+	print('This project needs setuptools in order to build. Install it using your package')
+	print('manager (usually python-setuptools) or via pip (pip install setuptools).')
 	sys.exit(1)
 
 try:
 	import pypandoc
 	long_description = pypandoc.convert(os.path.join(base_directory, 'README.md'), 'rst')
 except (ImportError, OSError):
+	print('The pypandoc module is unavailable, can not generate the long description', file=sys.stderr)
 	long_description = None
 
 DESCRIPTION = """\
