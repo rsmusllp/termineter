@@ -67,12 +67,12 @@ setup(
 	license='BSD',
 	# these are duplicated in requirements.txt
 	install_requires=[
-		'crcelk>=1.0',
-		'pluginbase>=0.5',
-		'pyasn1>=0.1.7',
-		'pyserial>=2.6',
+		'crcelk>=1.3',
+		'pluginbase>=1.0.0',
+		'pyasn1>=0.4.5',
+		'pyserial>=3.4',
 		'smoke-zephyr>=1.2',
-		'tabulate>=0.8.1',
+		'tabulate>=0.8.3',
 		'termcolor>=1.1.0'
 	],
 	package_dir={'': 'lib'},
