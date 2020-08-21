@@ -221,12 +221,15 @@ class ConnectionBase(object):
 			data = bytearray(data)
 		return data
 
-	def close(self):
+	def close(self, force_stop=False):
 		"""
 		Send a terminate request and then disconnect from the serial device.
+		:param bool force_stop: This param will be sent to method stop() so
+		that it is possible to ignore remote device response and still update
+		_initialized member.
 		"""
 		if self._initialized:
-			self.stop()
+			self.stop(force_stop)
 		self.logged_in = False
 		return self.serial_h.close()
 
