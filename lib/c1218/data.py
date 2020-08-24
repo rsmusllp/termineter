@@ -355,7 +355,7 @@ class C1218WriteRequest(C1218Request):
 		self._crc8 = b''
 		self.set_tableid(tableid)
 		self.set_data(data)
-		if offset is not None and offset != 0:
+		if offset is not None:
 			self.write = b'\x4f'
 			self.set_offset(offset)
 
