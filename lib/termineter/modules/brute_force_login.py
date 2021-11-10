@@ -167,7 +167,7 @@ class Module(TermineterModuleOptical):
 				return
 			pw_generator = BruteForce(dictionary_path)
 
-		for attempt in range(user_id, 1+self.options['USER_ID_RANGE']): # [id, id + range)
+		for attempt in range(user_id, 1+self.options['USER_ID_RANGE']+user_id): # [id, id + range)
 			self.bruteforce_user(pw_generator, attempt)
 
 		return
