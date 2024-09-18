@@ -124,10 +124,10 @@ class InteractiveInterpreter(termineter.cmd.Cmd):
 	@property
 	def intro(self):
 		intro = os.linesep
-		intro += '   ______              _          __         ' + os.linesep
-		intro += '  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
-		intro += '   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
-		intro += '  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
+		intro += r'   ______              _          __         ' + os.linesep
+		intro += r'  /_  __/__ ______ _  (_)__  ___ / /____ ____' + os.linesep
+		intro += r'   / / / -_) __/  \' \/ / _ \/ -_) __/ -_) __/' + os.linesep
+		intro += r'  /_/  \__/_/ /_/_/_/_/_//_/\__/\__/\__/_/   ' + os.linesep
 		intro += os.linesep
 		fmt_string = "  <[ {0:<18} {1:>18}"
 		intro += fmt_string.format(self.__name__, 'v' + termineter.__version__) + os.linesep
