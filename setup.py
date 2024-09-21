@@ -32,6 +32,7 @@
 #
 
 import os
+import re
 import sys
 
 base_directory = os.path.dirname(__file__)
@@ -44,11 +45,17 @@ except ImportError:
 	sys.exit(1)
 
 try:
-	import pypandoc
-	long_description = pypandoc.convert(os.path.join(base_directory, 'README.md'), 'rst')
-except (ImportError, OSError):
-	print('The pypandoc module is unavailable, can not generate the long description', file=sys.stderr)
+	with open(os.path.join(base_directory, 'README.rst')) as file_h:
+		long_description = file_h.read()
+except OSError:
+	sys.stderr.write('README.rst is unavailable, can not generate the long description\n')
 	long_description = None
+
+with open(os.path.join(base_directory, 'lib', 'termineter', '__init__.py')) as file_h:
+	match = re.search(r'^__version__\s*=\s*([\'"])(?P<version>\d+(\.\d)*)\1$', file_h.read(), flags=re.MULTILINE)
+if match is None:
+	raise RuntimeError('Unable to find the version information')
+version = match.group('version')
 
 DESCRIPTION = """\
 Termineter is a Python framework which provides a platform for the security \
@@ -57,7 +64,7 @@ testing of smart meters.\
 
 setup(
 	name='termineter',
-	version='1.0.5',
+	version=version,
 	author='Spencer McIntyre',
 	author_email='smcintyre@securestate.com',
 	maintainer='Spencer McIntyre',
