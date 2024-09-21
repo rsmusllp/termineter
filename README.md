@@ -19,7 +19,7 @@ connection using an ANSI type-2 optical probe with a serial interface.
 
 # License
 Termineter is released under the BSD 3-clause license, for more details see
-the [LICENSE](https://github.com/securestate/termineter/blob/master/LICENSE) file.
+the [LICENSE](https://github.com/rsmusllp/termineter/blob/master/LICENSE) file.
 
 # Credits
 Special Thanks To:
@@ -33,14 +33,12 @@ Special Thanks To:
 
 Termineter Development Team:
 
-* Spencer McIntyre of the SecureState Research and Innovation Team
+* Spencer McIntyre
 
 # About
 Author: Spencer McIntyre - zeroSteiner ([\@zeroSteiner][2])
 
-Author Home Page: http://www.securestate.com/
-
-Project Home Page: https://github.com/securestate/termineter
+Project Home Page: https://github.com/rsmusllp/termineter
 
 Project Documentation: http://termineter.readthedocs.org/en/latest
 
