@@ -1,0 +1,66 @@
+::
+
+      ______                    _            __
+     /_  __/__  _________ ___  (_)___  ___  / /____  _____
+      / / / _ \/ ___/ __ `__ \/ / __ \/ _ \/ __/ _ \/ ___/
+     / / /  __/ /  / / / / / / / / / /  __/ /_/  __/ /
+    /_/  \___/_/  /_/ /_/ /_/_/_/ /_/\___/\__/\___/_/
+
+Summary
+=======
+
+Termineter is a Python framework which provides a platform for the
+security testing of smart meters. It implements the C1218 and C1219
+protocols for communication over an optical interface. Currently
+supported are Meters using C1219-2007 with 7-bit character sets. This is
+the most common configuration found in North America. Termineter
+communicates with Smart Meters via a connection using an ANSI type-2
+optical probe with a serial interface.
+
+|asciicast|
+
+License
+=======
+
+Termineter is released under the BSD 3-clause license, for more details
+see the
+`LICENSE <https://github.com/rsmusllp/termineter/blob/master/LICENSE>`__
+file.
+
+Credits
+=======
+
+Special Thanks To:
+
+-  Caroline Aronoff (Alpha testing and fixing older PySerial
+   compatibility)
+-  Chris Murrey - f8lerror (Alpha testing)
+-  Jake Garlie - jagar (Alpha testing)
+-  Scott Turner - fantomgoat (Bug report and fix)
+-  Kevin Underwood (Bug report and fix)
+-  Don Weber - cutaway (Developer of InGuardians’ OptiGuard)
+
+Termineter Development Team:
+
+-  Spencer McIntyre
+
+About
+=====
+
+Author: Spencer McIntyre - zeroSteiner
+(`@zeroSteiner <https://twitter.com/zeroSteiner>`__)
+
+Project Home Page: https://github.com/rsmusllp/termineter
+
+Project Documentation: http://termineter.readthedocs.org/en/latest
+
+Install
+=======
+
+Termineter can be installed from the Python Package Index using pip.
+Simply run ``sudo pip install termineter``.
+
+For additional install information please see the INSTALL.md file.
+
+.. |asciicast| image:: https://asciinema.org/a/154407.png
+   :target: https://asciinema.org/a/154407
